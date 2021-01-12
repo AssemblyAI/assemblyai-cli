@@ -1,20 +1,17 @@
 from distutils.core import setup
 
-with open('requirements.txt', 'r') as f:
-    requirements = f.read().strip().split()
-
 setup(
     name='assemblyai-cli',
     description='AssemblyAI Command Line Interface',
     author='Evan Hallmark',
     author_email='evan@ehallmarksolutions.com',
-    version='0.2',
+    version='0.3',
     license='MIT',
     url='https://github.com/AssemblyAI/assemblyai-cli',
-    download_url='https://github.com/AssemblyAI/assemblyai-cli/archive/v0.2.tar.gz',
+    download_url='https://github.com/AssemblyAI/assemblyai-cli/archive/v0.3.tar.gz',
     packages=['', 'modules'],
     package_dir={'': 'src'},
-    install_requires=requirements,
+    install_requires=['requests', 'future'],
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
