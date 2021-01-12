@@ -11,7 +11,7 @@ setup(
     version='0.1',
     license='MIT',
     url='https://github.com/AssemblyAI/assemblyai-cli',
-    download_url='https://github.com/AssemblyAI/assemblyai-cli/archive/v_01.tar.gz',
+    download_url='https://github.com/AssemblyAI/assemblyai-cli/archive/v0.1.tar.gz',
     packages=['', 'modules'],
     package_dir={'': 'src'},
     install_requires=requirements,
