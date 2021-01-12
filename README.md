@@ -23,7 +23,7 @@ assemblyai login --api_token <MY_API_TOKEN>
 Transcribe an audio file
 
 ```shell
-assemblyai transcribe --audio_url "https://s3-us-west-2.amazonaws.com/blog.assemblyai.com/audio/8-7-2018-post/7510.mp3"```
+assemblyai transcribe --audio_url "https://s3-us-west-2.amazonaws.com/blog.assemblyai.com/audio/8-7-2018-post/7510.mp3"
 ```
 
 Show all available methods
@@ -43,7 +43,7 @@ assemblyai.exe login --api_token <MY_API_TOKEN>
 Transcribe an audio file
 
 ```shell
-assemblyai.exe transcribe --audio_url "https://s3-us-west-2.amazonaws.com/blog.assemblyai.com/audio/8-7-2018-post/7510.mp3"```
+assemblyai.exe transcribe --audio_url "https://s3-us-west-2.amazonaws.com/blog.assemblyai.com/audio/8-7-2018-post/7510.mp3"
 ```
 
 Show all available methods
