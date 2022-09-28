@@ -15,6 +15,7 @@ import (
 
 	badger "github.com/dgraph-io/badger/v3"
 	"github.com/spf13/cobra"
+	"golang.org/x/term"
 )
 
 var rootCmd = &cobra.Command{
@@ -157,17 +158,35 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Println(transcript.Text)
 		return
 	}
-	w := new(tabwriter.Writer)
+	width, _, err := term.GetSize(0)
+	if err != nil {
+		fmt.Println("Can not get terminal size")
+		return
+	}
 
-	w.Init(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
+	w := tabwriter.NewWriter(os.Stdout, 1, 10, 1, '\t', 0)
 
 	for _, utterance := range transcript.Utterances {
 
 		duration := time.Duration(utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
+		realWidth := width - 24
 
-		fmt.Fprintf(w, "%s\t%s\t%s\t\n", start, speaker, utterance.Text)
+		if len(utterance.Text) > realWidth {
+			for i := 0; i < len(utterance.Text); i += realWidth {
+				end := i + realWidth
+				if end > len(utterance.Text) {
+					end = len(utterance.Text)
+				}
+				fmt.Fprintf(w, "%s\t%s\t%s\n", start, speaker, utterance.Text[i:end])
+				start = ""
+				speaker = ""
+			}
+		} else {
+			fmt.Fprintf(w, "%s\t%s\t%s\n", start, speaker, utterance.Text)
+		}
+
 	}
 	fmt.Fprintln(w)
 	w.Flush()
