@@ -20,23 +20,25 @@ var transcribeCmd = &cobra.Command{
 		This application is a tool to generate the needed files
 		to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		var flags TranscribeFlags
+		var params TranscribeParams
 
-		flags.Poll, _ = cmd.Flags().GetBool("poll")
-		flags.Punctuate, _ = cmd.Flags().GetBool("punctuate")
-		flags.FormatText, _ = cmd.Flags().GetBool("format_text")
-		flags.DualChannel, _ = cmd.Flags().GetBool("dual_channel")
-		flags.Json, _ = cmd.Flags().GetBool("json")
-		flags.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
-		flags.PiiPolicies, _ = cmd.Flags().GetString("pii_policies")
-		flags.AutoHighlights, _ = cmd.Flags().GetBool("auto_highlights")
-		flags.ContentModeration, _ = cmd.Flags().GetBool("content_moderation")
-		flags.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
-		flags.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
-		flags.AutoChapters, _ = cmd.Flags().GetBool("auto_chapters")
-		flags.EntityDetection, _ = cmd.Flags().GetBool("entity_detection")
+		params.Poll, _ = cmd.Flags().GetBool("poll")
+		params.Punctuate, _ = cmd.Flags().GetBool("punctuate")
+		params.FormatText, _ = cmd.Flags().GetBool("format_text")
+		params.DualChannel, _ = cmd.Flags().GetBool("dual_channel")
+		params.Json, _ = cmd.Flags().GetBool("json")
+		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
+		params.PiiPolicies, _ = cmd.Flags().GetString("pii_policies")
+		params.AutoHighlights, _ = cmd.Flags().GetBool("auto_highlights")
+		params.ContentModeration, _ = cmd.Flags().GetBool("content_moderation")
+		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
+		params.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
+		params.AutoChapters, _ = cmd.Flags().GetBool("auto_chapters")
+		params.EntityDetection, _ = cmd.Flags().GetBool("entity_detection")
 
-		Transcribe(flags)
+		params.AudioURL = cmd.Flags().Args()[0]
+
+		Transcribe(params)
 	},
 }
 
@@ -57,33 +59,35 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
 }
 
-func Transcribe(flags TranscribeFlags) {
+func Transcribe(params TranscribeParams) {
 	db := GetOpenDatabase()
 	token := GetStoredToken(db)
 	if token != "" {
 		fmt.Printf("Your Token is %s\n", token)
 		defer db.Close()
+		fmt.Println(params)
+		if params.Poll {
+			// response := QueryApi(token, "/transcript", "POST", nil)
 
-		fmt.Println(flags.Poll)
-		// var transcribeResponse TranscriptResponse
-		// response := QueryApi(token, "/account", "GET", nil)
+		}
 
 		return
 	}
 }
 
-type TranscribeFlags struct {
-	Poll bool
-	Punctuate bool
-	FormatText bool
-	DualChannel bool
-	Json bool
-	RedactPii bool
-	PiiPolicies string
-	AutoHighlights bool
-	ContentModeration bool
-	TopicDetection bool
-	SentimentAnalysis bool
-	AutoChapters bool
-	EntityDetection bool
+type TranscribeParams struct {
+	AudioURL          string `json:"audio_url"`
+	Poll              bool   `json:"poll"`
+	Punctuate         bool   `json:"punctuate"`
+	FormatText        bool   `json:"format_text"`
+	DualChannel       bool   `json:"dual_channel"`
+	Json              bool   `json:"json"`
+	RedactPii         bool   `json:"redact_pii"`
+	PiiPolicies       string `json:"pii_policies"`
+	AutoHighlights    bool   `json:"auto_highlights"`
+	ContentModeration bool   `json:"content_moderation"`
+	TopicDetection    bool   `json:"topic_detection"`
+	SentimentAnalysis bool   `json:"sentiment_analysis"`
+	AutoChapters      bool   `json:"auto_chapters"`
+	EntityDetection   bool   `json:"entity_detection"`
 }

@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -21,7 +20,23 @@ var configCmd = &cobra.Command{
 		This application is a tool to generate the needed files
 		to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		Config()
+		argsArray := cmd.Flags().Args()
+
+		if len(argsArray) == 0 {
+			fmt.Println("Please provide a token")
+			return
+		}
+		token := argsArray[0]
+
+		checkToken := checkIfTokenValid(token)
+
+		if !checkToken.IsVerified {
+			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
+			return
+		}
+		Config(token)
+
+		fmt.Printf("You're now authenticated. Your current balance is $%s\n", checkToken.CurrentBalance)
 	},
 }
 
@@ -29,26 +44,16 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
-func Config() {
-	token := os.Args[len(os.Args) - 1]
+func Config(token string) {
+	db :=  GetOpenDatabase()
+	txn := db.NewTransaction(true)
+	err := txn.Set([]byte(AAITokenEnvName), []byte(token))
+	PrintError(err)
+	
+	defer db.Close()
+	defer txn.Discard()
 
-	checkToken := checkIfTokenValid(token)
-
-	if checkToken.IsVerified {
-		db :=  GetOpenDatabase()
-		txn := db.NewTransaction(true)
-		err := txn.Set([]byte(AAITokenEnvName), []byte(token))
-		PrintError(err)
-		
-		defer db.Close()
-		defer txn.Discard()
-
-		if err := txn.Commit(); err != nil {
-			fmt.Println(err)
-		}
-		fmt.Printf("You're now authenticated. Your current balance is $%s\n", checkToken.CurrentBalance)
-
-	} else {
-		fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
+	if err := txn.Commit(); err != nil {
+		fmt.Println(err)
 	}
 }
