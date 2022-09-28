@@ -29,7 +29,7 @@ var configCmd = &cobra.Command{
 			db :=  GetOpenDatabase()
 			txn := db.NewTransaction(true)
 			err := txn.Set([]byte(AAITokenEnvName), []byte(token))
-			HandleError(err)
+			PrintError(err)
 			
 			defer db.Close()
 			defer txn.Discard()

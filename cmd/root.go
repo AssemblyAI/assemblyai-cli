@@ -15,11 +15,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-
-var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
-var AAIURL = "https://api.assemblyai.com/v2"
-
-
 var rootCmd = &cobra.Command{
 	Use:   "cli",
 	Short: "A brief description of your application",
@@ -45,22 +40,25 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
+var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
+var AAIURL = "https://api.assemblyai.com/v2"
+
 func GetDatabaseConfig() badger.Options {
 	badgerCfg := badger.DefaultOptions("/tmp/badger")
 	badgerCfg.Logger = nil
 	return badgerCfg
 }
 
-func HandleError(err error) {
+func PrintError(err error) {
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 	}
 }
 
 func GetOpenDatabase() *badger.DB {
 	badgerOptions := GetDatabaseConfig()
 	db, err := badger.Open(badgerOptions)
-	HandleError(err)
+	PrintError(err)
 	return db
 }
 
@@ -68,7 +66,12 @@ func GetStoredToken(db *badger.DB) string {
 	var valCopy []byte
 	err := db.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(AAITokenEnvName))
-		HandleError(err)
+		PrintError(err)
+
+		if err != nil {
+			fmt.Println("You need to run `assemblyai config` first")
+			return nil
+		}
 
 		err = item.Value(func(val []byte) error {
 			valCopy = append([]byte{}, val...)
@@ -76,24 +79,24 @@ func GetStoredToken(db *badger.DB) string {
 		})
 		return nil
 	})
-	HandleError(err)
+	PrintError(err)
 
 	return string(valCopy)
 }
 
 func QueryApi(token string, path string, method string, body io.Reader) []byte {
 	resp, err := http.NewRequest(method, AAIURL + path, body)
-	HandleError(err)
+	PrintError(err)
 
 	resp.Header.Add("Accept", "application/json")
 	resp.Header.Add("Authorization", token)
 	
 	response, err := http.DefaultClient.Do(resp)
-	HandleError(err)
+	PrintError(err)
 	defer response.Body.Close()
 	
 	responseData, err := ioutil.ReadAll(response.Body)
-	HandleError(err)
+	PrintError(err)
 
 	return responseData
 }
@@ -115,6 +118,15 @@ func checkIfTokenValid(token string) CheckIfTokenValidResponse {
 	funcResponse.CurrentBalance = fmt.Sprintf("%f", result.CurrentBalance.Amount)
 	
 	return funcResponse
+}
+
+// delete token
+func DeleteToken(db *badger.DB) {
+	err := db.Update(func(txn *badger.Txn) error {
+		err := txn.Delete([]byte(AAITokenEnvName))
+		return err
+	})
+	PrintError(err)
 }
 
 type CheckIfTokenValidResponse struct {

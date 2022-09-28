@@ -20,11 +20,15 @@ var transcribeCmd = &cobra.Command{
 		This application is a tool to generate the needed files
 		to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("transcribe called")
 		db := GetOpenDatabase()
 		token := GetStoredToken(db)
-		fmt.Printf("The answer is: %s\n", token)
-		defer db.Close()
+		if token != "" {
+			fmt.Printf("Your Token is %s\n", token)
+			DeleteToken(db)
+			defer db.Close()
+			return
+		}
+
 	},
 }
 
