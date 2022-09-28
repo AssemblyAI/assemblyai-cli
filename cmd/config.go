@@ -37,7 +37,8 @@ var configCmd = &cobra.Command{
 			if err := txn.Commit(); err != nil {
 				fmt.Println(err)
 			}
-			fmt.Println("You're now authenticated. Your current balance is $" + checkToken.CurrentBalance)
+			fmt.Printf("You're now authenticated. Your current balance is $%s\n", checkToken.CurrentBalance)
+
 		} else {
 			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
 		}

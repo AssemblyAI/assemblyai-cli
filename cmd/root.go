@@ -45,7 +45,6 @@ func init() {
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
-// ConfigureDatabase : Change default options for startup here
 func GetDatabaseConfig() badger.Options {
 	badgerCfg := badger.DefaultOptions("/tmp/badger")
 	badgerCfg.Logger = nil
