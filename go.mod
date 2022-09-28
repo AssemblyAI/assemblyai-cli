@@ -1,4 +1,4 @@
-module github.com/AssemblyAI/assemblyai
+module github.com/AssemblyAI/assemblyai-cli
 
 go 1.19
 
