@@ -22,6 +22,13 @@ var transcribeCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		var params TranscribeParams
 
+		args = cmd.Flags().Args()
+		if len(args) == 0 {
+			fmt.Println("You must provide an audio URL")
+			return
+		}
+		params.AudioURL = args[0]
+
 		params.Poll, _ = cmd.Flags().GetBool("poll")
 		params.Punctuate, _ = cmd.Flags().GetBool("punctuate")
 		params.FormatText, _ = cmd.Flags().GetBool("format_text")
@@ -35,8 +42,6 @@ var transcribeCmd = &cobra.Command{
 		params.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
 		params.AutoChapters, _ = cmd.Flags().GetBool("auto_chapters")
 		params.EntityDetection, _ = cmd.Flags().GetBool("entity_detection")
-
-		params.AudioURL = cmd.Flags().Args()[0]
 
 		Transcribe(params)
 	},
