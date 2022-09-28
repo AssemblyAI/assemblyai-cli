@@ -154,6 +154,8 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 }
 
 func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
+	fmt.Print("\033[1A\033[K")
+	fmt.Println("Transcript")
 	if !transcript.SpeakerLabels {
 		fmt.Println(transcript.Text)
 		return
