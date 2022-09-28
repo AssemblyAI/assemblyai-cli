@@ -10,8 +10,12 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	badger "github.com/dgraph-io/badger/v3"
+	"github.com/fatih/color"
+	table "github.com/rodaine/table"
 	"github.com/spf13/cobra"
 )
 
@@ -85,16 +89,16 @@ func GetStoredToken(db *badger.DB) string {
 }
 
 func QueryApi(token string, path string, method string, body io.Reader) []byte {
-	resp, err := http.NewRequest(method, AAIURL + path, body)
+	resp, err := http.NewRequest(method, AAIURL+path, body)
 	PrintError(err)
 
 	resp.Header.Add("Accept", "application/json")
 	resp.Header.Add("Authorization", token)
-	
+
 	response, err := http.DefaultClient.Do(resp)
 	PrintError(err)
 	defer response.Body.Close()
-	
+
 	responseData, err := ioutil.ReadAll(response.Body)
 	PrintError(err)
 
@@ -112,11 +116,11 @@ func checkIfTokenValid(token string) CheckIfTokenValidResponse {
 
 	var result Account
 	if err := json.Unmarshal(response, &result); err != nil {
-			fmt.Println("Can not unmarshal JSON")
+		fmt.Println("Can not unmarshal JSON")
 	}
 	funcResponse.IsVerified = result.IsVerified
 	funcResponse.CurrentBalance = fmt.Sprintf("%f", result.CurrentBalance.Amount)
-	
+
 	return funcResponse
 }
 
@@ -129,113 +133,160 @@ func DeleteToken(db *badger.DB) {
 	PrintError(err)
 }
 
+func PollTranscription(token string, id string, flags TranscribeFlags) {
+	fmt.Println("◑ We're processing your transcription...")
+
+	for {
+		response := QueryApi(token, "/transcript/"+id, "GET", nil)
+		var transcript TranscriptResponse
+		if err := json.Unmarshal(response, &transcript); err != nil {
+			fmt.Println("Can not unmarshal JSON")
+			return
+		}
+		if transcript.Status == "completed" {
+			if flags.Json {
+				fmt.Println(string(response))
+			}
+			GetFormattedOutput(transcript, flags)
+			return
+		}
+		time.Sleep(5 * time.Second)
+	}
+}
+
+func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
+	if !transcript.SpeakerLabels {
+		fmt.Println(transcript.Text)
+		return
+	}
+	table.DefaultHeaderFormatter = func(format string, vals ...interface{}) string {
+		return strings.ToUpper(fmt.Sprintf(format, vals...))
+	}
+
+	headerFmt := color.New(color.FgGreen, color.Underline).SprintfFunc()
+	columnFmt := color.New(color.FgYellow).SprintfFunc()
+	tbl := table.New("Time", "Speaker", "Text")
+
+	tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt).WithPadding(6)
+
+	for _, utterance := range transcript.Utterances {
+
+		duration := time.Duration(utterance.Start) * time.Millisecond
+		start := fmt.Sprintf("%02d", int(duration.Minutes())) + ":" + fmt.Sprintf("%02d", int(duration.Seconds())%60)
+		speaker := "(Speaker " + utterance.Speaker + ")"
+
+		tbl.AddRow(start, speaker, utterance.Text)
+	}
+	tbl.Print()
+}
+
 type CheckIfTokenValidResponse struct {
 	IsVerified     bool   `json:"is_verified"`
 	CurrentBalance string `json:"current_balance"`
 }
 
 type Account struct {
-	IsVerified     bool           `json:"is_verified"`    
+	IsVerified     bool           `json:"is_verified"`
 	CurrentBalance CurrentBalance `json:"current_balance"`
 }
 
 type CurrentBalance struct {
-	Amount   float64 `json:"amount"`  
+	Amount   float64 `json:"amount"`
 	Currency string  `json:"currency"`
 }
 
 type TranscriptResponse struct {
-	ID                       string                    `json:"id"`                        
-	LanguageModel            string                    `json:"language_model"`            
-	AcousticModel            string                    `json:"acoustic_model"`            
-	LanguageCode             string                    `json:"language_code"`             
-	Status                   string                    `json:"status"`                    
-	AudioURL                 string                    `json:"audio_url"`                 
-	Text                     string                    `json:"text"`                      
-	Words                    []SentimentAnalysisResult `json:"words"`                     
-	Utterances               []SentimentAnalysisResult `json:"utterances"`                
-	Confidence               float64                   `json:"confidence"`                
-	AudioDuration            int64                     `json:"audio_duration"`            
-	Punctuate                bool                      `json:"punctuate"`                 
-	FormatText               bool                      `json:"format_text"`               
-	DualChannel              bool                      `json:"dual_channel"`              
-	WebhookURL               interface{}               `json:"webhook_url"`               
-	WebhookStatusCode        interface{}               `json:"webhook_status_code"`       
-	WebhookAuth              bool                      `json:"webhook_auth"`              
-	WebhookAuthHeaderName    interface{}               `json:"webhook_auth_header_name"`  
-	SpeedBoost               bool                      `json:"speed_boost"`               
-	AutoHighlightsResult     AutoHighlightsResult      `json:"auto_highlights_result"`    
-	AutoHighlights           bool                      `json:"auto_highlights"`           
-	AudioStartFrom           interface{}               `json:"audio_start_from"`          
-	AudioEndAt               interface{}               `json:"audio_end_at"`              
-	WordBoost                []interface{}             `json:"word_boost"`                
-	BoostParam               interface{}               `json:"boost_param"`               
-	FilterProfanity          bool                      `json:"filter_profanity"`          
-	RedactPii                bool                      `json:"redact_pii"`                
-	RedactPiiAudio           bool                      `json:"redact_pii_audio"`          
-	RedactPiiAudioQuality    string                    `json:"redact_pii_audio_quality"`  
-	RedactPiiPolicies        []string                  `json:"redact_pii_policies"`       
-	RedactPiiSub             string                    `json:"redact_pii_sub"`            
-	SpeakerLabels            bool                      `json:"speaker_labels"`            
-	ContentSafety            bool                      `json:"content_safety"`            
-	IabCategories            bool                      `json:"iab_categories"`            
-	ContentSafetyLabels      ContentSafetyLabels       `json:"content_safety_labels"`     
-	IabCategoriesResult      IabCategoriesResult       `json:"iab_categories_result"`     
-	LanguageDetection        bool                      `json:"language_detection"`        
-	CustomSpelling           interface{}               `json:"custom_spelling"`           
-	ClusterID                interface{}               `json:"cluster_id"`                
-	Throttled                interface{}               `json:"throttled"`                 
-	Disfluencies             bool                      `json:"disfluencies"`              
-	SentimentAnalysis        bool                      `json:"sentiment_analysis"`        
-	AutoChapters             bool                      `json:"auto_chapters"`             
-	Chapters                 []Chapter                 `json:"chapters"`                  
+	ID                       string                    `json:"id"`
+	LanguageModel            string                    `json:"language_model"`
+	AcousticModel            string                    `json:"acoustic_model"`
+	LanguageCode             string                    `json:"language_code"`
+	Status                   string                    `json:"status"`
+	AudioURL                 string                    `json:"audio_url"`
+	Text                     string                    `json:"text"`
+	Words                    []SentimentAnalysisResult `json:"words"`
+	Utterances               []SentimentAnalysisResult `json:"utterances"`
+	Confidence               float64                   `json:"confidence"`
+	AudioDuration            int64                     `json:"audio_duration"`
+	Punctuate                bool                      `json:"punctuate"`
+	FormatText               bool                      `json:"format_text"`
+	DualChannel              bool                      `json:"dual_channel"`
+	WebhookURL               interface{}               `json:"webhook_url"`
+	WebhookStatusCode        interface{}               `json:"webhook_status_code"`
+	WebhookAuth              bool                      `json:"webhook_auth"`
+	WebhookAuthHeaderName    interface{}               `json:"webhook_auth_header_name"`
+	SpeedBoost               bool                      `json:"speed_boost"`
+	AutoHighlightsResult     AutoHighlightsResult      `json:"auto_highlights_result"`
+	AutoHighlights           bool                      `json:"auto_highlights"`
+	AudioStartFrom           interface{}               `json:"audio_start_from"`
+	AudioEndAt               interface{}               `json:"audio_end_at"`
+	WordBoost                []interface{}             `json:"word_boost"`
+	BoostParam               interface{}               `json:"boost_param"`
+	FilterProfanity          bool                      `json:"filter_profanity"`
+	RedactPii                bool                      `json:"redact_pii"`
+	RedactPiiAudio           bool                      `json:"redact_pii_audio"`
+	RedactPiiAudioQuality    string                    `json:"redact_pii_audio_quality"`
+	RedactPiiPolicies        []string                  `json:"redact_pii_policies"`
+	RedactPiiSub             string                    `json:"redact_pii_sub"`
+	SpeakerLabels            bool                      `json:"speaker_labels"`
+	ContentSafety            bool                      `json:"content_safety"`
+	IabCategories            bool                      `json:"iab_categories"`
+	ContentSafetyLabels      ContentSafetyLabels       `json:"content_safety_labels"`
+	IabCategoriesResult      IabCategoriesResult       `json:"iab_categories_result"`
+	LanguageDetection        bool                      `json:"language_detection"`
+	CustomSpelling           interface{}               `json:"custom_spelling"`
+	ClusterID                interface{}               `json:"cluster_id"`
+	Throttled                interface{}               `json:"throttled"`
+	Disfluencies             bool                      `json:"disfluencies"`
+	SentimentAnalysis        bool                      `json:"sentiment_analysis"`
+	AutoChapters             bool                      `json:"auto_chapters"`
+	Chapters                 []Chapter                 `json:"chapters"`
 	SentimentAnalysisResults []SentimentAnalysisResult `json:"sentiment_analysis_results"`
-	EntityDetection          bool                      `json:"entity_detection"`          
-	Entities                 []Entity                  `json:"entities"`                  
+	EntityDetection          bool                      `json:"entity_detection"`
+	Entities                 []Entity                  `json:"entities"`
 }
 
 type AutoHighlightsResult struct {
-	Status  string                       `json:"status"` 
+	Status  string                       `json:"status"`
 	Results []AutoHighlightsResultResult `json:"results"`
 }
 
 type AutoHighlightsResultResult struct {
-	Count      int64       `json:"count"`     
-	Rank       float64     `json:"rank"`      
-	Text       string      `json:"text"`      
+	Count      int64       `json:"count"`
+	Rank       float64     `json:"rank"`
+	Text       string      `json:"text"`
 	Timestamps []Timestamp `json:"timestamps"`
 }
 
 type Timestamp struct {
 	Start int64 `json:"start"`
-	End   int64 `json:"end"`  
+	End   int64 `json:"end"`
 }
 
 type Chapter struct {
-	Summary  string `json:"summary"` 
+	Summary  string `json:"summary"`
 	Headline string `json:"headline"`
-	Gist     string `json:"gist"`    
-	Start    int64  `json:"start"`   
-	End      int64  `json:"end"`     
+	Gist     string `json:"gist"`
+	Start    int64  `json:"start"`
+	End      int64  `json:"end"`
 }
 
 type ContentSafetyLabels struct {
-	Status               string                      `json:"status"`                
-	Results              []ContentSafetyLabelsResult `json:"results"`               
-	Summary              Summary                     `json:"summary"`               
+	Status               string                      `json:"status"`
+	Results              []ContentSafetyLabelsResult `json:"results"`
+	Summary              Summary                     `json:"summary"`
 	SeverityScoreSummary SeverityScoreSummary        `json:"severity_score_summary"`
 }
 
 type ContentSafetyLabelsResult struct {
-	Text      string        `json:"text"`     
-	Labels    []PurpleLabel `json:"labels"`   
+	Text      string        `json:"text"`
+	Labels    []PurpleLabel `json:"labels"`
 	Timestamp Timestamp     `json:"timestamp"`
 }
 
 type PurpleLabel struct {
-	Label      string   `json:"label"`     
+	Label      string   `json:"label"`
 	Confidence float64  `json:"confidence"`
-	Severity   *float64 `json:"severity"`  
+	Severity   *float64 `json:"severity"`
 }
 
 type SeverityScoreSummary struct {
@@ -243,66 +294,69 @@ type SeverityScoreSummary struct {
 }
 
 type Profanity struct {
-	Low    int64 `json:"low"`   
+	Low    int64 `json:"low"`
 	Medium int64 `json:"medium"`
-	High   int64 `json:"high"`  
+	High   int64 `json:"high"`
 }
 
 type Summary struct {
 	Profanity float64 `json:"profanity"`
-	Nsfw      float64 `json:"nsfw"`     
+	Nsfw      float64 `json:"nsfw"`
 }
 
 type Entity struct {
 	EntityType EntityType `json:"entity_type"`
-	Text       string     `json:"text"`       
-	Start      int64      `json:"start"`      
-	End        int64      `json:"end"`        
+	Text       string     `json:"text"`
+	Start      int64      `json:"start"`
+	End        int64      `json:"end"`
 }
 
 type IabCategoriesResult struct {
-	Status  string                      `json:"status"` 
+	Status  string                      `json:"status"`
 	Results []IabCategoriesResultResult `json:"results"`
 	Summary map[string]float64          `json:"summary"`
 }
 
 type IabCategoriesResultResult struct {
-	Text      string        `json:"text"`     
-	Labels    []FluffyLabel `json:"labels"`   
+	Text      string        `json:"text"`
+	Labels    []FluffyLabel `json:"labels"`
 	Timestamp Timestamp     `json:"timestamp"`
 }
 
 type FluffyLabel struct {
 	Relevance float64 `json:"relevance"`
-	Label     string  `json:"label"`    
+	Label     string  `json:"label"`
 }
 
 type SentimentAnalysisResult struct {
-	Text       string                    `json:"text"`               
-	Start      int64                     `json:"start"`              
-	End        int64                     `json:"end"`                
+	Text       string                    `json:"text"`
+	Start      int64                     `json:"start"`
+	End        int64                     `json:"end"`
 	Sentiment  *Sentiment                `json:"sentiment,omitempty"`
-	Confidence float64                   `json:"confidence"`         
-	Speaker    Speaker                   `json:"speaker"`            
-	Words      []SentimentAnalysisResult `json:"words,omitempty"`    
+	Confidence float64                   `json:"confidence"`
+	Speaker    Speaker                   `json:"speaker"`
+	Words      []SentimentAnalysisResult `json:"words,omitempty"`
 }
 
 type EntityType string
+
 const (
-	Location EntityType = "location"
-	Occupation EntityType = "occupation"
+	Location     EntityType = "location"
+	Occupation   EntityType = "occupation"
 	Organization EntityType = "organization"
-	PersonName EntityType = "person_name"
+	PersonName   EntityType = "person_name"
 )
 
 type Sentiment string
+
 const (
 	Negative Sentiment = "NEGATIVE"
-	Neutral Sentiment = "NEUTRAL"
+	Neutral  Sentiment = "NEUTRAL"
 	Positive Sentiment = "POSITIVE"
 )
 
 type Speaker string
+
 const (
 	A Speaker = "A"
 	B Speaker = "B"
