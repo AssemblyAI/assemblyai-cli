@@ -10,12 +10,10 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
-	"strings"
+	"text/tabwriter"
 	"time"
 
 	badger "github.com/dgraph-io/badger/v3"
-	"github.com/fatih/color"
-	table "github.com/rodaine/table"
 	"github.com/spf13/cobra"
 )
 
@@ -159,25 +157,20 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Println(transcript.Text)
 		return
 	}
-	table.DefaultHeaderFormatter = func(format string, vals ...interface{}) string {
-		return strings.ToUpper(fmt.Sprintf(format, vals...))
-	}
+	w := new(tabwriter.Writer)
 
-	headerFmt := color.New(color.FgGreen, color.Underline).SprintfFunc()
-	columnFmt := color.New(color.FgYellow).SprintfFunc()
-	tbl := table.New("Time", "Speaker", "Text")
-
-	tbl.WithHeaderFormatter(headerFmt).WithFirstColumnFormatter(columnFmt).WithPadding(6)
+	w.Init(os.Stdout, 0, 8, 1, '\t', tabwriter.AlignRight)
 
 	for _, utterance := range transcript.Utterances {
 
 		duration := time.Duration(utterance.Start) * time.Millisecond
-		start := fmt.Sprintf("%02d", int(duration.Minutes())) + ":" + fmt.Sprintf("%02d", int(duration.Seconds())%60)
-		speaker := "(Speaker " + utterance.Speaker + ")"
+		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
+		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
 
-		tbl.AddRow(start, speaker, utterance.Text)
+		fmt.Fprintf(w, "%s\t%s\t%s\t\n", start, speaker, utterance.Text)
 	}
-	tbl.Print()
+	fmt.Fprintln(w)
+	w.Flush()
 }
 
 type CheckIfTokenValidResponse struct {
