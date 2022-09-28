@@ -23,7 +23,7 @@ var configCmd = &cobra.Command{
 		argsArray := cmd.Flags().Args()
 
 		if len(argsArray) == 0 {
-			fmt.Println("Please provide a token")
+			fmt.Println("Please provide a token. You can get one at https://app.assemblyai.com")
 			return
 		}
 		token := argsArray[0]
@@ -45,11 +45,11 @@ func init() {
 }
 
 func Config(token string) {
-	db :=  GetOpenDatabase()
+	db := GetOpenDatabase()
 	txn := db.NewTransaction(true)
 	err := txn.Set([]byte(AAITokenEnvName), []byte(token))
 	PrintError(err)
-	
+
 	defer db.Close()
 	defer txn.Discard()
 

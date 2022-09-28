@@ -1,4 +1,4 @@
-module github.com/example/cli
+module github.com/AssemblyAI/assemblyai
 
 go 1.19
 
