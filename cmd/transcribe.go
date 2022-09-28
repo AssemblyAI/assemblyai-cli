@@ -24,7 +24,6 @@ var transcribeCmd = &cobra.Command{
 		token := GetStoredToken(db)
 		if token != "" {
 			fmt.Printf("Your Token is %s\n", token)
-			DeleteToken(db)
 			defer db.Close()
 			return
 		}
