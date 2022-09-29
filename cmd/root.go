@@ -192,6 +192,10 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Println("Topic Detection")
 		GetFormattedTopicDetection(transcript.IabCategoriesResult, width)
 	}
+	if transcript.SentimentAnalysis {
+		fmt.Println("Sentiment Analysis")
+		GetFormattedSentimentAnalysis(*transcript.SentimentAnalysisResults, width)
+	}
 }
 
 func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
@@ -330,6 +334,42 @@ func GetFormattedTopicDetection(categories IabCategoriesResult, width int) {
 		}
 
 		fmt.Fprintf(w, "| \t| \n")
+	}
+	fmt.Fprintln(w)
+	w.Flush()
+}
+
+func GetFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width int) {
+	if len(sentiments) == 0 {
+		fmt.Println("Could not retrieve sentiment analysis")
+		return
+	}
+	textWidth := width - 20
+
+	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
+	fmt.Fprintf(w, "| SENTIMENT\t | TEXT\t\n")
+	for _, sentiment := range sentiments {
+		sentimentStatus := *sentiment.Sentiment
+		if len(sentiment.Text) > textWidth {
+			maxLength := len(sentiment.Text)
+
+			for i := 0; i < maxLength; i += textWidth {
+				textStart := i
+				textEnd := i + textWidth
+				if textEnd > len(sentiment.Text) {
+					if i > len(sentiment.Text) {
+						textStart = len(sentiment.Text)
+					}
+					textEnd = len(sentiment.Text)
+				}
+				fmt.Fprintf(w, "| %s\t | %s\t\n", sentimentStatus, sentiment.Text[textStart:textEnd])
+				sentimentStatus = ""
+			}
+
+		} else {
+			fmt.Fprintf(w, "| %s\t | %s\t\n", sentimentStatus, sentiment.Text)
+		}
+
 	}
 	fmt.Fprintln(w)
 	w.Flush()
