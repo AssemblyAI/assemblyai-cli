@@ -200,6 +200,10 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Println("Chapters")
 		GetFormattedChapters(*transcript.Chapters, width)
 	}
+	if transcript.EntityDetection {
+		fmt.Println("Entity Detection")
+		GetFormattedEntityDetection(*transcript.Entities, width)
+	}
 }
 
 func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
@@ -408,6 +412,40 @@ func GetFormattedChapters(chapters []Chapter, width int) {
 
 		} else {
 			fmt.Fprintf(w, "| %s\t | %s\n", gist, chapter.Summary)
+		}
+
+	}
+	fmt.Fprintln(w)
+	w.Flush()
+}
+
+func GetFormattedEntityDetection(entities []Entity, width int) {
+	if len(entities) == 0 {
+		fmt.Println("Could not retrieve entity detection")
+		return
+	}
+	textWidth := width - 20
+
+	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
+	fmt.Fprintf(w, "| TYPE\t | TEXT\t\n")
+	for _, entity := range entities {
+		if len(entity.Text) > textWidth {
+			maxLength := len(entity.Text)
+
+			for i := 0; i < maxLength; i += textWidth {
+				textStart := i
+				textEnd := i + textWidth
+				if textEnd > len(entity.Text) {
+					if i > len(entity.Text) {
+						textStart = len(entity.Text)
+					}
+					textEnd = len(entity.Text)
+				}
+				fmt.Fprintf(w, "| %s\t | %s\t\n", entity.EntityType, entity.Text[textStart:textEnd])
+			}
+
+		} else {
+			fmt.Fprintf(w, "| %s\t | %s\t\n", entity.EntityType, entity.Text)
 		}
 
 	}
