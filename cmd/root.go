@@ -57,7 +57,7 @@ func GetDatabaseConfig() badger.Options {
 
 func PrintError(err error) {
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 	}
 }
 
@@ -96,13 +96,14 @@ func QueryApi(token string, path string, method string, body io.Reader) []byte {
 
 	resp.Header.Add("Accept", "application/json")
 	resp.Header.Add("Authorization", token)
+	resp.Header.Add("Transfer-Encoding", "chunked")
 
 	response, err := http.DefaultClient.Do(resp)
 	PrintError(err)
-	defer response.Body.Close()
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	PrintError(err)
+	defer response.Body.Close()
 
 	return responseData
 }
@@ -143,7 +144,22 @@ func BeutifyJSON(data []byte) []byte {
 	return prettyJSON.Bytes()
 }
 
+func UploadFile(token string, path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	fmt.Println("◑ We're processing your transcription...")
+	response := QueryApi(token, "/upload", "POST", file)
+	var uploadResponse UploadResponse
+	if err := json.Unmarshal(response, &uploadResponse); err != nil {
+		return ""
+	}
+	return uploadResponse.UploadURL
+}
+
 func PollTranscription(token string, id string, flags TranscribeFlags) {
+	fmt.Print("\033[1A\033[K")
 	fmt.Println("◑ We're processing your transcription...")
 
 	for {
@@ -667,3 +683,7 @@ const (
 	G Speaker = "G"
 	H Speaker = "H"
 )
+
+type UploadResponse struct {
+	UploadURL string `json:"upload_url"`
+}

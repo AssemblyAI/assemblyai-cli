@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/url"
 
 	"github.com/spf13/cobra"
 )
@@ -77,6 +78,16 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	if token == "" {
 		fmt.Println("You must login first")
+	}
+
+	_, err := url.ParseRequestURI(params.AudioURL)
+	if err != nil {
+		uploadedURL := UploadFile(token, params.AudioURL)
+		if uploadedURL == "" {
+			fmt.Println("Can not upload file")
+			return
+		}
+		params.AudioURL = uploadedURL
 	}
 
 	paramsJSON, err := json.Marshal(params)
