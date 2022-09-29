@@ -29,7 +29,7 @@ var transcribeCmd = &cobra.Command{
 
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
-			fmt.Println("You must provide an audio URL")
+			fmt.Println("You must provide an URL/Path")
 			return
 		}
 		params.AudioURL = args[0]
