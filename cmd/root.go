@@ -196,6 +196,10 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Println("Sentiment Analysis")
 		GetFormattedSentimentAnalysis(*transcript.SentimentAnalysisResults, width)
 	}
+	if transcript.AutoChapters {
+		fmt.Println("Chapters")
+		GetFormattedChapters(*transcript.Chapters, width)
+	}
 }
 
 func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
@@ -368,6 +372,42 @@ func GetFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width i
 
 		} else {
 			fmt.Fprintf(w, "| %s\t | %s\t\n", sentimentStatus, sentiment.Text)
+		}
+
+	}
+	fmt.Fprintln(w)
+	w.Flush()
+}
+
+func GetFormattedChapters(chapters []Chapter, width int) {
+	if len(chapters) == 0 {
+		fmt.Println("Could not retrieve chapters")
+		return
+	}
+	textWidth := width - 28
+
+	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
+	fmt.Fprintf(w, "| CHAPTER\t | TEXT\n")
+	for _, chapter := range chapters {
+		gist := chapter.Gist
+		if len(chapter.Summary) > textWidth {
+			maxLength := len(chapter.Summary)
+
+			for i := 0; i < maxLength; i += textWidth {
+				textStart := i
+				textEnd := i + textWidth
+				if textEnd > len(chapter.Summary) {
+					if i > len(chapter.Summary) {
+						textStart = len(chapter.Summary)
+					}
+					textEnd = len(chapter.Summary)
+				}
+				fmt.Fprintf(w, "| %s\t | %s\n", gist, chapter.Summary[textStart:textEnd])
+				gist = ""
+			}
+
+		} else {
+			fmt.Fprintf(w, "| %s\t | %s\n", gist, chapter.Summary)
 		}
 
 	}
