@@ -93,9 +93,10 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 	id := transcriptResponse.ID
 	if !flags.Poll {
 		if flags.Json {
-			fmt.Println(string(response))
+			print := BeutifyJSON(response)
+			fmt.Println(string(print))
+			return
 		}
-
 		fmt.Printf("Your transcription was created (id %s)\n", id)
 		return
 	}

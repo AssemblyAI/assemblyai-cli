@@ -4,6 +4,7 @@ Copyright © 2022 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -132,6 +133,15 @@ func DeleteToken(db *badger.DB) {
 	PrintError(err)
 }
 
+func BeutifyJSON(data []byte) []byte {
+	var prettyJSON bytes.Buffer
+	error := json.Indent(&prettyJSON, data, "", "\t")
+	if error != nil {
+		return data
+	}
+	return prettyJSON.Bytes()
+}
+
 func PollTranscription(token string, id string, flags TranscribeFlags) {
 	fmt.Println("◑ We're processing your transcription...")
 
@@ -144,7 +154,9 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 		}
 		if transcript.Status == "completed" {
 			if flags.Json {
-				fmt.Println(string(response))
+				print := BeutifyJSON(response)
+				fmt.Println(string(print))
+				return
 			}
 			GetFormattedOutput(transcript, flags)
 			return
@@ -155,40 +167,42 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 
 func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	fmt.Print("\033[1A\033[K")
-	fmt.Println("Transcript")
-	if !transcript.SpeakerLabels {
-		fmt.Println(transcript.Text)
-		return
-	}
+
 	width, _, err := term.GetSize(0)
 	if err != nil {
-		fmt.Println("Can not get terminal size")
-		return
+		width = 256
+	}
+	realWidth := width - 21
+
+	fmt.Println("Transcript")
+	if !transcript.SpeakerLabels && !transcript.DualChannel {
+		fmt.Println(transcript.Text)
+	} else {
+		GetFormattedUtterances(transcript.Utterances, realWidth)
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 1, 10, 1, '\t', 0)
+}
 
-	for _, utterance := range transcript.Utterances {
-
+func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
+	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
+	for _, utterance := range utterances {
 		duration := time.Duration(utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
-		realWidth := width - 24
 
-		if len(utterance.Text) > realWidth {
-			for i := 0; i < len(utterance.Text); i += realWidth {
-				end := i + realWidth
+		if len(utterance.Text) > width {
+			for i := 0; i < len(utterance.Text); i += width {
+				end := i + width
 				if end > len(utterance.Text) {
 					end = len(utterance.Text)
 				}
-				fmt.Fprintf(w, "%s\t%s\t%s\n", start, speaker, utterance.Text[i:end])
-				start = ""
-				speaker = ""
+				fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text[i:end])
+				start = "        "
+				speaker = "        "
 			}
 		} else {
-			fmt.Fprintf(w, "%s\t%s\t%s\n", start, speaker, utterance.Text)
+			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text)
 		}
-
 	}
 	fmt.Fprintln(w)
 	w.Flush()
