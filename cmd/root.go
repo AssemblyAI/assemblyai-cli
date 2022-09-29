@@ -171,7 +171,7 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 
 	width, _, err := term.GetSize(0)
 	if err != nil {
-		width = 256
+		width = 512
 	}
 
 	fmt.Println("Transcript")
@@ -188,19 +188,23 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Println("Content Moderation")
 		GetFormattedContentSafety(transcript.ContentSafetyLabels, width)
 	}
+	if transcript.IabCategories {
+		fmt.Println("Topic Detection")
+		GetFormattedTopicDetection(transcript.IabCategoriesResult, width)
+	}
 }
 
 func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
-	realWidth := width - 21
+	textWidth := width - 21
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
 	for _, utterance := range utterances {
 		duration := time.Duration(utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
 
-		if len(utterance.Text) > realWidth {
-			for i := 0; i < len(utterance.Text); i += realWidth {
-				end := i + realWidth
+		if len(utterance.Text) > textWidth {
+			for i := 0; i < len(utterance.Text); i += textWidth {
+				end := i + textWidth
 				if end > len(utterance.Text) {
 					end = len(utterance.Text)
 				}
@@ -232,12 +236,12 @@ func GetFormattedHighlights(highlights AutoHighlightsResult) {
 }
 
 func GetFormattedContentSafety(labels ContentSafetyLabels, width int) {
-	textWidth := width - 30
-	labelWidth := 13
 	if labels.Status != "success" {
 		fmt.Println("Could not retrieve content safety labels")
 		return
 	}
+	textWidth := width - 20
+	labelWidth := 13
 
 	w := tabwriter.NewWriter(os.Stdout, 1, 10, 1, '\t', 0)
 	fmt.Fprintf(w, "| LABEL\t | TEXT\t\n")
@@ -277,6 +281,55 @@ func GetFormattedContentSafety(labels ContentSafetyLabels, width int) {
 			fmt.Fprintf(w, "| %s\t | %s\t\n", labelString, label.Text)
 		}
 
+	}
+	fmt.Fprintln(w)
+	w.Flush()
+}
+
+func GetFormattedTopicDetection(categories IabCategoriesResult, width int) {
+	if categories.Status != "success" {
+		fmt.Println("Could not retrieve topic detection")
+		return
+	}
+	textWidth := int(math.Abs(float64(width - 60)))
+
+	w := tabwriter.NewWriter(os.Stdout, 40, 8, 1, '\t', 0)
+	fmt.Fprintf(w, "| TOPIC \t| TEXT\n")
+	for _, category := range categories.Results {
+		if textWidth < 20 {
+			fmt.Fprintf(w, "| %s\n", category.Labels[0].Label)
+			fmt.Fprintf(w, "| %s\n", category.Text)
+		} else if len(category.Text) > textWidth || len(category.Labels) > 1 {
+			labelWidth := 0
+			for i, innerLabel := range category.Labels {
+				if i < 3 {
+					labelWidth = int(math.Max(float64(len(innerLabel.Label)), float64(labelWidth)))
+				}
+			}
+			maxLength := int(math.Max(float64(len(category.Text)), float64(labelWidth)))
+			x := 0
+			for i := 0; i < maxLength; i += textWidth {
+				label := ""
+				if x < 3 && x < len(category.Labels) {
+					label = category.Labels[x].Label
+				}
+				textStart := i
+				textEnd := i + textWidth
+				if textEnd > len(category.Text) {
+					if i > len(category.Text) {
+						textStart = len(category.Text)
+					}
+					textEnd = len(category.Text)
+				}
+
+				fmt.Fprintf(w, "| %s\t| %s\n", label, category.Text[textStart:textEnd])
+				x += 1
+			}
+		} else {
+			fmt.Fprintf(w, "| %s\t| %s\n", category.Labels[0].Label, category.Text)
+		}
+
+		fmt.Fprintf(w, "| \t| \n")
 	}
 	fmt.Fprintln(w)
 	w.Flush()
