@@ -388,12 +388,39 @@ func GetFormattedChapters(chapters []Chapter, width int) {
 		fmt.Println("Could not retrieve chapters")
 		return
 	}
-	textWidth := width - 28
+	textWidth := width - 21
 
 	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
-	fmt.Fprintf(w, "| CHAPTER\t | TEXT\n")
 	for _, chapter := range chapters {
-		gist := chapter.Gist
+		// Gist
+		fmt.Fprintf(w, "| Gist\t | %s\n", chapter.Gist)
+		fmt.Fprintf(w, "| \t | \n")
+
+		// Headline
+		headline := "Headline"
+		if len(chapter.Headline) > textWidth {
+			maxLength := len(chapter.Headline)
+
+			for i := 0; i < maxLength; i += textWidth {
+				textStart := i
+				textEnd := i + textWidth
+				if textEnd > len(chapter.Headline) {
+					if i > len(chapter.Headline) {
+						textStart = len(chapter.Headline)
+					}
+					textEnd = len(chapter.Headline)
+				}
+				fmt.Fprintf(w, "| %s\t | %s\n", headline, chapter.Headline[textStart:textEnd])
+				headline = ""
+			}
+
+		} else {
+			fmt.Fprintf(w, "| %s\t | %s\n", headline, chapter.Headline)
+		}
+
+		fmt.Fprintf(w, "| \t | \n")
+		// Summary
+		summary := "Summary"
 		if len(chapter.Summary) > textWidth {
 			maxLength := len(chapter.Summary)
 
@@ -406,14 +433,14 @@ func GetFormattedChapters(chapters []Chapter, width int) {
 					}
 					textEnd = len(chapter.Summary)
 				}
-				fmt.Fprintf(w, "| %s\t | %s\n", gist, chapter.Summary[textStart:textEnd])
-				gist = ""
+				fmt.Fprintf(w, "| %s\t | %s\n", summary, chapter.Summary[textStart:textEnd])
+				summary = ""
 			}
 
 		} else {
-			fmt.Fprintf(w, "| %s\t | %s\n", gist, chapter.Summary)
+			fmt.Fprintf(w, "| %s\t | %s\n", summary, chapter.Summary)
 		}
-
+		fmt.Fprintf(w, "| \t | \n")
 	}
 	fmt.Fprintln(w)
 	w.Flush()
