@@ -7,7 +7,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/spf13/cobra"
 )
@@ -90,10 +92,21 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 		params.AudioURL = uploadedURL
 	}
 
+	isYoutubeLink := isYoutubeLink(params.AudioURL)
+
+	if isYoutubeLink {
+		fmt.Println("Youtube link is not yet supported, please provide a file Url or path")
+		return
+	}
+
+	resp, err := http.Get(params.AudioURL)
+	if err != nil || resp.StatusCode != 200 {
+		fmt.Println("File cannot be found, please provide a valid file Url or path")
+		return
+	}
 	paramsJSON, err := json.Marshal(params)
 	PrintError(err)
 	body := bytes.NewReader(paramsJSON)
-
 	response := QueryApi(token, "/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
 	if err := json.Unmarshal(response, &transcriptResponse); err != nil {
@@ -113,6 +126,10 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 	}
 
 	PollTranscription(token, id, flags)
+}
+
+func isYoutubeLink(url string) bool {
+	return strings.HasPrefix(url, "https://www.youtube.com/watch?v=")
 }
 
 type TranscribeFlags struct {

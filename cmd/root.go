@@ -193,13 +193,13 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	}
 
 	fmt.Println("Transcript")
-	if !transcript.SpeakerLabels && !*transcript.DualChannel {
+	if !transcript.SpeakerLabels {
 		fmt.Println(transcript.Text)
 	} else {
 		GetFormattedUtterances(*transcript.Utterances, width)
 	}
 	if transcript.AutoHighlights {
-		fmt.Println("Highlights")
+		fmt.Println("\nHighlights")
 		GetFormattedHighlights(*transcript.AutoHighlightsResult)
 	}
 	if transcript.ContentSafety {
