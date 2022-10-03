@@ -34,7 +34,7 @@ var configCmd = &cobra.Command{
 		}
 		token := argsArray[0]
 
-		checkToken := checkIfTokenValid(token)
+		checkToken := CheckIfTokenValid(token)
 
 		if !checkToken.IsVerified {
 			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
