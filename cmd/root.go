@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 AssemblyAI support@assemblyai.com
 */
 package cmd
 
@@ -16,22 +16,19 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/briandowns/spinner"
 	badger "github.com/dgraph-io/badger/v3"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-		examples and usage of using your application. For example:
-
-		Cobra is a CLI library for Go that empowers applications.
-		This application is a tool to generate the needed files
-		to quickly create a Cobra application.`,
+	Use:   "assemblyai config -h",
+	Short: "AssemblyAI CLI",
+	Long: `Please authenticate with AssemblyAI to use this CLI.
+assemblyai config {YOUR TOKEN}`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("help section")
+		cmd.Help()
 	},
 }
 
@@ -43,7 +40,6 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }
 
 var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
@@ -53,6 +49,12 @@ func GetDatabaseConfig() badger.Options {
 	badgerCfg := badger.DefaultOptions("/tmp/badger")
 	badgerCfg.Logger = nil
 	return badgerCfg
+}
+
+func callSpinner(message string) *spinner.Spinner {
+	s := spinner.New(spinner.CharSets[7], 100*time.Millisecond, spinner.WithSuffix(message))
+	s.Start()
+	return s
 }
 
 func PrintError(err error) {
@@ -149,19 +151,18 @@ func UploadFile(token string, path string) string {
 	if err != nil {
 		return ""
 	}
-	fmt.Println("◑ We're processing your transcription...")
+	s := callSpinner(" Your file is being uploaded...")
 	response := QueryApi(token, "/upload", "POST", file)
 	var uploadResponse UploadResponse
 	if err := json.Unmarshal(response, &uploadResponse); err != nil {
 		return ""
 	}
+	s.Stop()
 	return uploadResponse.UploadURL
 }
 
 func PollTranscription(token string, id string, flags TranscribeFlags) {
-	fmt.Print("\033[1A\033[K")
-	fmt.Println("◑ We're processing your transcription...")
-
+	s := callSpinner(" Your file is being transcribed...")
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
 		var transcript TranscriptResponse
@@ -170,6 +171,7 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 			return
 		}
 		if transcript.Status == "completed" {
+			s.Stop()
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))
@@ -183,7 +185,7 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 }
 
 func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
-	fmt.Print("\033[1A\033[K")
+	// fmt.Print("\033[1A\033[K")
 
 	width, _, err := term.GetSize(0)
 	if err != nil {

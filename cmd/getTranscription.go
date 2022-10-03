@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 AssemblyAI support@assemblyai.com
 */
 package cmd
 
@@ -24,7 +24,7 @@ to quickly create a Cobra application.`,
 		var flags TranscribeFlags
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
-			fmt.Println("You must provide an audio URL")
+			fmt.Println("You must provide a transcription ID.")
 			return
 		}
 		id := args[0]

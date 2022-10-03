@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 AssemblyAI support@assemblyai.com
 */
 package cmd
 
@@ -14,7 +14,7 @@ import (
 
 // transcribeCmd represents the transcribe command
 var transcribeCmd = &cobra.Command{
-	Use:   "transcribe [file path or URL]",
+	Use:   "transcribe <url | path>",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 		and usage of using your command. For example:
@@ -77,9 +77,9 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 	defer db.Close()
 
 	if token == "" {
-		fmt.Println("You must login first")
+		fmt.Println("You must login first. Run `assemblyai config <token>`")
+		return
 	}
-
 	_, err := url.ParseRequestURI(params.AudioURL)
 	if err != nil {
 		uploadedURL := UploadFile(token, params.AudioURL)

@@ -9,6 +9,7 @@ require (
 )
 
 require (
+	github.com/briandowns/spinner v1.19.0 // indirect
 	github.com/cespare/xxhash v1.1.0 // indirect
 	github.com/cespare/xxhash/v2 v2.1.2 // indirect
 	github.com/dgraph-io/ristretto v0.1.0 // indirect

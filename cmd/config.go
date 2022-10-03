@@ -1,5 +1,5 @@
 /*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
+Copyright © 2022 AssemblyAI support@assemblyai.com
 */
 package cmd
 
@@ -11,7 +11,7 @@ import (
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
-	Use:   "config",
+	Use:   "config <token>",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 		and usage of using your command. For example:
@@ -19,11 +19,17 @@ var configCmd = &cobra.Command{
 		Cobra is a CLI library for Go that empowers applications.
 		This application is a tool to generate the needed files
 		to quickly create a Cobra application.`,
+	Example:       "assemblyai config <token>",
+	SilenceUsage:  true,
+	SilenceErrors: true,
 	Run: func(cmd *cobra.Command, args []string) {
 		argsArray := cmd.Flags().Args()
 
 		if len(argsArray) == 0 {
 			fmt.Println("Please provide a token. You can get one at https://app.assemblyai.com")
+			return
+		} else if len(argsArray) > 1 {
+			fmt.Println("Too many arguments. Please provide a single token.")
 			return
 		}
 		token := argsArray[0]
@@ -36,7 +42,7 @@ var configCmd = &cobra.Command{
 		}
 		Config(token)
 
-		fmt.Printf("You're now authenticated. Your current balance is $%s\n", checkToken.CurrentBalance)
+		fmt.Println("You're now authenticated.")
 	},
 }
 
