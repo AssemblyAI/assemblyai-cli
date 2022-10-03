@@ -125,7 +125,7 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 		return
 	}
 
-	PollTranscription(token, id, flags)
+	PollTranscription(token, *id, flags)
 }
 
 func isYoutubeLink(url string) bool {

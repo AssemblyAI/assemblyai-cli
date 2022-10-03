@@ -165,12 +165,26 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 	s := callSpinner(" Your file is being transcribed...")
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
+
+		if response == nil {
+			s.Stop()
+			fmt.Println("Something went wrong. Please try again later.")
+			return
+		}
+
 		var transcript TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
+			s.Stop()
 			return
 		}
-		if transcript.Status == "completed" {
+
+		if transcript.Error != nil {
+			s.Stop()
+			fmt.Println(*transcript.Error)
+			return
+		}
+		if *transcript.Status == "completed" {
 			s.Stop()
 			if flags.Json {
 				print := BeutifyJSON(response)
@@ -185,43 +199,71 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 }
 
 func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
-	// fmt.Print("\033[1A\033[K")
-
 	width, _, err := term.GetSize(0)
 	if err != nil {
 		width = 512
 	}
 
 	fmt.Println("Transcript")
-	if !transcript.SpeakerLabels {
-		fmt.Println(transcript.Text)
-	} else {
+	if *transcript.SpeakerLabels == true {
 		GetFormattedUtterances(*transcript.Utterances, width)
+	} else {
+		fmt.Println(*transcript.Text)
 	}
-	if transcript.AutoHighlights {
-		fmt.Println("\nHighlights")
+	if *transcript.DualChannel == true {
+		fmt.Println("\nDual Channel")
+		GetFormattedDualChannel(*transcript.Utterances, width)
+	}
+	if *transcript.AutoHighlights == true {
+		fmt.Println("Highlights")
 		GetFormattedHighlights(*transcript.AutoHighlightsResult)
 	}
-	if transcript.ContentSafety {
+	if *transcript.ContentSafety == true {
 		fmt.Println("Content Moderation")
-		GetFormattedContentSafety(transcript.ContentSafetyLabels, width)
+		GetFormattedContentSafety(*transcript.ContentSafetyLabels, width)
 	}
-	if transcript.IabCategories {
+	if *transcript.IabCategories == true {
 		fmt.Println("Topic Detection")
-		GetFormattedTopicDetection(transcript.IabCategoriesResult, width)
+		GetFormattedTopicDetection(*transcript.IabCategoriesResult, width)
 	}
-	if transcript.SentimentAnalysis {
+	if *transcript.SentimentAnalysis == true {
 		fmt.Println("Sentiment Analysis")
 		GetFormattedSentimentAnalysis(*transcript.SentimentAnalysisResults, width)
 	}
-	if transcript.AutoChapters {
+	if *transcript.AutoChapters == true {
 		fmt.Println("Chapters")
 		GetFormattedChapters(*transcript.Chapters, width)
 	}
-	if transcript.EntityDetection {
+	if *transcript.EntityDetection == true {
 		fmt.Println("Entity Detection")
 		GetFormattedEntityDetection(*transcript.Entities, width)
 	}
+}
+
+func GetFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
+	textWidth := width - 21
+	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
+	for _, utterance := range utterances {
+		duration := time.Duration(utterance.Start) * time.Millisecond
+		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
+		speaker := fmt.Sprintf("(Channel %s)", *utterance.Channel)
+
+		if len(utterance.Text) > textWidth {
+			for i := 0; i < len(utterance.Text); i += textWidth {
+				end := i + textWidth
+				if end > len(utterance.Text) {
+					end = len(utterance.Text)
+				}
+				fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text[i:end])
+				start = "        "
+				speaker = "        "
+			}
+		} else {
+			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text)
+		}
+	}
+	fmt.Fprintln(w)
+	w.Flush()
 }
 
 func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
@@ -321,7 +363,7 @@ func GetFormattedTopicDetection(categories IabCategoriesResult, width int) {
 		fmt.Println("Could not retrieve topic detection")
 		return
 	}
-	textWidth := int(math.Abs(float64(width - 60)))
+	textWidth := int(math.Abs(float64(width - 80)))
 
 	w := tabwriter.NewWriter(os.Stdout, 40, 8, 1, '\t', 0)
 	fmt.Fprintf(w, "| TOPIC \t| TEXT\n")
@@ -514,53 +556,54 @@ type CurrentBalance struct {
 }
 
 type TranscriptResponse struct {
-	AcousticModel            string                     `json:"acoustic_model"`
-	AudioDuration            int64                      `json:"audio_duration"`
-	AudioEndAt               interface{}                `json:"audio_end_at"`
-	AudioStartFrom           interface{}                `json:"audio_start_from"`
-	AudioURL                 string                     `json:"audio_url"`
-	AutoChapters             bool                       `json:"auto_chapters"`
-	AutoHighlights           bool                       `json:"auto_highlights"`
-	AutoHighlightsResult     *AutoHighlightsResult      `json:"auto_highlights_result"`
-	BoostParam               interface{}                `json:"boost_param"`
-	Chapters                 *[]Chapter                 `json:"chapters"`
-	ClusterID                interface{}                `json:"cluster_id"`
-	Confidence               float64                    `json:"confidence"`
-	ContentSafety            bool                       `json:"content_safety"`
-	ContentSafetyLabels      ContentSafetyLabels        `json:"content_safety_labels"`
-	CustomSpelling           interface{}                `json:"custom_spelling"`
-	Disfluencies             bool                       `json:"disfluencies"`
-	DualChannel              *bool                      `json:"dual_channel"`
-	Entities                 *[]Entity                  `json:"entities"`
-	EntityDetection          bool                       `json:"entity_detection"`
-	FilterProfanity          bool                       `json:"filter_profanity"`
-	FormatText               bool                       `json:"format_text"`
-	IabCategories            bool                       `json:"iab_categories"`
-	IabCategoriesResult      IabCategoriesResult        `json:"iab_categories_result"`
-	ID                       string                     `json:"id"`
-	LanguageCode             string                     `json:"language_code"`
-	LanguageDetection        bool                       `json:"language_detection"`
-	LanguageModel            string                     `json:"language_model"`
-	Punctuate                bool                       `json:"punctuate"`
-	RedactPii                bool                       `json:"redact_pii"`
-	RedactPiiAudio           bool                       `json:"redact_pii_audio"`
-	RedactPiiAudioQuality    interface{}                `json:"redact_pii_audio_quality"`
-	RedactPiiPolicies        interface{}                `json:"redact_pii_policies"`
-	RedactPiiSub             interface{}                `json:"redact_pii_sub"`
-	SentimentAnalysis        bool                       `json:"sentiment_analysis"`
-	SentimentAnalysisResults *[]SentimentAnalysisResult `json:"sentiment_analysis_results"`
-	SpeakerLabels            bool                       `json:"speaker_labels"`
-	SpeedBoost               bool                       `json:"speed_boost"`
-	Status                   string                     `json:"status"`
-	Text                     string                     `json:"text"`
-	Throttled                interface{}                `json:"throttled"`
-	Utterances               *[]SentimentAnalysisResult `json:"utterances"`
-	WebhookAuth              bool                       `json:"webhook_auth"`
-	WebhookAuthHeaderName    interface{}                `json:"webhook_auth_header_name"`
-	WebhookStatusCode        interface{}                `json:"webhook_status_code"`
-	WebhookURL               interface{}                `json:"webhook_url"`
-	WordBoost                []interface{}              `json:"word_boost"`
-	Words                    []SentimentAnalysisResult  `json:"words"`
+	Error                    *string                    `json:"error,omitempty"`
+	AcousticModel            *string                    `json:"acoustic_model,omitempty"`
+	AudioDuration            *int64                     `json:"audio_duration,omitempty"`
+	AudioEndAt               *interface{}               `json:"audio_end_at,omitempty"`
+	AudioStartFrom           *interface{}               `json:"audio_start_from,omitempty"`
+	AudioURL                 *string                    `json:"audio_url,omitempty"`
+	AutoChapters             *bool                      `json:"auto_chapters,omitempty"`
+	AutoHighlights           *bool                      `json:"auto_highlights,omitempty"`
+	AutoHighlightsResult     *AutoHighlightsResult      `json:"auto_highlights_result,omitempty"`
+	BoostParam               *interface{}               `json:"boost_param,omitempty"`
+	Chapters                 *[]Chapter                 `json:"chapters,omitempty"`
+	ClusterID                *interface{}               `json:"cluster_id,omitempty"`
+	Confidence               *float64                   `json:"confidence,omitempty"`
+	ContentSafety            *bool                      `json:"content_safety,omitempty"`
+	ContentSafetyLabels      *ContentSafetyLabels       `json:"content_safety_labels,omitempty"`
+	CustomSpelling           *interface{}               `json:"custom_spelling,omitempty"`
+	Disfluencies             *bool                      `json:"disfluencies,omitempty"`
+	DualChannel              *bool                      `json:"dual_channel,omitempty"`
+	Entities                 *[]Entity                  `json:"entities,omitempty"`
+	EntityDetection          *bool                      `json:"entity_detection,omitempty"`
+	FilterProfanity          *bool                      `json:"filter_profanity,omitempty"`
+	FormatText               *bool                      `json:"format_text,omitempty"`
+	IabCategories            *bool                      `json:"iab_categories,omitempty"`
+	IabCategoriesResult      *IabCategoriesResult       `json:"iab_categories_result,omitempty"`
+	ID                       *string                    `json:"id,omitempty"`
+	LanguageCode             *string                    `json:"language_code,omitempty"`
+	LanguageDetection        *bool                      `json:"language_detection,omitempty"`
+	LanguageModel            *string                    `json:"language_model,omitempty"`
+	Punctuate                *bool                      `json:"punctuate,omitempty"`
+	RedactPii                *bool                      `json:"redact_pii,omitempty"`
+	RedactPiiAudio           *bool                      `json:"redact_pii_audio,omitempty"`
+	RedactPiiAudioQuality    *interface{}               `json:"redact_pii_audio_quality,omitempty"`
+	RedactPiiPolicies        *interface{}               `json:"redact_pii_policies,omitempty"`
+	RedactPiiSub             *interface{}               `json:"redact_pii_sub,omitempty"`
+	SentimentAnalysis        *bool                      `json:"sentiment_analysis,omitempty"`
+	SentimentAnalysisResults *[]SentimentAnalysisResult `json:"sentiment_analysis_results,omitempty"`
+	SpeakerLabels            *bool                      `json:"speaker_labels,omitempty"`
+	SpeedBoost               *bool                      `json:"speed_boost,omitempty"`
+	Status                   *string                    `json:"status,omitempty"`
+	Text                     *string                    `json:"text,omitempty"`
+	Throttled                *interface{}               `json:"throttled,omitempty"`
+	Utterances               *[]SentimentAnalysisResult `json:"utterances,omitempty"`
+	WebhookAuth              *bool                      `json:"webhook_auth,omitempty"`
+	WebhookAuthHeaderName    *interface{}               `json:"webhook_auth_header_name,omitempty"`
+	WebhookStatusCode        *interface{}               `json:"webhook_status_code,omitempty"`
+	WebhookURL               *interface{}               `json:"webhook_url,omitempty"`
+	WordBoost                *[]interface{}             `json:"word_boost,omitempty"`
+	Words                    *[]SentimentAnalysisResult `json:"words,omitempty"`
 }
 
 type AutoHighlightsResult struct {
@@ -647,6 +690,7 @@ type FluffyLabel struct {
 }
 
 type SentimentAnalysisResult struct {
+	Channel    *string                   `json:"channel,omitempty"`
 	Confidence float64                   `json:"confidence"`
 	End        int64                     `json:"end"`
 	Sentiment  *Sentiment                `json:"sentiment,omitempty"`
