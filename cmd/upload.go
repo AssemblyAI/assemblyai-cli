@@ -22,7 +22,6 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("upload called")
 		db := GetOpenDatabase()
 		token := GetStoredToken(db)
 		defer db.Close()
@@ -34,7 +33,8 @@ to quickly create a Cobra application.`,
 		}
 		path := args[0]
 
-		UploadFile(token, path)
+		toPrint := UploadFile(token, path)
+		fmt.Println(toPrint)
 	},
 }
 

@@ -82,6 +82,14 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 		fmt.Println("You must login first. Run `assemblyai config <token>`")
 		return
 	}
+
+	isYoutubeLink := isYoutubeLink(params.AudioURL)
+
+	if isYoutubeLink {
+		fmt.Println("Youtube link is not yet supported, please provide a file Url or path")
+		return
+	}
+
 	_, err := url.ParseRequestURI(params.AudioURL)
 	if err != nil {
 		uploadedURL := UploadFile(token, params.AudioURL)
@@ -92,18 +100,16 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 		params.AudioURL = uploadedURL
 	}
 
-	isYoutubeLink := isYoutubeLink(params.AudioURL)
+	isAAICDN := checkAAICDN(params.AudioURL)
 
-	if isYoutubeLink {
-		fmt.Println("Youtube link is not yet supported, please provide a file Url or path")
-		return
+	if !isAAICDN {
+		resp, err := http.Get(params.AudioURL)
+		if err != nil || resp.StatusCode != 200 {
+			fmt.Println("File cannot be found, please provide a valid file Url or path")
+			return
+		}
 	}
 
-	resp, err := http.Get(params.AudioURL)
-	if err != nil || resp.StatusCode != 200 {
-		fmt.Println("File cannot be found, please provide a valid file Url or path")
-		return
-	}
 	paramsJSON, err := json.Marshal(params)
 	PrintError(err)
 	body := bytes.NewReader(paramsJSON)
@@ -121,7 +127,7 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 			fmt.Println(string(print))
 			return
 		}
-		fmt.Printf("Your transcription was created (id %s)\n", id)
+		fmt.Printf("Your transcription was created (id %s)\n", *id)
 		return
 	}
 
@@ -130,6 +136,10 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 func isYoutubeLink(url string) bool {
 	return strings.HasPrefix(url, "https://www.youtube.com/watch?v=")
+}
+
+func checkAAICDN(url string) bool {
+	return strings.HasPrefix(url, "https://cdn.assemblyai.com/")
 }
 
 type TranscribeFlags struct {
