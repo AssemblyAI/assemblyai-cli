@@ -94,7 +94,7 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 	if err != nil {
 		uploadedURL := UploadFile(token, params.AudioURL)
 		if uploadedURL == "" {
-			fmt.Println("Can not upload file")
+			fmt.Println("File cannot be found, please provide a valid file Url or path")
 			return
 		}
 		params.AudioURL = uploadedURL
