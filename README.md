@@ -46,7 +46,7 @@ Ex:
   Ex:
 
   ``` bash
-  $ assemblyai getTranscription <transcription id>
+  $ assemblyai get <transcription id> [flags]
   ```
 
 ## Flags
