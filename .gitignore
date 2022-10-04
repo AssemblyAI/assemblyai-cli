@@ -1,1 +1,5 @@
 testfile.*
+
+!.git/*
+!.git/hooks/*
+!.git/hooks/pre-commit
