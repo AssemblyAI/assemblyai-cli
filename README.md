@@ -54,7 +54,6 @@ Ex:
 | Name | Abbreviation | Default | Description |
   |--|--|--|--|
 |poll|p|true|The CLI will poll the transcription every 3 seconds until it's complete.|
-|token*|k|-|This will always be used, if provided. Required if the user hasn't authenticated.|
 |speaker_labels|l|true|Automatically detect the number of speakers in the file.|
 |punctuate|u|true|Enable automatic punctuation|
 |format_text|f|true|Enable text formatting|

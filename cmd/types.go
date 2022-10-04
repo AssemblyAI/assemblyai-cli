@@ -198,3 +198,24 @@ const (
 type UploadResponse struct {
 	UploadURL string `json:"upload_url"`
 }
+
+type TranscribeFlags struct {
+	Poll bool `json:"poll"`
+	Json bool `json:"json"`
+}
+
+type TranscribeParams struct {
+	// PiiPolicies       string `json:"pii_policies"`
+	AudioURL          string `json:"audio_url"`
+	AutoChapters      bool   `json:"auto_chapters"`
+	AutoHighlights    bool   `json:"auto_highlights"`
+	ContentModeration bool   `json:"content_safety"`
+	DualChannel       bool   `json:"dual_channel"`
+	EntityDetection   bool   `json:"entity_detection"`
+	FormatText        bool   `json:"format_text"`
+	Punctuate         bool   `json:"punctuate"`
+	RedactPii         bool   `json:"redact_pii"`
+	SentimentAnalysis bool   `json:"sentiment_analysis"`
+	SpeakerLabels     bool   `json:"speaker_labels"`
+	TopicDetection    bool   `json:"iab_categories"`
+}

@@ -4,7 +4,9 @@ Copyright © 2022 AssemblyAI support@assemblyai.com
 package cmd
 
 import (
+	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/spf13/cobra"
 )
@@ -22,9 +24,11 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		db := GetOpenDatabase()
-		token := GetStoredToken(db)
-		defer db.Close()
+		token := GetStoredToken()
+		if token == "" {
+			fmt.Println("You must login first. Run `assemblyai config <token>`")
+			return
+		}
 
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
@@ -40,4 +44,19 @@ to quickly create a Cobra application.`,
 
 func init() {
 	rootCmd.AddCommand(uploadCmd)
+}
+
+func UploadFile(token string, path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+	s := callSpinner(" Your file is being uploaded...")
+	response := QueryApi(token, "/upload", "POST", file)
+	var uploadResponse UploadResponse
+	if err := json.Unmarshal(response, &uploadResponse); err != nil {
+		return ""
+	}
+	s.Stop()
+	return uploadResponse.UploadURL
 }

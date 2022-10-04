@@ -1,5 +1,5 @@
 testfile.*
-
+.env
 !.git/*
 !.git/hooks/*
 !.git/hooks/pre-commit

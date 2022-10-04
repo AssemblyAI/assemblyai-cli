@@ -9,9 +9,9 @@ import (
 	"github.com/spf13/cobra"
 )
 
-// getTranscriptionCmd represents the getTranscription command
-var getTranscriptionCmd = &cobra.Command{
-	Use:   "getTranscription [transcription ID]",
+// get represents the getTranscription command
+var get = &cobra.Command{
+	Use:   "get [transcription ID]",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 and usage of using your command. For example:
@@ -31,19 +31,18 @@ to quickly create a Cobra application.`,
 		flags.Poll, _ = cmd.Flags().GetBool("poll")
 		flags.Json, _ = cmd.Flags().GetBool("json")
 
-		db := GetOpenDatabase()
-		token := GetStoredToken(db)
-		defer db.Close()
-
+		token := GetStoredToken()
 		if token == "" {
-			fmt.Println("You must login first")
+			fmt.Println("You must login first. Run `assemblyai config <token>`")
+			return
 		}
+
 		PollTranscription(token, id, flags)
 	},
 }
 
 func init() {
-	rootCmd.AddCommand(getTranscriptionCmd)
-	getTranscriptionCmd.Flags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
-	getTranscriptionCmd.Flags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
+	rootCmd.AddCommand(get)
+	get.Flags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
+	get.Flags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
 }
