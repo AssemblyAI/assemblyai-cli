@@ -21,12 +21,16 @@ import (
 
 var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
 var AAIURL = "https://api.assemblyai.com/v2"
+var PH_TOKEN string
 
 func TelemetryCaptureEvent(event string, properties map[string]interface{}) {
 	isTelemetryEnabled := getConfigFileValue("features.telemetry")
 	if isTelemetryEnabled == "true" {
-		godotenv.Load()
-		PH_TOKEN := os.Getenv("POSTHOG_API_TOKEN")
+
+		if PH_TOKEN == "" {
+			godotenv.Load()
+			PH_TOKEN = os.Getenv("POSTHOG_API_TOKEN")
+		}
 
 		client := posthog.New(PH_TOKEN)
 		defer client.Close()
