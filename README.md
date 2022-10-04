@@ -26,6 +26,12 @@ To install AssemblyAI CLI, use any of the following methods:
   $ cask install github.com/AssemblyAI/assemblyai-cli
   ```
 
+- ### Go lang
+
+  ``` bash
+  $ go install github.com/AssemblyAI/assemblyai-cli
+  ```
+
 ## Commands
 
 - `config`: Use the config command to store your authentication token and automatically use it in any subsequent request.
