@@ -60,7 +60,7 @@ func UploadFile(token string, path string) string {
 		return ""
 	}
 	s.Stop()
-
 	TelemetryCaptureEvent("CLI upload ended", map[string]interface{}{})
+
 	return uploadResponse.UploadURL
 }

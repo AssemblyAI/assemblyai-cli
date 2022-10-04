@@ -38,7 +38,7 @@ var transcribeCmd = &cobra.Command{
 
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
-			fmt.Println("You must provide an URL/Path")
+			fmt.Println("Please provide a local file or a URL to be transcribed.")
 			return
 		}
 		params.AudioURL = args[0]
@@ -99,7 +99,7 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 	if err != nil {
 		uploadedURL := UploadFile(token, params.AudioURL)
 		if uploadedURL == "" {
-			fmt.Println("File cannot be found, please provide a valid file Url or path")
+			fmt.Println("The file doesn't exist. Please try again with a different one.")
 			return
 		}
 		params.AudioURL = uploadedURL
@@ -110,7 +110,7 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 	if !isAAICDN {
 		resp, err := http.Get(params.AudioURL)
 		if err != nil || resp.StatusCode != 200 {
-			fmt.Println("File cannot be found, please provide a valid file Url or path")
+			fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
 			return
 		}
 	}
@@ -150,7 +150,7 @@ func checkAAICDN(url string) bool {
 }
 
 func PollTranscription(token string, id string, flags TranscribeFlags) {
-	s := CallSpinner(" Your file is being transcribed...")
+	s := CallSpinner(" Your file is being transcribed (id " + id + ")... Processing time is usually 20% of the file's duration.")
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
 
