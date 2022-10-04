@@ -51,12 +51,16 @@ func UploadFile(token string, path string) string {
 	if err != nil {
 		return ""
 	}
-	s := callSpinner(" Your file is being uploaded...")
+
+	TelemetryCaptureEvent("CLI upload started", map[string]interface{}{})
+	s := CallSpinner(" Your file is being uploaded...")
 	response := QueryApi(token, "/upload", "POST", file)
 	var uploadResponse UploadResponse
 	if err := json.Unmarshal(response, &uploadResponse); err != nil {
 		return ""
 	}
 	s.Stop()
+
+	TelemetryCaptureEvent("CLI upload ended", map[string]interface{}{})
 	return uploadResponse.UploadURL
 }

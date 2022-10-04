@@ -16,6 +16,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/posthog/posthog-go"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -116,6 +117,8 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	paramsJSON, err := json.Marshal(params)
 	PrintError(err)
+
+	TelemetryCaptureEvent("CLI transcription created", map[string]interface{}{})
 	body := bytes.NewReader(paramsJSON)
 	response := QueryApi(token, "/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
@@ -147,7 +150,7 @@ func checkAAICDN(url string) bool {
 }
 
 func PollTranscription(token string, id string, flags TranscribeFlags) {
-	s := callSpinner(" Your file is being transcribed...")
+	s := CallSpinner(" Your file is being transcribed...")
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
 
@@ -171,6 +174,24 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 		}
 		if *transcript.Status == "completed" {
 			s.Stop()
+
+			properties := posthog.NewProperties().
+				Set("poll", flags.Poll).
+				Set("json", flags.Json).
+				Set("speaker_labels", *transcript.SpeakerLabels).
+				Set("punctuate", *transcript.Punctuate).
+				Set("format_text", *transcript.FormatText).
+				Set("dual_channel", *transcript.DualChannel).
+				Set("redact_pii", *transcript.RedactPii).
+				Set("auto_highlights", *transcript.AutoHighlights).
+				Set("content_moderation", *transcript.ContentSafety).
+				Set("topic_detection", *transcript.IabCategories).
+				Set("sentiment_analysis", *transcript.SentimentAnalysis).
+				Set("auto_chapters", *transcript.AutoChapters).
+				Set("entity_detection", *transcript.EntityDetection)
+
+			TelemetryCaptureEvent("CLI transcription finished", properties)
+
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))

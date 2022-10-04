@@ -14,26 +14,35 @@ import (
 	"time"
 
 	"github.com/briandowns/spinner"
+	"github.com/google/uuid"
+	"github.com/joho/godotenv"
 	"github.com/posthog/posthog-go"
 )
 
 var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
 var AAIURL = "https://api.assemblyai.com/v2"
 
-func InitializePH() posthog.Client {
-	PH_TOKEN, _ := os.LookupEnv("POSTHOG_API_TOKEN")
-	PH_HOST, _ := os.LookupEnv("POSTHOG_API_HOST")
-	client, _ := posthog.NewWithConfig(
-		PH_TOKEN,
-		posthog.Config{
-			Endpoint: PH_HOST,
-		},
-	)
+func TelemetryCaptureEvent(event string, properties map[string]interface{}) {
+	godotenv.Load()
+	PH_TOKEN := os.Getenv("POSTHOG_API_TOKEN")
+
+	client := posthog.New(PH_TOKEN)
 	defer client.Close()
-	return client
+
+	distinctId := getConfigFileValue("config.distinct_id")
+	if distinctId == "" {
+		distinctId = uuid.New().String()
+		setConfigFileValue("config.distinct_id", distinctId)
+	}
+
+	client.Enqueue(posthog.Capture{
+		DistinctId: distinctId,
+		Event:      event,
+		Properties: properties,
+	})
 }
 
-func callSpinner(message string) *spinner.Spinner {
+func CallSpinner(message string) *spinner.Spinner {
 	s := spinner.New(spinner.CharSets[7], 100*time.Millisecond, spinner.WithSuffix(message))
 	s.Start()
 	return s

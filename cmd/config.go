@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -48,9 +49,14 @@ var configCmd = &cobra.Command{
 			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
 			return
 		}
+		distinctId := uuid.New().String()
+
 		createConfigFile()
 		setConfigFileValue("features.telemetry", "true")
 		setConfigFileValue("config.token", token)
+		setConfigFileValue("config.distinct_id", distinctId)
+
+		TelemetryCaptureEvent("CLI configured", map[string]interface{}{})
 
 		fmt.Println("You're now authenticated.")
 	},
