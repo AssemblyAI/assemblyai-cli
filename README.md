@@ -4,16 +4,50 @@
 
 A quick and easy way to test assemblyAI's transcription features on your terminal
 
+## Installation
+
+To install AssemblyAI CLI, use any of the following methods:
+
+- ### Install via go install
+
+  `go install github.com/AssemblyAI/assemblyai-cli`
+
+- ### Homebrew (macOS only)
+
+  For macOS users, you can install via:
+
+    ``` bash
+    $ brew install assemblyai
+    ```
+
+- ### Cask on Windows/macOS/Linux
+
+  ``` bash
+  $ cask install github.com/AssemblyAI/assemblyai-cli
+  ```
+
 ## Commands
 
 - `config`: Use the config command to store your authentication token and automatically use it in any subsequent request.
-  Ex: `assemblyai config <token>`
+Ex:
+
+  ``` bash
+  $ assemblyai config <token>
+  ```
 
 - `transcribe`: Runs the transcription of a local or URL file with all the features specified by the flags.
-  Ex: `assemblyai transcribe <path | url> [flags]`
+  Ex:
+
+  ``` bash
+  $ assemblyai transcribe <path | url> [flags]
+  ```
 
 - `getTranscription`: Retrieves a previously transcribed file.
-  Ex: `assemblyai getTranscription <transcription id>`
+  Ex:
+
+  ``` bash
+  $ assemblyai getTranscription <transcription id>
+  ```
 
 ## Flags
 
