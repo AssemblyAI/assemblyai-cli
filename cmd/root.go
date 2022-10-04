@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 )
 
 var rootCmd = &cobra.Command{
@@ -17,7 +16,6 @@ var rootCmd = &cobra.Command{
 	Long: `Please authenticate with AssemblyAI to use this CLI.
 assemblyai config {YOUR TOKEN}`,
 	Run: func(cmd *cobra.Command, args []string) {
-		viper.SetConfigFile(".env")
 		cmd.Help()
 	},
 }
