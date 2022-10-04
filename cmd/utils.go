@@ -23,23 +23,27 @@ var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
 var AAIURL = "https://api.assemblyai.com/v2"
 
 func TelemetryCaptureEvent(event string, properties map[string]interface{}) {
-	godotenv.Load()
-	PH_TOKEN := os.Getenv("POSTHOG_API_TOKEN")
+	isTelemetryEnabled := getConfigFileValue("features.telemetry")
+	if isTelemetryEnabled == "true" {
+		godotenv.Load()
+		PH_TOKEN := os.Getenv("POSTHOG_API_TOKEN")
 
-	client := posthog.New(PH_TOKEN)
-	defer client.Close()
+		client := posthog.New(PH_TOKEN)
+		defer client.Close()
 
-	distinctId := getConfigFileValue("config.distinct_id")
-	if distinctId == "" {
-		distinctId = uuid.New().String()
-		setConfigFileValue("config.distinct_id", distinctId)
+		distinctId := getConfigFileValue("config.distinct_id")
+
+		if distinctId == "" {
+			distinctId = uuid.New().String()
+			setConfigFileValue("config.distinct_id", distinctId)
+		}
+
+		client.Enqueue(posthog.Capture{
+			DistinctId: distinctId,
+			Event:      event,
+			Properties: properties,
+		})
 	}
-
-	client.Enqueue(posthog.Capture{
-		DistinctId: distinctId,
-		Event:      event,
-		Properties: properties,
-	})
 }
 
 func CallSpinner(message string) *spinner.Spinner {
