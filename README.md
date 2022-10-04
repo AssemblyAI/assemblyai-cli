@@ -42,11 +42,11 @@ Ex:
   $ assemblyai transcribe <path | url> [flags]
   ```
 
-- `getTranscription`: Retrieves a previously transcribed file.
+- `get`: Retrieves a previously transcribed file.
   Ex:
 
   ``` bash
-  $ assemblyai getTranscription <transcription id>
+  $ assemblyai get <transcription id> [flags]
   ```
 
 ## Flags

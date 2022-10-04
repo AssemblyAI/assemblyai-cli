@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -26,15 +27,13 @@ var configCmd = &cobra.Command{
 		Cobra is a CLI library for Go that empowers applications.
 		This application is a tool to generate the needed files
 		to quickly create a Cobra application.`,
-	Example:       "assemblyai config <token>",
-	SilenceUsage:  true,
-	SilenceErrors: true,
+	Example: "assemblyai config <token>",
 	Run: func(cmd *cobra.Command, args []string) {
 
 		argsArray := cmd.Flags().Args()
 
 		if len(argsArray) == 0 {
-			fmt.Println("Please provide a token. You can get one at https://app.assemblyai.com")
+			fmt.Println("Please provide a token. If you don't have one, you can get it at https://app.assemblyai.com")
 			return
 		} else if len(argsArray) > 1 {
 			fmt.Println("Too many arguments. Please provide a single token.")
@@ -44,13 +43,18 @@ var configCmd = &cobra.Command{
 
 		checkToken := CheckIfTokenValid(token)
 
-		if !checkToken.IsVerified {
+		if !checkToken {
 			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
 			return
 		}
+		distinctId := uuid.New().String()
+
 		createConfigFile()
 		setConfigFileValue("features.telemetry", "true")
 		setConfigFileValue("config.token", token)
+		setConfigFileValue("config.distinct_id", distinctId)
+
+		TelemetryCaptureEvent("CLI configured", map[string]interface{}{})
 
 		fmt.Println("You're now authenticated.")
 	},
@@ -60,23 +64,20 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
-func CheckIfTokenValid(token string) CheckIfTokenValidResponse {
-	var funcResponse CheckIfTokenValidResponse
+func CheckIfTokenValid(token string) bool {
 
 	response := QueryApi(token, "/account", "GET", nil)
 
 	if response == nil {
-		return funcResponse
+		return false
 	}
 
 	var result Account
 	if err := json.Unmarshal(response, &result); err != nil {
 		fmt.Println("Can not unmarshal JSON")
 	}
-	funcResponse.IsVerified = result.IsVerified
-	funcResponse.CurrentBalance = fmt.Sprintf("%f", result.CurrentBalance.Amount)
 
-	return funcResponse
+	return true
 }
 
 func createConfigFile() {

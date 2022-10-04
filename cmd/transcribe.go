@@ -16,6 +16,7 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/posthog/posthog-go"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -37,7 +38,7 @@ var transcribeCmd = &cobra.Command{
 
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
-			fmt.Println("You must provide an URL/Path")
+			fmt.Println("Please provide a local file or a URL to be transcribed.")
 			return
 		}
 		params.AudioURL = args[0]
@@ -57,7 +58,7 @@ var transcribeCmd = &cobra.Command{
 		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
 		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
 
-		Transcribe(params, flags)
+		transcribe(params, flags)
 	},
 }
 
@@ -79,7 +80,7 @@ func init() {
 	rootCmd.AddCommand(transcribeCmd)
 }
 
-func Transcribe(params TranscribeParams, flags TranscribeFlags) {
+func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	token := GetStoredToken()
 
 	if token == "" {
@@ -96,9 +97,9 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	_, err := url.ParseRequestURI(params.AudioURL)
 	if err != nil {
-		uploadedURL := UploadFile(token, params.AudioURL)
+		uploadedURL := uploadFile(token, params.AudioURL)
 		if uploadedURL == "" {
-			fmt.Println("File cannot be found, please provide a valid file Url or path")
+			fmt.Println("The file doesn't exist. Please try again with a different one.")
 			return
 		}
 		params.AudioURL = uploadedURL
@@ -109,13 +110,15 @@ func Transcribe(params TranscribeParams, flags TranscribeFlags) {
 	if !isAAICDN {
 		resp, err := http.Get(params.AudioURL)
 		if err != nil || resp.StatusCode != 200 {
-			fmt.Println("File cannot be found, please provide a valid file Url or path")
+			fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
 			return
 		}
 	}
 
 	paramsJSON, err := json.Marshal(params)
 	PrintError(err)
+
+	TelemetryCaptureEvent("CLI transcription created", map[string]interface{}{})
 	body := bytes.NewReader(paramsJSON)
 	response := QueryApi(token, "/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
@@ -146,8 +149,27 @@ func checkAAICDN(url string) bool {
 	return strings.HasPrefix(url, "https://cdn.assemblyai.com/")
 }
 
+func uploadFile(token string, path string) string {
+	file, err := os.Open(path)
+	if err != nil {
+		return ""
+	}
+
+	TelemetryCaptureEvent("CLI upload started", map[string]interface{}{})
+	s := CallSpinner(" Your file is being uploaded...")
+	response := QueryApi(token, "/upload", "POST", file)
+	var uploadResponse UploadResponse
+	if err := json.Unmarshal(response, &uploadResponse); err != nil {
+		return ""
+	}
+	s.Stop()
+	TelemetryCaptureEvent("CLI upload ended", map[string]interface{}{})
+
+	return uploadResponse.UploadURL
+}
+
 func PollTranscription(token string, id string, flags TranscribeFlags) {
-	s := callSpinner(" Your file is being transcribed...")
+	s := CallSpinner(" Your file is being transcribed (id " + id + ")... Processing time is usually 20% of the file's duration.")
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
 
@@ -171,19 +193,37 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 		}
 		if *transcript.Status == "completed" {
 			s.Stop()
+
+			properties := posthog.NewProperties().
+				Set("poll", flags.Poll).
+				Set("json", flags.Json).
+				Set("speaker_labels", *transcript.SpeakerLabels).
+				Set("punctuate", *transcript.Punctuate).
+				Set("format_text", *transcript.FormatText).
+				Set("dual_channel", *transcript.DualChannel).
+				Set("redact_pii", *transcript.RedactPii).
+				Set("auto_highlights", *transcript.AutoHighlights).
+				Set("content_moderation", *transcript.ContentSafety).
+				Set("topic_detection", *transcript.IabCategories).
+				Set("sentiment_analysis", *transcript.SentimentAnalysis).
+				Set("auto_chapters", *transcript.AutoChapters).
+				Set("entity_detection", *transcript.EntityDetection)
+
+			TelemetryCaptureEvent("CLI transcription finished", properties)
+
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))
 				return
 			}
-			GetFormattedOutput(transcript, flags)
+			getFormattedOutput(transcript, flags)
 			return
 		}
 		time.Sleep(5 * time.Second)
 	}
 }
 
-func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
+func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	width, _, err := term.GetSize(0)
 	if err != nil {
 		width = 512
@@ -191,41 +231,41 @@ func GetFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 
 	fmt.Println("Transcript")
 	if *transcript.SpeakerLabels == true {
-		GetFormattedUtterances(*transcript.Utterances, width)
+		getFormattedUtterances(*transcript.Utterances, width)
 	} else {
 		fmt.Println(*transcript.Text)
 	}
 	if *transcript.DualChannel == true {
 		fmt.Println("\nDual Channel")
-		GetFormattedDualChannel(*transcript.Utterances, width)
+		getFormattedDualChannel(*transcript.Utterances, width)
 	}
 	if *transcript.AutoHighlights == true {
 		fmt.Println("Highlights")
-		GetFormattedHighlights(*transcript.AutoHighlightsResult)
+		getFormattedHighlights(*transcript.AutoHighlightsResult)
 	}
 	if *transcript.ContentSafety == true {
 		fmt.Println("Content Moderation")
-		GetFormattedContentSafety(*transcript.ContentSafetyLabels, width)
+		getFormattedContentSafety(*transcript.ContentSafetyLabels, width)
 	}
 	if *transcript.IabCategories == true {
 		fmt.Println("Topic Detection")
-		GetFormattedTopicDetection(*transcript.IabCategoriesResult, width)
+		getFormattedTopicDetection(*transcript.IabCategoriesResult, width)
 	}
 	if *transcript.SentimentAnalysis == true {
 		fmt.Println("Sentiment Analysis")
-		GetFormattedSentimentAnalysis(*transcript.SentimentAnalysisResults, width)
+		getFormattedSentimentAnalysis(*transcript.SentimentAnalysisResults, width)
 	}
 	if *transcript.AutoChapters == true {
 		fmt.Println("Chapters")
-		GetFormattedChapters(*transcript.Chapters, width)
+		getFormattedChapters(*transcript.Chapters, width)
 	}
 	if *transcript.EntityDetection == true {
 		fmt.Println("Entity Detection")
-		GetFormattedEntityDetection(*transcript.Entities, width)
+		getFormattedEntityDetection(*transcript.Entities, width)
 	}
 }
 
-func GetFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
+func getFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
 	textWidth := width - 21
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
 	for _, utterance := range utterances {
@@ -251,7 +291,7 @@ func GetFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
 	w.Flush()
 }
 
-func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
+func getFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
 	textWidth := width - 21
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
 	for _, utterance := range utterances {
@@ -277,7 +317,7 @@ func GetFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
 	w.Flush()
 }
 
-func GetFormattedHighlights(highlights AutoHighlightsResult) {
+func getFormattedHighlights(highlights AutoHighlightsResult) {
 	if highlights.Status != "success" {
 		fmt.Println("Could not retrieve highlights")
 		return
@@ -292,7 +332,7 @@ func GetFormattedHighlights(highlights AutoHighlightsResult) {
 	w.Flush()
 }
 
-func GetFormattedContentSafety(labels ContentSafetyLabels, width int) {
+func getFormattedContentSafety(labels ContentSafetyLabels, width int) {
 	if labels.Status != "success" {
 		fmt.Println("Could not retrieve content safety labels")
 		return
@@ -343,7 +383,7 @@ func GetFormattedContentSafety(labels ContentSafetyLabels, width int) {
 	w.Flush()
 }
 
-func GetFormattedTopicDetection(categories IabCategoriesResult, width int) {
+func getFormattedTopicDetection(categories IabCategoriesResult, width int) {
 	if categories.Status != "success" {
 		fmt.Println("Could not retrieve topic detection")
 		return
@@ -392,7 +432,7 @@ func GetFormattedTopicDetection(categories IabCategoriesResult, width int) {
 	w.Flush()
 }
 
-func GetFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width int) {
+func getFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width int) {
 	if len(sentiments) == 0 {
 		fmt.Println("Could not retrieve sentiment analysis")
 		return
@@ -428,7 +468,7 @@ func GetFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width i
 	w.Flush()
 }
 
-func GetFormattedChapters(chapters []Chapter, width int) {
+func getFormattedChapters(chapters []Chapter, width int) {
 	if len(chapters) == 0 {
 		fmt.Println("Could not retrieve chapters")
 		return
@@ -491,7 +531,7 @@ func GetFormattedChapters(chapters []Chapter, width int) {
 	w.Flush()
 }
 
-func GetFormattedEntityDetection(entities []Entity, width int) {
+func getFormattedEntityDetection(entities []Entity, width int) {
 	if len(entities) == 0 {
 		fmt.Println("Could not retrieve entity detection")
 		return
