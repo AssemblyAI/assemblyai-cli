@@ -8,6 +8,8 @@ env:
   BEFORE_SHA: ${{ github.event.before }}
   CI: true
   POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
+  CI_COMMIT_MESSAGE: Continuous Integration Build Artifacts
+  CI_COMMIT_AUTHOR: Continuous Integration
 
 jobs:
   build:
@@ -25,5 +27,11 @@ jobs:
           check-latest: true
 
       - run: go install
-      - name: Run my build script
-        run: sudo chmod +x build.sh
+      - run: sudo chmod +x build.sh
+      - name: Push to main new build
+        run: |
+          git config --global user.name "${{ env.CI_COMMIT_AUTHOR }}"
+          git config --global user.email "francisco@assemblyai.com"
+          git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
+          git push
+
