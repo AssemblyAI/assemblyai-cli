@@ -408,36 +408,53 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 
 	w := tabwriter.NewWriter(os.Stdout, 40, 8, 1, '\t', 0)
 	fmt.Fprintf(w, "| TOPIC \t| TEXT\n")
+	labelWidth := 0
+	for _, category := range categories.Results {
+		for i, innerLabel := range category.Labels {
+			if i < 3 {
+				labelWidth = int(math.Max(float64(len(innerLabel.Label)), float64(labelWidth)))
+			}
+		}
+	}
 	for _, category := range categories.Results {
 		if textWidth < 20 {
 			fmt.Fprintf(w, "| %s\n", category.Labels[0].Label)
 			fmt.Fprintf(w, "| %s\n", category.Text)
 		} else if len(category.Text) > textWidth || len(category.Labels) > 1 {
-			labelWidth := 0
-			for i, innerLabel := range category.Labels {
-				if i < 3 {
-					labelWidth = int(math.Max(float64(len(innerLabel.Label)), float64(labelWidth)))
-				}
-			}
-			maxLength := int(math.Max(float64(len(category.Text)), float64(labelWidth)))
 			x := 0
-			for i := 0; i < maxLength; i += textWidth {
-				label := ""
-				if x < 3 && x < len(category.Labels) {
-					label = category.Labels[x].Label
-				}
-				textStart := i
-				textEnd := i + textWidth
-				if textEnd > len(category.Text) {
-					if i > len(category.Text) {
-						textStart = len(category.Text)
+			words := strings.Split(category.Text, " ")
+			var line string
+			for _, word := range words {
+				if len(line)+len(word) > (width - labelWidth - 11) {
+					label := " "
+					if x < 3 && x < len(category.Labels) {
+						label = category.Labels[x].Label
 					}
-					textEnd = len(category.Text)
+					fmt.Fprintf(w, "| %s\t | %s\n", label, line)
+					x++
+					line = word
+				} else {
+					line = line + " " + word
 				}
-
-				fmt.Fprintf(w, "| %s\t| %s\n", label, category.Text[textStart:textEnd])
-				x += 1
 			}
+
+			// for i := 0; i < maxLength; i += textWidth {
+			// 	label := ""
+			// 	if x < 3 && x < len(category.Labels) {
+			// 		label = category.Labels[x].Label
+			// 	}
+			// 	textStart := i
+			// 	textEnd := i + textWidth
+			// 	if textEnd > len(category.Text) {
+			// 		if i > len(category.Text) {
+			// 			textStart = len(category.Text)
+			// 		}
+			// 		textEnd = len(category.Text)
+			// 	}
+
+			// 	fmt.Fprintf(w, "| %s\t| %s\n", label, category.Text[textStart:textEnd])
+			// 	x += 1
+			// }
 		} else {
 			fmt.Fprintf(w, "| %s\t| %s\n", category.Labels[0].Label, category.Text)
 		}
