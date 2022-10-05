@@ -2,7 +2,7 @@ env:
   - POSTHOG_API_TOKEN={{ .Env.POSTHOG_API_TOKEN }}
 
 builds:
-  - binary: assemblyai
+  - binary: assemblyai-cli
     goos:
       - darwin
       - linux
