@@ -19,6 +19,7 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          token: ${{ secrets.BUILD_TOKEN }}
 
       - uses: actions/setup-go@v3
         with:
