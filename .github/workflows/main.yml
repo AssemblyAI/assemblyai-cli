@@ -8,6 +8,7 @@ env:
   BEFORE_SHA: ${{ github.event.before }}
   CI: true
   POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
+
   CI_COMMIT_MESSAGE: Continuous Integration Build Artifacts
 
 jobs:
@@ -33,4 +34,14 @@ jobs:
           git config user.email 'github-actions[bot]@users.noreply.github.com'
           git commit -a -m "${{ env.CI_COMMIT_MESSAGE }}"
           git push
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          distribution: goreleaser
+          version: ${{ env.GITHUB_REF_NAME }}
+          args: release --rm-dist
+        env:
+          GITHUB_TOKEN: ${{ secrets.BUILD_TOKEN }}
+          POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
 

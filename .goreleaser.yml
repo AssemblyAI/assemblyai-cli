@@ -1,0 +1,36 @@
+env:
+  - POSTHOG_API_TOKEN={{ .Env.POSTHOG_API_TOKEN }}
+
+builds:
+  - binary: assemblyai
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    env:
+      - CGO_ENABLED=0
+    flags:
+      - -mod=vendor
+    ldflags:
+      - -X github.com/AssemblyAI/assemblyai-cli/cmd.PH_TOKEN={{ .Env.POSTHOG_API_TOKEN }}
+release:
+  prerelease: auto
+
+universal_binaries:
+  - replace: true
+
+brews:
+  -
+    name: assemblyai
+    homepage: "https://www.assemblyai.com/"
+    tap:
+      owner: assemblyai
+      name: homebrew-assemblyai
+    commit_author:
+      name: assemblyai
+      email: support@assemblyai.com
+
+checksum:
+  name_template: 'checksums.txt'
