@@ -42,7 +42,7 @@ Ex:
 ## Flags
 
 | Name | Abbreviation | Default | Description |
-  |--|--|--|--|
+|--|--|--|--|
 |poll|p|true|The CLI will poll the transcription every 3 seconds until it's complete.|
 |speaker_labels|l|true|Automatically detect the number of speakers in the file.|
 |punctuate|u|true|Enable automatic punctuation|
