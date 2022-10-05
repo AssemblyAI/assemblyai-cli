@@ -499,20 +499,20 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 		// Headline
 		headline := "Headline"
 		if len(chapter.Headline) > textWidth {
-			maxLength := len(chapter.Headline)
+			// maxLength := len(chapter.Headline)
 
-			for i := 0; i < maxLength; i += textWidth {
-				textStart := i
-				textEnd := i + textWidth
-				if textEnd > len(chapter.Headline) {
-					if i > len(chapter.Headline) {
-						textStart = len(chapter.Headline)
-					}
-					textEnd = len(chapter.Headline)
+			words := strings.Split(chapter.Headline, " ")
+			var line string
+			for _, word := range words {
+				if len(line)+len(word) > (width - 21) {
+					fmt.Fprintf(w, "| %s\t | %s\n", headline, line)
+					headline = ""
+					line = word
+				} else {
+					line = line + " " + word
 				}
-				fmt.Fprintf(w, "| %s\t | %s\n", headline, chapter.Headline[textStart:textEnd])
-				headline = ""
 			}
+			fmt.Fprintf(w, "| %s\t | %s\n", headline, line)
 
 		} else {
 			fmt.Fprintf(w, "| %s\t | %s\n", headline, chapter.Headline)
@@ -522,20 +522,18 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 		// Summary
 		summary := "Summary"
 		if len(chapter.Summary) > textWidth {
-			maxLength := len(chapter.Summary)
-
-			for i := 0; i < maxLength; i += textWidth {
-				textStart := i
-				textEnd := i + textWidth
-				if textEnd > len(chapter.Summary) {
-					if i > len(chapter.Summary) {
-						textStart = len(chapter.Summary)
-					}
-					textEnd = len(chapter.Summary)
+			words := strings.Split(chapter.Summary, " ")
+			var line string
+			for _, word := range words {
+				if len(line)+len(word) > (width - 21) {
+					fmt.Fprintf(w, "| %s\t | %s\n", summary, line)
+					summary = ""
+					line = word
+				} else {
+					line = line + " " + word
 				}
-				fmt.Fprintf(w, "| %s\t | %s\n", summary, chapter.Summary[textStart:textEnd])
-				summary = ""
 			}
+			fmt.Fprintf(w, "| %s\t | %s\n", summary, line)
 
 		} else {
 			fmt.Fprintf(w, "| %s\t | %s\n", summary, chapter.Summary)
