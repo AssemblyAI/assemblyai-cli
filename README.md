@@ -17,19 +17,19 @@ To install AssemblyAI CLI, use any of the following methods:
   For macOS users, you can install via:
 
     ``` bash
-    $ brew install assemblyai
+    brew install assemblyai
     ```
 
 - ### Cask on Windows/macOS/Linux
 
   ``` bash
-  $ cask install github.com/AssemblyAI/assemblyai-cli
+  cask install github.com/AssemblyAI/assemblyai-cli
   ```
 
 - ### Go lang
 
   ``` bash
-  $ go install github.com/AssemblyAI/assemblyai-cli
+  go install github.com/AssemblyAI/assemblyai-cli
   ```
 
 ## Commands
@@ -38,21 +38,21 @@ To install AssemblyAI CLI, use any of the following methods:
 Ex:
 
   ``` bash
-  $ assemblyai config <token>
+  assemblyai config <token>
   ```
 
 - `transcribe`: Runs the transcription of a local or URL file with all the features specified by the flags.
   Ex:
 
   ``` bash
-  $ assemblyai transcribe <path | url> [flags]
+  assemblyai transcribe <path | url> [flags]
   ```
 
 - `get`: Retrieves a previously transcribed file.
   Ex:
 
   ``` bash
-  $ assemblyai get <transcription id> [flags]
+  assemblyai get <transcription id> [flags]
   ```
 
 ## Flags

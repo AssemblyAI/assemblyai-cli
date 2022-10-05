@@ -271,16 +271,18 @@ func getFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
 		if len(utterance.Text) > textWidth {
-			for i := 0; i < len(utterance.Text); i += textWidth {
-				end := i + textWidth
-				if end > len(utterance.Text) {
-					end = len(utterance.Text)
+			words := strings.Split(utterance.Text, " ")
+			line := ""
+			for _, word := range words {
+				if len(line)+len(word) > textWidth {
+					fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, line)
+					line = ""
+					start = "        "
+					speaker = "        "
 				}
-				toSlice := string(utterance.Text)
-				fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, toSlice[i:end])
-				start = "        "
-				speaker = "        "
+				line += word + " "
 			}
+			fmt.Fprintf(w, "%s\t%s\t%s\n", start, speaker, line)
 		} else {
 			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text)
 		}
@@ -297,15 +299,20 @@ func getFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
 		if len(utterance.Text) > textWidth {
-			for i := 0; i < len(utterance.Text); i += textWidth {
-				end := i + textWidth
-				if end > len(utterance.Text) {
-					end = len(utterance.Text)
+
+			words := strings.Split(utterance.Text, " ")
+			var line string
+			for _, word := range words {
+				if len(line)+len(word) > textWidth {
+					fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, line)
+					start = "        "
+					speaker = "        "
+					line = word
+				} else {
+					line = line + " " + word
 				}
-				fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text[i:end])
-				start = "        "
-				speaker = "        "
 			}
+			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, line)
 		} else {
 			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text)
 		}
@@ -347,7 +354,6 @@ func getFormattedContentSafety(labels ContentSafetyLabels, width int) {
 
 		if len(label.Text) > textWidth || len(labelString) > 30 {
 			maxLength := int(math.Max(float64(len(label.Text)), float64(len(labelString))))
-
 			x := 0
 			for i := 0; i < maxLength; i += textWidth {
 				labelStart := x
@@ -475,7 +481,7 @@ func getFormattedChapters(chapters []Chapter, width int) {
 	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
 	for _, chapter := range chapters {
 		// Gist
-		fmt.Fprintf(w, "| Gist\t | %s\n", chapter.Gist)
+		fmt.Fprintf(w, "| Gist\t | %v\n", chapter.Gist)
 		fmt.Fprintf(w, "| \t | \n")
 
 		// Headline
