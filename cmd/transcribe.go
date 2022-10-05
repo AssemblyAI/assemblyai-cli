@@ -228,41 +228,41 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 
 	fmt.Println("Transcript")
 	if transcript.SpeakerLabels == true {
-		getFormattedUtterances(transcript.Utterances, width)
+		speakerLabelsPrintFormatted(transcript.Utterances, width)
 	} else {
-		getFormattedText(*transcript.Text, width)
+		textPrintFormatted(*transcript.Text, width)
 	}
 	if transcript.DualChannel != nil && *transcript.DualChannel == true {
 		fmt.Println("\nDual Channel")
-		getFormattedDualChannel(transcript.Utterances, width)
+		dualChannelPrintFormatted(transcript.Utterances, width)
 	}
 	if *transcript.AutoHighlights == true {
 		fmt.Println("Highlights")
-		getFormattedHighlights(*transcript.AutoHighlightsResult)
+		highlightsPrintFormatted(*transcript.AutoHighlightsResult)
 	}
 	if *transcript.ContentSafety == true {
 		fmt.Println("Content Moderation")
-		getFormattedContentSafety(*transcript.ContentSafetyLabels, width)
+		contentSafetyPrintFormatted(*transcript.ContentSafetyLabels, width)
 	}
 	if *transcript.IabCategories == true {
 		fmt.Println("Topic Detection")
-		getFormattedTopicDetection(*transcript.IabCategoriesResult, width)
+		topicDetectionPrintFormatted(*transcript.IabCategoriesResult, width)
 	}
 	if *transcript.SentimentAnalysis == true {
 		fmt.Println("Sentiment Analysis")
-		getFormattedSentimentAnalysis(transcript.SentimentAnalysisResults, width)
+		sentimentAnalysisPrintFormatted(transcript.SentimentAnalysisResults, width)
 	}
 	if *transcript.AutoChapters == true {
 		fmt.Println("Chapters")
-		getFormattedChapters(transcript.Chapters, width)
+		chaptersPrintFormatted(transcript.Chapters, width)
 	}
 	if *transcript.EntityDetection == true {
 		fmt.Println("Entity Detection")
-		getFormattedEntityDetection(transcript.Entities, width)
+		entityDetectionPrintFormatted(transcript.Entities, width)
 	}
 }
 
-func getFormattedText(text string, width int) {
+func textPrintFormatted(text string, width int) {
 	words := strings.Split(text, " ")
 	var line string
 	for _, word := range words {
@@ -273,10 +273,9 @@ func getFormattedText(text string, width int) {
 		line += word + " "
 	}
 	fmt.Println(line)
-
 }
 
-func getFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
+func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) {
 	textWidth := width - 21
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
 	for _, utterance := range utterances {
@@ -305,7 +304,7 @@ func getFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
 	w.Flush()
 }
 
-func getFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
+func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int) {
 	textWidth := width - 21
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
 	for _, utterance := range utterances {
@@ -335,7 +334,7 @@ func getFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
 	w.Flush()
 }
 
-func getFormattedHighlights(highlights AutoHighlightsResult) {
+func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 	if *highlights.Status != "success" {
 		fmt.Println("Could not retrieve highlights")
 		return
@@ -350,7 +349,7 @@ func getFormattedHighlights(highlights AutoHighlightsResult) {
 	w.Flush()
 }
 
-func getFormattedContentSafety(labels ContentSafetyLabels, width int) {
+func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
 	if *labels.Status != "success" {
 		fmt.Println("Could not retrieve content safety labels")
 		return
@@ -400,7 +399,7 @@ func getFormattedContentSafety(labels ContentSafetyLabels, width int) {
 	w.Flush()
 }
 
-func getFormattedTopicDetection(categories IabCategoriesResult, width int) {
+func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 	if *categories.Status != "success" {
 		fmt.Println("Could not retrieve topic detection")
 		return
@@ -449,7 +448,7 @@ func getFormattedTopicDetection(categories IabCategoriesResult, width int) {
 	w.Flush()
 }
 
-func getFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width int) {
+func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width int) {
 	if len(sentiments) == 0 {
 		fmt.Println("Could not retrieve sentiment analysis")
 		return
@@ -485,7 +484,7 @@ func getFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width i
 	w.Flush()
 }
 
-func getFormattedChapters(chapters []Chapter, width int) {
+func chaptersPrintFormatted(chapters []Chapter, width int) {
 	if len(chapters) == 0 {
 		fmt.Println("Could not retrieve chapters")
 		return
@@ -548,7 +547,7 @@ func getFormattedChapters(chapters []Chapter, width int) {
 	w.Flush()
 }
 
-func getFormattedEntityDetection(entities []Entity, width int) {
+func entityDetectionPrintFormatted(entities []Entity, width int) {
 	if len(entities) == 0 {
 		fmt.Println("Could not retrieve entity detection")
 		return
