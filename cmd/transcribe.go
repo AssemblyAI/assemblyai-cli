@@ -16,7 +16,6 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/posthog/posthog-go"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 )
@@ -118,7 +117,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	paramsJSON, err := json.Marshal(params)
 	PrintError(err)
 
-	TelemetryCaptureEvent("CLI transcription created", map[string]interface{}{})
+	TelemetryCaptureEvent("CLI transcription created", nil)
 	body := bytes.NewReader(paramsJSON)
 	response := QueryApi(token, "/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
@@ -155,15 +154,16 @@ func uploadFile(token string, path string) string {
 		return ""
 	}
 
-	TelemetryCaptureEvent("CLI upload started", map[string]interface{}{})
+	TelemetryCaptureEvent("CLI upload started", nil)
 	s := CallSpinner(" Your file is being uploaded...")
 	response := QueryApi(token, "/upload", "POST", file)
+
 	var uploadResponse UploadResponse
 	if err := json.Unmarshal(response, &uploadResponse); err != nil {
 		return ""
 	}
 	s.Stop()
-	TelemetryCaptureEvent("CLI upload ended", map[string]interface{}{})
+	TelemetryCaptureEvent("CLI upload ended", nil)
 
 	return uploadResponse.UploadURL
 }
@@ -178,39 +178,36 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 			fmt.Println("Something went wrong. Please try again later.")
 			return
 		}
-
 		var transcript TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
 			s.Stop()
 			return
 		}
-
 		if transcript.Error != nil {
 			s.Stop()
 			fmt.Println(*transcript.Error)
 			return
 		}
 		if *transcript.Status == "completed" {
-			s.Stop()
+			var properties *PostHogProperties = new(PostHogProperties)
 
-			properties := posthog.NewProperties().
-				Set("poll", flags.Poll).
-				Set("json", flags.Json).
-				Set("speaker_labels", *transcript.SpeakerLabels).
-				Set("punctuate", *transcript.Punctuate).
-				Set("format_text", *transcript.FormatText).
-				Set("dual_channel", *transcript.DualChannel).
-				Set("redact_pii", *transcript.RedactPii).
-				Set("auto_highlights", *transcript.AutoHighlights).
-				Set("content_moderation", *transcript.ContentSafety).
-				Set("topic_detection", *transcript.IabCategories).
-				Set("sentiment_analysis", *transcript.SentimentAnalysis).
-				Set("auto_chapters", *transcript.AutoChapters).
-				Set("entity_detection", *transcript.EntityDetection)
+			properties.Poll = flags.Poll
+			properties.Json = flags.Json
+			properties.AutoChapters = *transcript.AutoChapters
+			properties.AutoHighlights = *transcript.AutoHighlights
+			properties.ContentModeration = *transcript.ContentSafety
+			properties.DualChannel = transcript.DualChannel
+			properties.EntityDetection = *transcript.EntityDetection
+			properties.FormatText = *transcript.FormatText
+			properties.Punctuate = *transcript.Punctuate
+			properties.RedactPii = *transcript.RedactPii
+			properties.SentimentAnalysis = *transcript.SentimentAnalysis
+			properties.SpeakerLabels = transcript.SpeakerLabels
+			properties.TopicDetection = *transcript.IabCategories
 
 			TelemetryCaptureEvent("CLI transcription finished", properties)
-
+			s.Stop()
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))
@@ -230,14 +227,14 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	}
 
 	fmt.Println("Transcript")
-	if *transcript.SpeakerLabels == true {
-		getFormattedUtterances(*transcript.Utterances, width)
+	if transcript.SpeakerLabels == true {
+		getFormattedUtterances(transcript.Utterances, width)
 	} else {
 		fmt.Println(*transcript.Text)
 	}
-	if *transcript.DualChannel == true {
+	if transcript.DualChannel != nil && *transcript.DualChannel == true {
 		fmt.Println("\nDual Channel")
-		getFormattedDualChannel(*transcript.Utterances, width)
+		getFormattedDualChannel(transcript.Utterances, width)
 	}
 	if *transcript.AutoHighlights == true {
 		fmt.Println("Highlights")
@@ -253,15 +250,15 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	}
 	if *transcript.SentimentAnalysis == true {
 		fmt.Println("Sentiment Analysis")
-		getFormattedSentimentAnalysis(*transcript.SentimentAnalysisResults, width)
+		getFormattedSentimentAnalysis(transcript.SentimentAnalysisResults, width)
 	}
 	if *transcript.AutoChapters == true {
 		fmt.Println("Chapters")
-		getFormattedChapters(*transcript.Chapters, width)
+		getFormattedChapters(transcript.Chapters, width)
 	}
 	if *transcript.EntityDetection == true {
 		fmt.Println("Entity Detection")
-		getFormattedEntityDetection(*transcript.Entities, width)
+		getFormattedEntityDetection(transcript.Entities, width)
 	}
 }
 
@@ -269,9 +266,9 @@ func getFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
 	textWidth := width - 21
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
 	for _, utterance := range utterances {
-		duration := time.Duration(utterance.Start) * time.Millisecond
+		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
-		speaker := fmt.Sprintf("(Channel %s)", *utterance.Channel)
+		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
 		if len(utterance.Text) > textWidth {
 			for i := 0; i < len(utterance.Text); i += textWidth {
@@ -279,7 +276,8 @@ func getFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
 				if end > len(utterance.Text) {
 					end = len(utterance.Text)
 				}
-				fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text[i:end])
+				toSlice := string(utterance.Text)
+				fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, toSlice[i:end])
 				start = "        "
 				speaker = "        "
 			}
@@ -295,10 +293,9 @@ func getFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
 	textWidth := width - 21
 	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
 	for _, utterance := range utterances {
-		duration := time.Duration(utterance.Start) * time.Millisecond
+		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
-
 		if len(utterance.Text) > textWidth {
 			for i := 0; i < len(utterance.Text); i += textWidth {
 				end := i + textWidth
@@ -318,7 +315,7 @@ func getFormattedUtterances(utterances []SentimentAnalysisResult, width int) {
 }
 
 func getFormattedHighlights(highlights AutoHighlightsResult) {
-	if highlights.Status != "success" {
+	if *highlights.Status != "success" {
 		fmt.Println("Could not retrieve highlights")
 		return
 	}
@@ -326,14 +323,14 @@ func getFormattedHighlights(highlights AutoHighlightsResult) {
 	w := tabwriter.NewWriter(os.Stdout, 10, 10, 1, '\t', 0)
 	fmt.Fprintf(w, "| COUNT\t | TEXT\t\n")
 	for _, highlight := range highlights.Results {
-		fmt.Fprintf(w, "| %s\t | %s\t\n", strconv.FormatInt(highlight.Count, 10), highlight.Text)
+		fmt.Fprintf(w, "| %s\t | %s\t\n", strconv.FormatInt(*highlight.Count, 10), highlight.Text)
 	}
 	fmt.Fprintln(w)
 	w.Flush()
 }
 
 func getFormattedContentSafety(labels ContentSafetyLabels, width int) {
-	if labels.Status != "success" {
+	if *labels.Status != "success" {
 		fmt.Println("Could not retrieve content safety labels")
 		return
 	}
@@ -384,7 +381,7 @@ func getFormattedContentSafety(labels ContentSafetyLabels, width int) {
 }
 
 func getFormattedTopicDetection(categories IabCategoriesResult, width int) {
-	if categories.Status != "success" {
+	if *categories.Status != "success" {
 		fmt.Println("Could not retrieve topic detection")
 		return
 	}
@@ -442,7 +439,7 @@ func getFormattedSentimentAnalysis(sentiments []SentimentAnalysisResult, width i
 	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
 	fmt.Fprintf(w, "| SENTIMENT\t | TEXT\t\n")
 	for _, sentiment := range sentiments {
-		sentimentStatus := *sentiment.Sentiment
+		sentimentStatus := sentiment.Sentiment
 		if len(sentiment.Text) > textWidth {
 			maxLength := len(sentiment.Text)
 
@@ -563,4 +560,20 @@ func getFormattedEntityDetection(entities []Entity, width int) {
 	}
 	fmt.Fprintln(w)
 	w.Flush()
+}
+
+type PostHogProperties struct {
+	Poll              bool  `json:"poll"`
+	Json              bool  `json:"json"`
+	SpeakerLabels     bool  `json:"speaker_labels"`
+	Punctuate         bool  `json:"punctuate"`
+	FormatText        bool  `json:"format_text"`
+	DualChannel       *bool `json:"dual_channel"`
+	RedactPii         bool  `json:"redact_pii"`
+	AutoHighlights    bool  `json:"auto_highlights"`
+	ContentModeration bool  `json:"content_safety"`
+	TopicDetection    bool  `json:"iab_categories"`
+	SentimentAnalysis bool  `json:"sentiment_analysis"`
+	AutoChapters      bool  `json:"auto_chapters"`
+	EntityDetection   bool  `json:"entity_detection"`
 }

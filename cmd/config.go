@@ -54,7 +54,7 @@ var configCmd = &cobra.Command{
 		setConfigFileValue("config.token", token)
 		setConfigFileValue("config.distinct_id", distinctId)
 
-		TelemetryCaptureEvent("CLI configured", map[string]interface{}{})
+		TelemetryCaptureEvent("CLI configured", nil)
 
 		fmt.Println("You're now authenticated.")
 	},

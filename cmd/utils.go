@@ -23,7 +23,7 @@ var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
 var AAIURL = "https://api.assemblyai.com/v2"
 var PH_TOKEN string
 
-func TelemetryCaptureEvent(event string, properties map[string]interface{}) {
+func TelemetryCaptureEvent(event string, properties *PostHogProperties) {
 	isTelemetryEnabled := getConfigFileValue("features.telemetry")
 	if isTelemetryEnabled == "true" {
 
@@ -41,11 +41,33 @@ func TelemetryCaptureEvent(event string, properties map[string]interface{}) {
 			distinctId = uuid.New().String()
 			setConfigFileValue("config.distinct_id", distinctId)
 		}
+		if properties != nil {
+			PhProperties := posthog.NewProperties().
+				Set("poll", properties.Poll).
+				Set("json", properties.Json).
+				Set("speaker_labels", properties.SpeakerLabels).
+				Set("punctuate", properties.Punctuate).
+				Set("format_text", properties.FormatText).
+				Set("dual_channel", properties.DualChannel).
+				Set("redact_pii", properties.RedactPii).
+				Set("auto_highlights", properties.AutoHighlights).
+				Set("content_moderation", properties.ContentModeration).
+				Set("topic_detection", properties.TopicDetection).
+				Set("sentiment_analysis", properties.SentimentAnalysis).
+				Set("auto_chapters", properties.AutoChapters).
+				Set("entity_detection", properties.EntityDetection)
+
+			client.Enqueue(posthog.Capture{
+				DistinctId: distinctId,
+				Event:      event,
+				Properties: PhProperties,
+			})
+			return
+		}
 
 		client.Enqueue(posthog.Capture{
 			DistinctId: distinctId,
 			Event:      event,
-			Properties: properties,
 		})
 	}
 }
@@ -59,6 +81,7 @@ func CallSpinner(message string) *spinner.Spinner {
 func PrintError(err error) {
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 }
 
@@ -72,11 +95,10 @@ func QueryApi(token string, path string, method string, body io.Reader) []byte {
 
 	response, err := http.DefaultClient.Do(resp)
 	PrintError(err)
+	defer response.Body.Close()
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	PrintError(err)
-	defer response.Body.Close()
-
 	return responseData
 }
 
