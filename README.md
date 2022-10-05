@@ -8,10 +8,6 @@ A quick and easy way to test assemblyAI's transcription features on your termina
 
 To install AssemblyAI CLI, use any of the following methods:
 
-- ### Install via go install
-
-  `go install github.com/AssemblyAI/assemblyai-cli`
-
 - ### Homebrew (macOS only)
 
   For macOS users, you can install via:
@@ -19,18 +15,6 @@ To install AssemblyAI CLI, use any of the following methods:
     ``` bash
     brew install assemblyai
     ```
-
-- ### Cask on Windows/macOS/Linux
-
-  ``` bash
-  cask install github.com/AssemblyAI/assemblyai-cli
-  ```
-
-- ### Go lang
-
-  ``` bash
-  go install github.com/AssemblyAI/assemblyai-cli
-  ```
 
 ## Commands
 
