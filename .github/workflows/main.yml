@@ -25,7 +25,6 @@ jobs:
           go-version: '1.14'
           check-latest: true
 
-      - run: go install
       - run: sudo chmod +x build.sh
       - name: Push to main new build
         run: |
