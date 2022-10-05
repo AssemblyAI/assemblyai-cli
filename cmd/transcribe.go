@@ -272,6 +272,8 @@ func getFormattedText(text string, width int) {
 		}
 		line += word + " "
 	}
+	fmt.Println(line)
+
 }
 
 func getFormattedDualChannel(utterances []SentimentAnalysisResult, width int) {
