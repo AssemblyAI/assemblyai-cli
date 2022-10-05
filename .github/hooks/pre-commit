@@ -1,0 +1,17 @@
+#!/bin/bash
+
+# This would only loop over files that are already staged for commit.
+#     git diff --cached --numstat |
+#     while read add del file; do
+#         …
+#     done
+
+shopt -s globstar
+for file in **/*.go; do
+    tmp="$(mktemp "$file.bak.XXXXXXXXXX")"
+    mv "$file" "$tmp"
+    git checkout "$file"
+    gofmt -w "$file"
+    git add "$file"
+    mv "$tmp" "$file"
+done
