@@ -11,12 +11,14 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/posthog/posthog-go"
+	"golang.org/x/term"
 )
 
 var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
@@ -71,9 +73,28 @@ func TelemetryCaptureEvent(event string, properties *PostHogProperties) {
 		})
 	}
 }
+func spinnerMessage(message string) string {
+	width, _, err := term.GetSize(0)
+	if err != nil {
+		width = 512
+	}
+	words := strings.Split(message, "")
+	if len(words) > 0 {
+		message = ""
+		for _, word := range words {
+			if len(message)+len(word) > width-4 {
+				message += "..."
+				return message
+			}
+			message += word + ""
+		}
+	}
+	return message
+}
 
 func CallSpinner(message string) *spinner.Spinner {
-	s := spinner.New(spinner.CharSets[7], 100*time.Millisecond, spinner.WithSuffix(message))
+	newMessage := spinnerMessage(message)
+	s := spinner.New(spinner.CharSets[7], 100*time.Millisecond, spinner.WithSuffix(newMessage))
 	s.Start()
 	return s
 }
