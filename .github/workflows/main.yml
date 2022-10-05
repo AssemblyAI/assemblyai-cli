@@ -25,8 +25,8 @@ jobs:
           go-version: '1.14'
           check-latest: true
 
-      - run: sudo chmod +x build.sh
-      
+      - run: build.sh
+
       - name: Push to main new build
         run: |
           git config user.name 'github-actions[bot]'
