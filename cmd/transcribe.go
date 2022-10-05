@@ -419,7 +419,17 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 	for _, category := range categories.Results {
 		if textWidth < 20 {
 			fmt.Fprintf(w, "| %s\n", category.Labels[0].Label)
-			fmt.Fprintf(w, "| %s\n", category.Text)
+			words := strings.Split(category.Text, " ")
+			var line string
+			for _, word := range words {
+				if len(line)+len(word) > width-10 {
+					fmt.Fprintf(w, "| %s\n", line)
+					line = word
+				} else {
+					line = line + " " + word
+				}
+			}
+			fmt.Fprintf(w, "| %s\n", line)
 		} else if len(category.Text) > textWidth || len(category.Labels) > 1 {
 			x := 0
 			words := strings.Split(category.Text, " ")
