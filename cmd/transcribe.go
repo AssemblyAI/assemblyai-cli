@@ -230,7 +230,7 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	if transcript.SpeakerLabels == true {
 		getFormattedUtterances(transcript.Utterances, width)
 	} else {
-		fmt.Println(*transcript.Text)
+		getFormattedText(*transcript.Text, width)
 	}
 	if transcript.DualChannel != nil && *transcript.DualChannel == true {
 		fmt.Println("\nDual Channel")
@@ -259,6 +259,18 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	if *transcript.EntityDetection == true {
 		fmt.Println("Entity Detection")
 		getFormattedEntityDetection(transcript.Entities, width)
+	}
+}
+
+func getFormattedText(text string, width int) {
+	words := strings.Split(text, " ")
+	var line string
+	for _, word := range words {
+		if len(line)+len(word) > width-1 {
+			fmt.Println(line)
+			line = ""
+		}
+		line += word + " "
 	}
 }
 
