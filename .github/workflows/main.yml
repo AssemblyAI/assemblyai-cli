@@ -26,6 +26,7 @@ jobs:
           check-latest: true
 
       - run: sudo chmod +x build.sh
+      
       - name: Push to main new build
         run: |
           git config user.name 'github-actions[bot]'
