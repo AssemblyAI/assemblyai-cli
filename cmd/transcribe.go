@@ -567,19 +567,3 @@ func getFormattedEntityDetection(entities []Entity, width int) {
 	fmt.Fprintln(w)
 	w.Flush()
 }
-
-type PostHogProperties struct {
-	Poll              bool  `json:"poll"`
-	Json              bool  `json:"json"`
-	SpeakerLabels     bool  `json:"speaker_labels"`
-	Punctuate         bool  `json:"punctuate"`
-	FormatText        bool  `json:"format_text"`
-	DualChannel       *bool `json:"dual_channel"`
-	RedactPii         bool  `json:"redact_pii"`
-	AutoHighlights    bool  `json:"auto_highlights"`
-	ContentModeration bool  `json:"content_safety"`
-	TopicDetection    bool  `json:"iab_categories"`
-	SentimentAnalysis bool  `json:"sentiment_analysis"`
-	AutoChapters      bool  `json:"auto_chapters"`
-	EntityDetection   bool  `json:"entity_detection"`
-}
