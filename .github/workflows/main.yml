@@ -22,10 +22,10 @@ jobs:
 
       - uses: actions/setup-go@v3
         with:
-          go-version: '1.14'
+          go-version: '1.19'
           check-latest: true
 
-      - run: build.sh
+      - run: ./build.sh
 
       - name: Push to main new build
         run: |
