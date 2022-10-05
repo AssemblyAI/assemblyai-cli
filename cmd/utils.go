@@ -11,19 +11,21 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	"github.com/posthog/posthog-go"
+	"golang.org/x/term"
 )
 
 var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
 var AAIURL = "https://api.assemblyai.com/v2"
 var PH_TOKEN string
 
-func TelemetryCaptureEvent(event string, properties map[string]interface{}) {
+func TelemetryCaptureEvent(event string, properties *PostHogProperties) {
 	isTelemetryEnabled := getConfigFileValue("features.telemetry")
 	if isTelemetryEnabled == "true" {
 
@@ -41,17 +43,58 @@ func TelemetryCaptureEvent(event string, properties map[string]interface{}) {
 			distinctId = uuid.New().String()
 			setConfigFileValue("config.distinct_id", distinctId)
 		}
+		if properties != nil {
+			PhProperties := posthog.NewProperties().
+				Set("poll", properties.Poll).
+				Set("json", properties.Json).
+				Set("speaker_labels", properties.SpeakerLabels).
+				Set("punctuate", properties.Punctuate).
+				Set("format_text", properties.FormatText).
+				Set("dual_channel", properties.DualChannel).
+				Set("redact_pii", properties.RedactPii).
+				Set("auto_highlights", properties.AutoHighlights).
+				Set("content_moderation", properties.ContentModeration).
+				Set("topic_detection", properties.TopicDetection).
+				Set("sentiment_analysis", properties.SentimentAnalysis).
+				Set("auto_chapters", properties.AutoChapters).
+				Set("entity_detection", properties.EntityDetection)
+
+			client.Enqueue(posthog.Capture{
+				DistinctId: distinctId,
+				Event:      event,
+				Properties: PhProperties,
+			})
+			return
+		}
 
 		client.Enqueue(posthog.Capture{
 			DistinctId: distinctId,
 			Event:      event,
-			Properties: properties,
 		})
 	}
 }
+func spinnerMessage(message string) string {
+	width, _, err := term.GetSize(0)
+	if err != nil {
+		width = 512
+	}
+	words := strings.Split(message, "")
+	if len(words) > 0 {
+		message = ""
+		for _, word := range words {
+			if len(message)+len(word) > width-4 {
+				message += "..."
+				return message
+			}
+			message += word + ""
+		}
+	}
+	return message
+}
 
 func CallSpinner(message string) *spinner.Spinner {
-	s := spinner.New(spinner.CharSets[7], 100*time.Millisecond, spinner.WithSuffix(message))
+	newMessage := spinnerMessage(message)
+	s := spinner.New(spinner.CharSets[7], 100*time.Millisecond, spinner.WithSuffix(newMessage))
 	s.Start()
 	return s
 }
@@ -59,6 +102,7 @@ func CallSpinner(message string) *spinner.Spinner {
 func PrintError(err error) {
 	if err != nil {
 		fmt.Println(err)
+		return
 	}
 }
 
@@ -72,11 +116,10 @@ func QueryApi(token string, path string, method string, body io.Reader) []byte {
 
 	response, err := http.DefaultClient.Do(resp)
 	PrintError(err)
+	defer response.Body.Close()
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	PrintError(err)
-	defer response.Body.Close()
-
 	return responseData
 }
 
@@ -87,4 +130,20 @@ func BeutifyJSON(data []byte) []byte {
 		return data
 	}
 	return prettyJSON.Bytes()
+}
+
+type PostHogProperties struct {
+	Poll              bool  `json:"poll"`
+	Json              bool  `json:"json"`
+	SpeakerLabels     bool  `json:"speaker_labels"`
+	Punctuate         bool  `json:"punctuate"`
+	FormatText        bool  `json:"format_text"`
+	DualChannel       *bool `json:"dual_channel"`
+	RedactPii         bool  `json:"redact_pii"`
+	AutoHighlights    bool  `json:"auto_highlights"`
+	ContentModeration bool  `json:"content_safety"`
+	TopicDetection    bool  `json:"iab_categories"`
+	SentimentAnalysis bool  `json:"sentiment_analysis"`
+	AutoChapters      bool  `json:"auto_chapters"`
+	EntityDetection   bool  `json:"entity_detection"`
 }
