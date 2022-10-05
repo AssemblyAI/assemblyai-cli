@@ -89,11 +89,11 @@ type Timestamp struct {
 }
 
 type Chapter struct {
-	Summary  string  `json:"summary,omitempty"`
-	Headline string  `json:"headline,omitempty"`
-	Gist     *string `json:"gist,omitempty"`
-	Start    *int64  `json:"start,omitempty"`
-	End      *int64  `json:"end,omitempty"`
+	Summary  string `json:"summary,omitempty"`
+	Headline string `json:"headline,omitempty"`
+	Gist     string `json:"gist,omitempty"`
+	Start    *int64 `json:"start,omitempty"`
+	End      *int64 `json:"end,omitempty"`
 }
 
 type ContentSafetyLabels struct {

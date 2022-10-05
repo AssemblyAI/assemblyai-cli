@@ -437,24 +437,6 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 					line = line + " " + word
 				}
 			}
-
-			// for i := 0; i < maxLength; i += textWidth {
-			// 	label := ""
-			// 	if x < 3 && x < len(category.Labels) {
-			// 		label = category.Labels[x].Label
-			// 	}
-			// 	textStart := i
-			// 	textEnd := i + textWidth
-			// 	if textEnd > len(category.Text) {
-			// 		if i > len(category.Text) {
-			// 			textStart = len(category.Text)
-			// 		}
-			// 		textEnd = len(category.Text)
-			// 	}
-
-			// 	fmt.Fprintf(w, "| %s\t| %s\n", label, category.Text[textStart:textEnd])
-			// 	x += 1
-			// }
 		} else {
 			fmt.Fprintf(w, "| %s\t| %s\n", category.Labels[0].Label, category.Text)
 		}
