@@ -73,6 +73,7 @@ func TelemetryCaptureEvent(event string, properties *PostHogProperties) {
 		})
 	}
 }
+
 func spinnerMessage(message string) string {
 	width, _, err := term.GetSize(0)
 	if err != nil {
