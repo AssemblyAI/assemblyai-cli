@@ -22,7 +22,7 @@ import (
 
 // transcribeCmd represents the transcribe command
 var transcribeCmd = &cobra.Command{
-	Use:   "transcribe <url | path>",
+	Use:   "transcribe <url | path | youtube URL>",
 	Short: "A brief description of your command",
 	Long: `A longer description that spans multiple lines and likely contains examples
 		and usage of using your command. For example:
@@ -37,7 +37,7 @@ var transcribeCmd = &cobra.Command{
 
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
-			fmt.Println("Please provide a local file or a URL to be transcribed.")
+			fmt.Println("Please provide a local file, a file URL or a YouTube URL to be transcribed.")
 			return
 		}
 		params.AudioURL = args[0]
@@ -90,27 +90,46 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	isYoutubeLink := isYoutubeLink(params.AudioURL)
 
 	if isYoutubeLink {
-		fmt.Println("Youtube link is not yet supported, please provide a file Url or path")
-		return
-	}
+		u, err := url.Parse(params.AudioURL)
+		if err != nil {
+			fmt.Println("Error parsing URL")
+			return
+		}
+		youtubeId := u.Query().Get("v")
 
-	_, err := url.ParseRequestURI(params.AudioURL)
-	if err != nil {
-		uploadedURL := uploadFile(token, params.AudioURL)
+		youtubeDownloadStatus := YoutubeDownload(youtubeId)
+		if youtubeDownloadStatus == false {
+			fmt.Println("Youtube download failed")
+			return
+		}
+		uploadedURL := uploadFile(token, Filename)
+
 		if uploadedURL == "" {
 			fmt.Println("The file doesn't exist. Please try again with a different one.")
 			return
 		}
+		os.Remove(Filename)
 		params.AudioURL = uploadedURL
-	}
+	} else {
 
-	isAAICDN := checkAAICDN(params.AudioURL)
+		_, err := url.ParseRequestURI(params.AudioURL)
+		if err != nil {
+			uploadedURL := uploadFile(token, params.AudioURL)
+			if uploadedURL == "" {
+				fmt.Println("The file doesn't exist. Please try again with a different one.")
+				return
+			}
+			params.AudioURL = uploadedURL
+		}
 
-	if !isAAICDN {
-		resp, err := http.Get(params.AudioURL)
-		if err != nil || resp.StatusCode != 200 {
-			fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
-			return
+		isAAICDN := checkAAICDN(params.AudioURL)
+
+		if !isAAICDN {
+			resp, err := http.Get(params.AudioURL)
+			if err != nil || resp.StatusCode != 200 {
+				fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
+				return
+			}
 		}
 	}
 

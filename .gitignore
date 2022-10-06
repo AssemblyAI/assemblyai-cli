@@ -1,3 +1,4 @@
 testfile.*
 .env
 !.github/*
+brew/*
