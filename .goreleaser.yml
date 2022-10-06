@@ -25,8 +25,6 @@ brews:
   -
     name: assemblyai
     homepage: "https://www.assemblyai.com/"
-    download_strategy: GitHubPrivateRepositoryReleaseDownloadStrategy
-    custom_require: "lib/private"
     tap:
       owner: assemblyai
       name: homebrew-assemblyai
