@@ -11,6 +11,7 @@ type CheckIfTokenValidResponse struct {
 }
 
 type Account struct {
+	Error          *string        `json:"error,omitempty"`
 	IsVerified     bool           `json:"is_verified"`
 	CurrentBalance CurrentBalance `json:"current_balance"`
 }

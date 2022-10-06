@@ -25,6 +25,9 @@ brews:
   -
     name: assemblyai-cli
     homepage: "https://www.assemblyai.com/"
+    description: "A quick and easy way to test assemblyAI's transcription features on your terminal"
+    license: "Apache 2.0"
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
     tap:
       owner: assemblyai
       name: homebrew-assemblyai

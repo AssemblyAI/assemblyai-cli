@@ -76,7 +76,9 @@ func CheckIfTokenValid(token string) bool {
 	if err := json.Unmarshal(response, &result); err != nil {
 		fmt.Println("Can not unmarshal JSON")
 	}
-
+	if result.Error != nil {
+		return false
+	}
 	return true
 }
 
