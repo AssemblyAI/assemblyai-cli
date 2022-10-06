@@ -99,7 +99,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 		youtubeDownloadStatus := YoutubeDownload(youtubeId)
 		if youtubeDownloadStatus == false {
-			fmt.Println("Youtube download failed")
+			fmt.Println("Please try again with a different one.")
 			return
 		}
 		uploadedURL := uploadFile(token, Filename)

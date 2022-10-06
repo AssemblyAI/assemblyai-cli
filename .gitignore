@@ -2,3 +2,4 @@ testfile.*
 .env
 !.github/*
 brew/*
+tmp-*
