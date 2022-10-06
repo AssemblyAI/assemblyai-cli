@@ -23,7 +23,7 @@ universal_binaries:
 
 brews:
   -
-    name: assemblyai
+    name: assemblyai-cli
     homepage: "https://www.assemblyai.com/"
     tap:
       owner: assemblyai
