@@ -6,7 +6,6 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -102,7 +101,7 @@ func CallSpinner(message string) *spinner.Spinner {
 
 func PrintError(err error) {
 	if err != nil {
-		fmt.Println(err)
+		// fmt.Println(err)
 		return
 	}
 }

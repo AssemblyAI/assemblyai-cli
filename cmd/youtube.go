@@ -84,7 +84,7 @@ func QueryYoutube(body io.Reader) YoutubeMetaInfo {
 
 	var videoResponse YoutubeMetaInfo
 	if err := json.Unmarshal(responseData, &videoResponse); err != nil {
-		fmt.Println("Can not unmarshal JSON")
+		PrintError(err)
 	}
 
 	return videoResponse
@@ -101,7 +101,6 @@ func download(index int, itag int64, video YoutubeMetaInfo) bool {
 	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
 	out, err = os.OpenFile(Filename, flags, 0644)
 	if err != nil {
-		fmt.Printf("Unable to write to file %q: %s", Filename, err)
 		return false
 	}
 
@@ -110,24 +109,20 @@ func download(index int, itag int64, video YoutubeMetaInfo) bool {
 	url := video.StreamingData.Formats[index].URL
 
 	if resp, err := http.Head(*url); err != nil {
-		fmt.Printf("Head request failed: %s", err)
 		return false
 	} else {
 		if resp.StatusCode == 403 {
-			fmt.Println("Head request failed: Video is 403 forbidden")
 			return false
 		}
 
 		if size := resp.Header.Get("Content-Length"); len(size) == 0 {
-			fmt.Println("Content-Length header is missing")
 			return false
 		} else if length, err = strconv.ParseInt(size, 10, 64); err != nil {
-			fmt.Printf("Invalid Content-Length: %s", err)
+			PrintError(err)
 			return false
 		}
 
 		if length <= offset {
-			fmt.Println("Video file is already downloaded.")
 			return false
 		}
 	}
@@ -135,13 +130,13 @@ func download(index int, itag int64, video YoutubeMetaInfo) bool {
 	start := time.Now()
 	resp, err := http.Get(*url)
 	if err != nil {
-		fmt.Printf("Request failed: %s", err)
+		PrintError(err)
 		return false
 	}
 	defer resp.Body.Close()
 
 	if length, err = io.Copy(out, resp.Body); err != nil {
-		fmt.Println(err)
+		PrintError(err)
 		return false
 	}
 
@@ -151,7 +146,8 @@ func download(index int, itag int64, video YoutubeMetaInfo) bool {
 	}
 
 	if err := out.Close(); err != nil {
-		fmt.Println("Error:", err)
+		PrintError(err)
+		return false
 	}
 	// TODO : transcode to mp3
 	// ffmpeg, err := exec.LookPath("ffmpeg")
