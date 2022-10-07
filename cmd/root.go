@@ -7,16 +7,28 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
 
+var VERSION string
+
 var rootCmd = &cobra.Command{
-	Use:   "assemblyai config -h",
+	Use:   "assemblyai",
 	Short: "AssemblyAI CLI",
 	Long: `Please authenticate with AssemblyAI to use this CLI.
 assemblyai config {YOUR TOKEN}`,
 	Run: func(cmd *cobra.Command, args []string) {
-		cmd.Help()
+		versionFlag, _ := cmd.Flags().GetBool("version")
+		if versionFlag {
+			if VERSION == "" {
+				godotenv.Load()
+				VERSION = os.Getenv("VERSION")
+			}
+			fmt.Printf("AssemblyAI CLI v%s\n", VERSION)
+		} else {
+			cmd.Help()
+		}
 	},
 }
 
@@ -28,4 +40,5 @@ func Execute() {
 }
 
 func init() {
+	rootCmd.PersistentFlags().BoolP("version", "v", false, "Check current installed version.")
 }
