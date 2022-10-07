@@ -7,7 +7,6 @@ on:
 env:
   BEFORE_SHA: ${{ github.event.before }}
   CI: true
-  POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
   CI_COMMIT_MESSAGE: Continuous Integration Build Artifacts
 
 jobs:
@@ -27,6 +26,7 @@ jobs:
 
       - run: ./build.sh
         env: 
+          POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
           VERSION: ${{ env.GITHUB_REF_NAME }}
 
       - name: Push to main new build
