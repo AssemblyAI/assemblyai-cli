@@ -17,6 +17,14 @@ To install AssemblyAI CLI, use any of the following methods:
     brew install assemblyai
     ```
 
+- ### Curl
+
+  Paste that in a Terminal or shell prompt.
+
+    ``` bash
+    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.sh)"
+    ```
+
 ## Commands
 
 - `config`: Use the config command to store your authentication token and automatically use it in any subsequent request.
@@ -58,15 +66,3 @@ Ex:
 |sentiment_analysis|x|false|Detect the sentiment of each sentence of speech spoken in the file.|
 |auto_chapters|s|false|A "summary over time" for the audio file transcribed.|
 |entity_detection|e|false|Identify a wide range of entities that are spoken in the audio file.|
-
-## Update
-
-To update the already installed AssemblyAI CLI, use any of the following methods:
-
-- ### Homebrew (macOS only)
-
-  For macOS users, you can install via:
-
-    ``` bash
-    brew upgrade assemblyai
-    ```
