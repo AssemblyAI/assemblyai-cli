@@ -25,7 +25,7 @@ assemblyai config {YOUR TOKEN}`,
 				godotenv.Load()
 				VERSION = os.Getenv("VERSION")
 			}
-			fmt.Printf("AssemblyAI CLI v%s\n", VERSION)
+			fmt.Printf("AssemblyAI CLI %s\n", VERSION)
 		} else {
 			cmd.Help()
 		}
