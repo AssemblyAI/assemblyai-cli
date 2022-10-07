@@ -29,7 +29,7 @@ Ex:
   Ex:
 
   ``` bash
-  assemblyai transcribe <path | url> [flags]
+  assemblyai transcribe <path | url | youtube url> [flags]
   ```
 
 - `get`: Retrieves a previously transcribed file.
@@ -50,7 +50,7 @@ Ex:
 |dual_channel|d|false|Enable dual channel|
 |json|j|false|If true, the CLI will output the JSON. |
 |redact_pii|r|false|Remove personally identifiable information from the transcription.|
-|pii_policies*|i|drug,number_sequence,person_name*|The list of PII policies to redact (source), comma-separated. Required if the redact_pii flag is true, with the default value including drugs, number sequences, and person names. |
+|redact_pii_policies*|i|drug,number_sequence,person_name*|The list of PII policies to redact (source), comma-separated. Required if the redact_pii flag is true, with the default value including drugs, number sequences, and person names. |
 |auto_highlights|a|false|Automatically detect important phrases and words in the text.|
 |content_moderation|c|false|Detect if sensitive content is spoken in the file.|
 |topic_detection|t|false|Label the topics that are spoken in the file.|
