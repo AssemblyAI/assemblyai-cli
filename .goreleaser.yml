@@ -2,7 +2,7 @@ env:
   - POSTHOG_API_TOKEN={{ .Env.POSTHOG_API_TOKEN }}
 
 builds:
-  - binary: assemblyai-cli
+  - binary: assemblyai
     goos:
       - darwin
       - linux
@@ -23,7 +23,7 @@ universal_binaries:
 
 brews:
   -
-    name: assemblyai-cli
+    name: assemblyai
     homepage: "https://www.assemblyai.com/"
     description: "A quick and easy way to test assemblyAI's transcription features on your terminal"
     license: "Apache 2.0"
