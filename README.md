@@ -13,6 +13,7 @@ To install AssemblyAI CLI, use any of the following methods:
   For macOS users, you can install via:
 
     ``` bash
+    brew tap assemblyai/assemblyai
     brew install assemblyai
     ```
 
@@ -57,3 +58,15 @@ Ex:
 |sentiment_analysis|x|false|Detect the sentiment of each sentence of speech spoken in the file.|
 |auto_chapters|s|false|A "summary over time" for the audio file transcribed.|
 |entity_detection|e|false|Identify a wide range of entities that are spoken in the audio file.|
+
+## Update
+
+To update the already installed AssemblyAI CLI, use any of the following methods:
+
+- ### Homebrew (macOS only)
+
+  For macOS users, you can install via:
+
+    ``` bash
+    brew upgrade assemblyai
+    ```

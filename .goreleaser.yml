@@ -4,10 +4,13 @@ project_name: assemblyai
 builds:
   - binary: assemblyai
     goos:
-      - darwin
       - linux
+      - darwin
+      - windows
     goarch:
+      - "386"
       - amd64
+      - arm
       - arm64
     env:
       - CGO_ENABLED=0
@@ -45,37 +48,37 @@ brews:
       name: assemblyai
       email: support@assemblyai.com
 
-nfpms:
-  -
-    package_name: assemblyai
-    homepage: "https://www.assemblyai.com/"
-    vendor: AssemblyAI
-    maintainer: AssemblyAI <support@assemblyai.com>
-    description: "A quick and easy way to test assemblyAI's transcription features on your terminal"
-    license: "Apache 2.0"
-    bindir: /usr/bin
-    section: utils
-    contents:
-      # - src: ./manpages/goreleaser.1.gz
-      #   dst: /usr/share/man/man1/goreleaser.1.gz
-      #   file_info:
-      #     mode: 0644
-      - src: ./LICENSE
-        dst: /usr/share/doc/goreleaser/copyright
-        file_info:
-          mode: 0644
-    formats:
-    - apk
-    - deb
-    - rpm
-    dependencies:
-    - git
-    recommends:
-    - golang
-    deb:
-      lintian_overrides:
-        - statically-linked-binary
-        - changelog-file-missing-in-native-package
+# nfpms:
+#   -
+#     package_name: assemblyai
+#     homepage: "https://www.assemblyai.com/"
+#     vendor: AssemblyAI
+#     maintainer: AssemblyAI <support@assemblyai.com>
+#     description: "A quick and easy way to test assemblyAI's transcription features on your terminal"
+#     license: "Apache 2.0"
+#     bindir: /usr/bin
+#     section: utils
+#     contents:
+#       # - src: ./manpages/goreleaser.1.gz
+#       #   dst: /usr/share/man/man1/goreleaser.1.gz
+#       #   file_info:
+#       #     mode: 0644
+#       - src: ./LICENSE
+#         dst: /usr/share/doc/goreleaser/copyright
+#         file_info:
+#           mode: 0644
+#     formats:
+#     - apk
+#     - deb
+#     - rpm
+#     dependencies:
+#     - git
+#     recommends:
+#     - golang
+#     deb:
+#       lintian_overrides:
+#         - statically-linked-binary
+#         - changelog-file-missing-in-native-package
 
 
 checksum:
