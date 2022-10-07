@@ -99,20 +99,16 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			return
 		}
 		youtubeId := u.Query().Get("v")
-
-		youtubeDownloadStatus := YoutubeDownload(youtubeId)
-		if youtubeDownloadStatus == false {
+		if youtubeId == "" {
+			fmt.Println("Could not find YouTube ID in URL")
+			return
+		}
+		youtubeVideoURL := YoutubeDownload(youtubeId)
+		if youtubeVideoURL == "" {
 			fmt.Println("Please try again with a different one.")
 			return
 		}
-		uploadedURL := uploadFile(token, Filename)
-
-		if uploadedURL == "" {
-			fmt.Println("The file doesn't exist. Please try again with a different one.")
-			return
-		}
-		os.Remove(Filename)
-		params.AudioURL = uploadedURL
+		params.AudioURL = youtubeVideoURL
 	} else {
 
 		_, err := url.ParseRequestURI(params.AudioURL)
@@ -459,7 +455,7 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 			words := strings.Split(category.Text, " ")
 			var line string
 			for _, word := range words {
-				if len(line)+len(word) > (width - labelWidth - 11) {
+				if len(line)+len(word) > (width - labelWidth - 20) {
 					label := " "
 					if x < 3 && x < len(category.Labels) {
 						label = category.Labels[x].Label
