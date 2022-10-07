@@ -10,15 +10,13 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"os"
-	"strconv"
-	"time"
+	"strings"
 )
 
 var key = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
 var Filename = "tmp-video.mp4"
 
-func YoutubeDownload(id string) bool {
+func YoutubeDownload(id string) string {
 	var body YoutubeBodyMetaInfo
 	body.Context.Client.Hl = "en"
 	body.Context.Client.ClientName = "WEB"
@@ -42,7 +40,7 @@ func YoutubeDownload(id string) bool {
 
 	paramsJSON, err := json.Marshal(body)
 	if err != nil {
-		return false
+		return ""
 	}
 
 	requestBody := bytes.NewReader(paramsJSON)
@@ -52,21 +50,26 @@ func YoutubeDownload(id string) bool {
 	if *video.PlayabilityStatus.Status != "OK" {
 		s.Stop()
 		fmt.Println("The video is not available for download")
-		return false
+		return ""
 	}
 
 	var idx int
-	var itag int64
 	for index, format := range video.StreamingData.Formats {
 		if *format.MIMEType == "video/mp4; codecs=\"avc1.42001E, mp4a.40.2\"" {
 			idx = index
-			itag = *format.Itag
 			break
 		}
 	}
-	status := download(idx, itag, video)
+	if idx == 0 {
+		for index, format := range video.StreamingData.Formats {
+			if strings.HasPrefix(*format.MIMEType, "video/mp4") {
+				idx = index
+				break
+			}
+		}
+	}
 	s.Stop()
-	return status
+	return *video.StreamingData.Formats[idx].URL
 }
 
 func QueryYoutube(body io.Reader) YoutubeMetaInfo {
@@ -80,7 +83,10 @@ func QueryYoutube(body io.Reader) YoutubeMetaInfo {
 	defer response.Body.Close()
 
 	responseData, err := ioutil.ReadAll(response.Body)
-	PrintError(err)
+	if err != nil {
+		PrintError(err)
+		fmt.Println("Our Youtube transcribe service is currently unavailable. Please try again later.")
+	}
 
 	var videoResponse YoutubeMetaInfo
 	if err := json.Unmarshal(responseData, &videoResponse); err != nil {
@@ -88,87 +94,6 @@ func QueryYoutube(body io.Reader) YoutubeMetaInfo {
 	}
 
 	return videoResponse
-}
-
-func download(index int, itag int64, video YoutubeMetaInfo) bool {
-	var (
-		out    *os.File
-		err    error
-		offset int64
-		length int64
-	)
-
-	flags := os.O_WRONLY | os.O_CREATE | os.O_TRUNC
-	out, err = os.OpenFile(Filename, flags, 0644)
-	if err != nil {
-		return false
-	}
-
-	defer out.Close()
-
-	url := video.StreamingData.Formats[index].URL
-
-	if resp, err := http.Head(*url); err != nil {
-		return false
-	} else {
-		if resp.StatusCode == 403 {
-			return false
-		}
-
-		if size := resp.Header.Get("Content-Length"); len(size) == 0 {
-			return false
-		} else if length, err = strconv.ParseInt(size, 10, 64); err != nil {
-			PrintError(err)
-			return false
-		}
-
-		if length <= offset {
-			return false
-		}
-	}
-
-	start := time.Now()
-	resp, err := http.Get(*url)
-	if err != nil {
-		PrintError(err)
-		return false
-	}
-	defer resp.Body.Close()
-
-	if length, err = io.Copy(out, resp.Body); err != nil {
-		PrintError(err)
-		return false
-	}
-
-	duration := time.Now().Sub(start)
-	if duration > time.Second {
-		duration -= duration % time.Second
-	}
-
-	if err := out.Close(); err != nil {
-		PrintError(err)
-		return false
-	}
-	// TODO : transcode to mp3
-	// ffmpeg, err := exec.LookPath("ffmpeg")
-	// if err != nil {
-	// 	fmt.Println("ffmpeg not found")
-	// } else {
-	// 	fmt.Println("Extracting audio ..")
-	// 	mp3 := strings.TrimRight(filename, filepath.Ext(filename)) + ".mp3"
-	// 	cmd := exec.Command(ffmpeg, "-y", "-loglevel", "quiet", "-i", filename, "-vn", mp3)
-	// 	cmd.Stdin = os.Stdin
-	// 	cmd.Stdout = os.Stdout
-	// 	cmd.Stderr = os.Stderr
-	// 	if err := cmd.Run(); err != nil {
-	// 		fmt.Println("Failed to extract audio:", err)
-	// 	} else {
-	// 		fmt.Println()
-	// 		fmt.Println("Extracted audio:", mp3)
-	// 	}
-	// }
-
-	return true
 }
 
 const (

@@ -176,17 +176,48 @@ type TranscribeFlags struct {
 }
 
 type TranscribeParams struct {
-	// PiiPolicies       string `json:"pii_policies"`
-	AudioURL          string `json:"audio_url"`
-	AutoChapters      bool   `json:"auto_chapters"`
-	AutoHighlights    bool   `json:"auto_highlights"`
-	ContentModeration bool   `json:"content_safety"`
-	DualChannel       bool   `json:"dual_channel"`
-	EntityDetection   bool   `json:"entity_detection"`
-	FormatText        bool   `json:"format_text"`
-	Punctuate         bool   `json:"punctuate"`
-	RedactPii         bool   `json:"redact_pii"`
-	SentimentAnalysis bool   `json:"sentiment_analysis"`
-	SpeakerLabels     bool   `json:"speaker_labels"`
-	TopicDetection    bool   `json:"iab_categories"`
+	RedactPiiPolicies []string `json:"redact_pii_policies"`
+	AudioURL          string   `json:"audio_url"`
+	AutoChapters      bool     `json:"auto_chapters"`
+	AutoHighlights    bool     `json:"auto_highlights"`
+	ContentModeration bool     `json:"content_safety"`
+	DualChannel       bool     `json:"dual_channel"`
+	EntityDetection   bool     `json:"entity_detection"`
+	FormatText        bool     `json:"format_text"`
+	Punctuate         bool     `json:"punctuate"`
+	RedactPii         bool     `json:"redact_pii"`
+	SentimentAnalysis bool     `json:"sentiment_analysis"`
+	SpeakerLabels     bool     `json:"speaker_labels"`
+	TopicDetection    bool     `json:"iab_categories"`
 }
+
+type RedactPiiPolicy string
+
+const (
+	MedicalProcess         RedactPiiPolicy = "medical_process"
+	MedicalCondition       RedactPiiPolicy = "medical_condition"
+	BloodType              RedactPiiPolicy = "blood_type"
+	Drug                   RedactPiiPolicy = "drug"
+	Injury                 RedactPiiPolicy = "injury"
+	NumberSequence         RedactPiiPolicy = "number_sequence"
+	EmailAddress           RedactPiiPolicy = "email_address"
+	DateOfBirth            RedactPiiPolicy = "date_of_birth"
+	PhoneNumber            RedactPiiPolicy = "phone_number"
+	USSocialSecurityNumber RedactPiiPolicy = "us_social_security_number"
+	CreditCardNumber       RedactPiiPolicy = "credit_card_number"
+	CreditCardExpiration   RedactPiiPolicy = "credit_card_expiration"
+	Date                   RedactPiiPolicy = "date"
+	Nationality            RedactPiiPolicy = "nationality"
+	Event                  RedactPiiPolicy = "event"
+	Language               RedactPiiPolicy = "language"
+	Location               RedactPiiPolicy = "location"
+	MoneyAmount            RedactPiiPolicy = "money_amount"
+	PersonName             RedactPiiPolicy = "person_name"
+	PersonAge              RedactPiiPolicy = "person_age"
+	Organization           RedactPiiPolicy = "organization"
+	PoliticalAffiliation   RedactPiiPolicy = "political_affiliation"
+	Occupation             RedactPiiPolicy = "occupation"
+	Religion               RedactPiiPolicy = "religion"
+	DriversLicense         RedactPiiPolicy = "drivers_license"
+	BankingInformation     RedactPiiPolicy = "banking_information"
+)

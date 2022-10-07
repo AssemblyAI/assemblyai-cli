@@ -44,7 +44,6 @@ var transcribeCmd = &cobra.Command{
 
 		flags.Poll, _ = cmd.Flags().GetBool("poll")
 		flags.Json, _ = cmd.Flags().GetBool("json")
-		// params.PiiPolicies, _ = cmd.Flags().GetString("pii_policies")
 		params.AutoChapters, _ = cmd.Flags().GetBool("auto_chapters")
 		params.AutoHighlights, _ = cmd.Flags().GetBool("auto_highlights")
 		params.ContentModeration, _ = cmd.Flags().GetBool("content_moderation")
@@ -52,30 +51,34 @@ var transcribeCmd = &cobra.Command{
 		params.EntityDetection, _ = cmd.Flags().GetBool("entity_detection")
 		params.FormatText, _ = cmd.Flags().GetBool("format_text")
 		params.Punctuate, _ = cmd.Flags().GetBool("punctuate")
-		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
 		params.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
 		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
 		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
+		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
+		if params.RedactPii {
+			policies, _ := cmd.Flags().GetString("redact_pii_policies")
+			params.RedactPiiPolicies = strings.Split(policies, ",")
+		}
 
 		transcribe(params, flags)
 	},
 }
 
 func init() {
-	// transcribeCmd.PersistentFlags().StringP("pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact (source), comma-separated. Required if the redact_pii flag is true, with the default value including drugs, number sequences, and person names.")
-	transcribeCmd.Flags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
-	transcribeCmd.Flags().BoolP("auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
-	transcribeCmd.Flags().BoolP("content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
-	transcribeCmd.Flags().BoolP("dual_channel", "d", false, "Enable dual channel")
-	transcribeCmd.Flags().BoolP("entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
-	transcribeCmd.Flags().BoolP("format_text", "f", true, "Enable text formatting")
-	transcribeCmd.Flags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
-	transcribeCmd.Flags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
-	transcribeCmd.Flags().BoolP("punctuate", "u", true, "Enable automatic punctuation.")
-	transcribeCmd.Flags().BoolP("redact_pii", "r", false, "Remove personally identifiable information from the transcription.")
-	transcribeCmd.Flags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
-	transcribeCmd.Flags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
-	transcribeCmd.Flags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
+	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
+	transcribeCmd.PersistentFlags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
+	transcribeCmd.PersistentFlags().BoolP("auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
+	transcribeCmd.PersistentFlags().BoolP("content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
+	transcribeCmd.PersistentFlags().BoolP("dual_channel", "d", false, "Enable dual channel")
+	transcribeCmd.PersistentFlags().BoolP("entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
+	transcribeCmd.PersistentFlags().BoolP("format_text", "f", true, "Enable text formatting")
+	transcribeCmd.PersistentFlags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
+	transcribeCmd.PersistentFlags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
+	transcribeCmd.PersistentFlags().BoolP("punctuate", "u", true, "Enable automatic punctuation.")
+	transcribeCmd.PersistentFlags().BoolP("redact_pii", "r", false, "Remove personally identifiable information from the transcription.")
+	transcribeCmd.PersistentFlags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
+	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
+	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
 	rootCmd.AddCommand(transcribeCmd)
 }
 
@@ -96,20 +99,16 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			return
 		}
 		youtubeId := u.Query().Get("v")
-
-		youtubeDownloadStatus := YoutubeDownload(youtubeId)
-		if youtubeDownloadStatus == false {
+		if youtubeId == "" {
+			fmt.Println("Could not find YouTube ID in URL")
+			return
+		}
+		youtubeVideoURL := YoutubeDownload(youtubeId)
+		if youtubeVideoURL == "" {
 			fmt.Println("Please try again with a different one.")
 			return
 		}
-		uploadedURL := uploadFile(token, Filename)
-
-		if uploadedURL == "" {
-			fmt.Println("The file doesn't exist. Please try again with a different one.")
-			return
-		}
-		os.Remove(Filename)
-		params.AudioURL = uploadedURL
+		params.AudioURL = youtubeVideoURL
 	} else {
 
 		_, err := url.ParseRequestURI(params.AudioURL)
@@ -432,11 +431,13 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 		for i, innerLabel := range category.Labels {
 			if i < 3 {
 				labelWidth = int(math.Max(float64(len(innerLabel.Label)), float64(labelWidth)))
+				break
 			}
 		}
 	}
+	textWidth = int(math.Abs(float64(width - labelWidth)))
 	for _, category := range categories.Results {
-		if textWidth < 20 {
+		if labelWidth > int(math.Floor(float64(width)*0.6)) {
 			fmt.Fprintf(w, "| %s\n", category.Labels[0].Label)
 			words := strings.Split(category.Text, " ")
 			var line string
@@ -454,7 +455,7 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 			words := strings.Split(category.Text, " ")
 			var line string
 			for _, word := range words {
-				if len(line)+len(word) > (width - labelWidth - 11) {
+				if len(line)+len(word) > (width - labelWidth - 20) {
 					label := " "
 					if x < 3 && x < len(category.Labels) {
 						label = category.Labels[x].Label
