@@ -9,7 +9,6 @@ env:
   CI: true
   POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
   CI_COMMIT_MESSAGE: Continuous Integration Build Artifacts
-  VERSION: ${{ env.GITHUB_REF_NAME }}
 
 jobs:
   build:
@@ -27,6 +26,8 @@ jobs:
           check-latest: true
 
       - run: ./build.sh
+        env: 
+          VERSION: ${{ env.GITHUB_REF_NAME }}
 
       - name: Push to main new build
         run: |
