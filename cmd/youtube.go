@@ -96,12 +96,6 @@ func QueryYoutube(body io.Reader) YoutubeMetaInfo {
 	return videoResponse
 }
 
-const (
-	KB float64 = 1 << (10 * (iota + 1))
-	MB
-	GB
-)
-
 type YoutubeBodyMetaInfo struct {
 	Context         Context         `json:"context"`
 	VideoID         string          `json:"videoId"`

@@ -18,12 +18,22 @@ To install AssemblyAI CLI, use any of the following methods:
     ```
 
 - ### Curl
+  
+  - Linux or macOS:
+    Paste that in a Terminal or shell prompt.
 
-  Paste that in a Terminal or shell prompt.
+      ``` bash
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.sh)"
+      ```
 
-    ``` bash
-    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.sh)"
-    ```
+  - Windows Powershell:
+    Paste that in a Terminal or shell prompt.
+
+      ``` PowerShell
+      Set-ExecutionPolicy RemoteSigned -Scope CurrentUser # Needed to run a remote script the first time
+      iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.ps1)"
+      Set-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai-exe # Needed to add the alias of the command
+      ```
 
 ## Commands
 
