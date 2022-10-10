@@ -32,7 +32,7 @@ To install AssemblyAI CLI, use any of the following methods:
       ``` PowerShell
       Set-ExecutionPolicy RemoteSigned -Scope CurrentUser # Needed to run a remote script the first time
       iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.ps1)"
-      Set-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai-exe # Needed to add the alias of the command
+      Set-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai.exe # Needed to add the alias of the command
       ```
 
 ## Commands
