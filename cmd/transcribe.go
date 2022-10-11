@@ -113,13 +113,11 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 				return
 			}
 			params.AudioURL = youtubeVideoURL
-		} else {
-			if !checkAAICDN(params.AudioURL) {
-				resp, err := http.Get(params.AudioURL)
-				if err != nil || resp.StatusCode != 200 {
-					fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
-					return
-				}
+		} else if !checkAAICDN(params.AudioURL) {
+			resp, err := http.Get(params.AudioURL)
+			if err != nil || resp.StatusCode != 200 {
+				fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
+				return
 			}
 		}
 	} else {
