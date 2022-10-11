@@ -10,6 +10,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -69,7 +70,19 @@ func YoutubeDownload(id string) string {
 		}
 	}
 	s.Stop()
-	return *video.StreamingData.Formats[idx].URL
+	if video.StreamingData.Formats[idx].URL != nil {
+		return *video.StreamingData.Formats[idx].URL
+	}
+	split := strings.Split(*video.StreamingData.Formats[idx].SignatureCipher, "&")
+	youtubeUrl := ""
+	for _, value := range split {
+		if strings.HasPrefix(value, "url=") {
+			youtubeUrl = strings.TrimPrefix(value, "url=")
+			youtubeUrl, err = url.QueryUnescape(youtubeUrl)
+			break
+		}
+	}
+	return youtubeUrl
 }
 
 func QueryYoutube(body io.Reader) YoutubeMetaInfo {
@@ -147,23 +160,141 @@ type ContentPlaybackContext struct {
 }
 
 type YoutubeMetaInfo struct {
-	ResponseContext   *ResponseContext   `json:"responseContext,omitempty"`
-	PlayabilityStatus *PlayabilityStatus `json:"playabilityStatus,omitempty"`
-	StreamingData     *StreamingData     `json:"streamingData,omitempty"`
-	PlaybackTracking  *PlaybackTracking  `json:"playbackTracking,omitempty"`
-	Captions          *Captions          `json:"captions,omitempty"`
-	VideoDetails      *VideoDetails      `json:"videoDetails,omitempty"`
-	PlayerConfig      *PlayerConfig      `json:"playerConfig,omitempty"`
-	Storyboards       *Storyboards       `json:"storyboards,omitempty"`
-	Microformat       *Microformat       `json:"microformat,omitempty"`
-	TrackingParams    *string            `json:"trackingParams,omitempty"`
+	AdPlacements      []AdPlacement      `json:"adPlacements,omitempty"`
+	Annotations       []Annotation       `json:"annotations,omitempty"`
 	Attestation       *Attestation       `json:"attestation,omitempty"`
+	Captions          *Captions          `json:"captions,omitempty"`
 	Endscreen         *Endscreen         `json:"endscreen,omitempty"`
 	FrameworkUpdates  *FrameworkUpdates  `json:"frameworkUpdates,omitempty"`
+	Microformat       *Microformat       `json:"microformat,omitempty"`
+	PlayabilityStatus *PlayabilityStatus `json:"playabilityStatus,omitempty"`
+	PlaybackTracking  *PlaybackTracking  `json:"playbackTracking,omitempty"`
+	PlayerAds         []PlayerAd         `json:"playerAds,omitempty"`
+	PlayerConfig      *PlayerConfig      `json:"playerConfig,omitempty"`
+	ResponseContext   *ResponseContext   `json:"responseContext,omitempty"`
+	Storyboards       *Storyboards       `json:"storyboards,omitempty"`
+	StreamingData     *StreamingData     `json:"streamingData,omitempty"`
+	TrackingParams    *string            `json:"trackingParams,omitempty"`
+	VideoDetails      *VideoDetails      `json:"videoDetails,omitempty"`
+}
+
+type AdPlacement struct {
+	AdPlacementRenderer *AdPlacementRenderer `json:"adPlacementRenderer,omitempty"`
+}
+
+type AdPlacementRenderer struct {
+	Config   *Config   `json:"config,omitempty"`
+	Renderer *Renderer `json:"renderer,omitempty"`
+}
+
+type Renderer struct {
+	AdBreakServiceRenderer *AdBreakServiceRenderer `json:"adBreakServiceRenderer,omitempty"`
+}
+
+type AdBreakServiceRenderer struct {
+	PrefetchMilliseconds *string `json:"prefetchMilliseconds,omitempty"`
+	GetAdBreakURL        *string `json:"getAdBreakUrl,omitempty"`
+}
+
+type Config struct {
+	AdPlacementConfig *AdPlacementConfig `json:"adPlacementConfig,omitempty"`
+}
+
+type AdPlacementConfig struct {
+	Kind               *string       `json:"kind,omitempty"`
+	AdTimeOffset       *AdTimeOffset `json:"adTimeOffset,omitempty"`
+	HideCueRangeMarker *bool         `json:"hideCueRangeMarker,omitempty"`
+}
+
+type AdTimeOffset struct {
+	OffsetStartMilliseconds *string `json:"offsetStartMilliseconds,omitempty"`
+	OffsetEndMilliseconds   *string `json:"offsetEndMilliseconds,omitempty"`
+}
+
+type Annotation struct {
+	PlayerAnnotationsExpandedRenderer *PlayerAnnotationsExpandedRenderer `json:"playerAnnotationsExpandedRenderer,omitempty"`
+}
+
+type PlayerAnnotationsExpandedRenderer struct {
+	FeaturedChannel   *FeaturedChannel `json:"featuredChannel,omitempty"`
+	AllowSwipeDismiss *bool            `json:"allowSwipeDismiss,omitempty"`
+	AnnotationID      *string          `json:"annotationId,omitempty"`
+}
+
+type FeaturedChannel struct {
+	StartTimeMS        *string             `json:"startTimeMs,omitempty"`
+	EndTimeMS          *string             `json:"endTimeMs,omitempty"`
+	Watermark          *WatermarkClass     `json:"watermark,omitempty"`
+	TrackingParams     *string             `json:"trackingParams,omitempty"`
+	NavigationEndpoint *NavigationEndpoint `json:"navigationEndpoint,omitempty"`
+	ChannelName        *string             `json:"channelName,omitempty"`
+	SubscribeButton    *SubscribeButton    `json:"subscribeButton,omitempty"`
+}
+
+type SubscribeButton struct {
+	SubscribeButtonRenderer *SubscribeButtonRenderer `json:"subscribeButtonRenderer,omitempty"`
+}
+
+type SubscribeButtonRenderer struct {
+	ButtonText               *ButtonText                  `json:"buttonText,omitempty"`
+	Subscribed               *bool                        `json:"subscribed,omitempty"`
+	Enabled                  *bool                        `json:"enabled,omitempty"`
+	Type                     *string                      `json:"type,omitempty"`
+	ChannelID                *string                      `json:"channelId,omitempty"`
+	ShowPreferences          *bool                        `json:"showPreferences,omitempty"`
+	SubscribedButtonText     *ButtonText                  `json:"subscribedButtonText,omitempty"`
+	UnsubscribedButtonText   *ButtonText                  `json:"unsubscribedButtonText,omitempty"`
+	TrackingParams           *string                      `json:"trackingParams,omitempty"`
+	UnsubscribeButtonText    *ButtonText                  `json:"unsubscribeButtonText,omitempty"`
+	ServiceEndpoints         []SubscribeCommand           `json:"serviceEndpoints,omitempty"`
+	SubscribeAccessibility   *SubscribeAccessibilityClass `json:"subscribeAccessibility,omitempty"`
+	UnsubscribeAccessibility *SubscribeAccessibilityClass `json:"unsubscribeAccessibility,omitempty"`
+	SignInEndpoint           *SignInEndpoint              `json:"signInEndpoint,omitempty"`
+}
+
+type NavigationEndpoint struct {
+	ClickTrackingParams *string                            `json:"clickTrackingParams,omitempty"`
+	CommandMetadata     *NavigationEndpointCommandMetadata `json:"commandMetadata,omitempty"`
+	BrowseEndpoint      *BrowseEndpoint                    `json:"browseEndpoint,omitempty"`
+}
+
+type NavigationEndpointCommandMetadata struct {
+	WebCommandMetadata *PurpleWebCommandMetadata `json:"webCommandMetadata,omitempty"`
+}
+
+type WatermarkClass struct {
+	Thumbnails []ThumbnailElement `json:"thumbnails,omitempty"`
+}
+
+type ThumbnailElement struct {
+	URL    *string `json:"url,omitempty"`
+	Width  *int64  `json:"width,omitempty"`
+	Height *int64  `json:"height,omitempty"`
 }
 
 type Attestation struct {
 	PlayerAttestationRenderer *PlayerAttestationRenderer `json:"playerAttestationRenderer,omitempty"`
+}
+
+type PlayerAd struct {
+	PlayerLegacyDesktopWatchAdsRenderer *PlayerLegacyDesktopWatchAdsRenderer `json:"playerLegacyDesktopWatchAdsRenderer,omitempty"`
+}
+
+type PlayerLegacyDesktopWatchAdsRenderer struct {
+	PlayerAdParams *PlayerAdParams `json:"playerAdParams,omitempty"`
+	GutParams      *GutParams      `json:"gutParams,omitempty"`
+	ShowCompanion  *bool           `json:"showCompanion,omitempty"`
+	ShowInstream   *bool           `json:"showInstream,omitempty"`
+	UseGut         *bool           `json:"useGut,omitempty"`
+}
+
+type GutParams struct {
+	Tag *string `json:"tag,omitempty"`
+}
+
+type PlayerAdParams struct {
+	ShowContentThumbnail *bool   `json:"showContentThumbnail,omitempty"`
+	EnabledEngageTypes   *string `json:"enabledEngageTypes,omitempty"`
 }
 
 type PlayerAttestationRenderer struct {
@@ -193,7 +324,11 @@ type PlayerCaptionsTracklistRenderer struct {
 }
 
 type AudioTrack struct {
-	CaptionTrackIndices []int64 `json:"captionTrackIndices,omitempty"`
+	CaptionTrackIndices      []int64 `json:"captionTrackIndices,omitempty"`
+	DefaultCaptionTrackIndex *int64  `json:"defaultCaptionTrackIndex,omitempty"`
+	Visibility               *string `json:"visibility,omitempty"`
+	HasDefaultTrack          *bool   `json:"hasDefaultTrack,omitempty"`
+	CaptionsInitialState     *string `json:"captionsInitialState,omitempty"`
 }
 
 type CaptionTrack struct {
@@ -238,7 +373,6 @@ type EndscreenElementRenderer struct {
 	AspectRatio       *float64           `json:"aspectRatio,omitempty"`
 	StartMS           *string            `json:"startMs,omitempty"`
 	EndMS             *string            `json:"endMs,omitempty"`
-	Title             *Metadata          `json:"title,omitempty"`
 	Metadata          *Metadata          `json:"metadata,omitempty"`
 	CallToAction      *Description       `json:"callToAction,omitempty"`
 	Dismiss           *Description       `json:"dismiss,omitempty"`
@@ -248,6 +382,12 @@ type EndscreenElementRenderer struct {
 	IsSubscribe       *bool              `json:"isSubscribe,omitempty"`
 	ID                *string            `json:"id,omitempty"`
 	ThumbnailOverlays []ThumbnailOverlay `json:"thumbnailOverlays,omitempty"`
+	Title             *Title             `json:"title,omitempty"`
+}
+
+type Title struct {
+	Accessibility *SubscribeAccessibilityClass `json:"accessibility,omitempty"`
+	SimpleText    *string                      `json:"simpleText,omitempty"`
 }
 
 type Endpoint struct {
@@ -297,23 +437,6 @@ type CommonConfigElement struct {
 
 type HovercardButton struct {
 	SubscribeButtonRenderer *SubscribeButtonRenderer `json:"subscribeButtonRenderer,omitempty"`
-}
-
-type SubscribeButtonRenderer struct {
-	ButtonText               *ButtonText                  `json:"buttonText,omitempty"`
-	Subscribed               *bool                        `json:"subscribed,omitempty"`
-	Enabled                  *bool                        `json:"enabled,omitempty"`
-	Type                     *string                      `json:"type,omitempty"`
-	ChannelID                *string                      `json:"channelId,omitempty"`
-	ShowPreferences          *bool                        `json:"showPreferences,omitempty"`
-	SubscribedButtonText     *ButtonText                  `json:"subscribedButtonText,omitempty"`
-	UnsubscribedButtonText   *ButtonText                  `json:"unsubscribedButtonText,omitempty"`
-	TrackingParams           *string                      `json:"trackingParams,omitempty"`
-	UnsubscribeButtonText    *ButtonText                  `json:"unsubscribeButtonText,omitempty"`
-	ServiceEndpoints         []SubscribeCommand           `json:"serviceEndpoints,omitempty"`
-	SubscribeAccessibility   *SubscribeAccessibilityClass `json:"subscribeAccessibility,omitempty"`
-	UnsubscribeAccessibility *SubscribeAccessibilityClass `json:"unsubscribeAccessibility,omitempty"`
-	SignInEndpoint           *SignInEndpoint              `json:"signInEndpoint,omitempty"`
 }
 
 type ButtonText struct {
@@ -402,7 +525,11 @@ type SignInEndpoint struct {
 }
 
 type SignInEndpointCommandMetadata struct {
-	WebCommandMetadata *CommonConfigElement `json:"webCommandMetadata,omitempty"`
+	WebCommandMetadata *WebCommandMetadata `json:"webCommandMetadata,omitempty"`
+}
+
+type WebCommandMetadata struct {
+	URL *string `json:"url,omitempty"`
 }
 
 type SubscribeAccessibilityClass struct {
@@ -433,8 +560,8 @@ type ThumbnailOverlay struct {
 }
 
 type ThumbnailOverlayTimeStatusRenderer struct {
-	Text  *Metadata `json:"text,omitempty"`
-	Style *string   `json:"style,omitempty"`
+	Text  *Title  `json:"text,omitempty"`
+	Style *string `json:"style,omitempty"`
 }
 
 type FrameworkUpdates struct {
@@ -675,6 +802,7 @@ type Format struct {
 	AudioSampleRate  *string         `json:"audioSampleRate,omitempty"`
 	AudioChannels    *int64          `json:"audioChannels,omitempty"`
 	LoudnessDB       *float64        `json:"loudnessDb,omitempty"`
+	SignatureCipher  *string         `json:"signatureCipher,omitempty"`
 }
 
 type ColorInfo struct {
@@ -703,6 +831,7 @@ type VideoDetails struct {
 	IsPrivate         *bool       `json:"isPrivate,omitempty"`
 	IsUnpluggedCorpus *bool       `json:"isUnpluggedCorpus,omitempty"`
 	IsLiveContent     *bool       `json:"isLiveContent,omitempty"`
+	Keywords          []string    `json:"keywords,omitempty"`
 }
 
 type ProjectionType string
