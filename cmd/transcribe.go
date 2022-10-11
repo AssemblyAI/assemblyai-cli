@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -90,46 +91,46 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		return
 	}
 
-	isYoutubeLink := isYoutubeLink(params.AudioURL)
+	isUrl := IsUrl(params.AudioURL)
+	if isUrl {
+		isYoutubeLink := isYoutubeLink(params.AudioURL)
 
-	if isYoutubeLink {
-		u, err := url.Parse(params.AudioURL)
-		if err != nil {
-			fmt.Println("Error parsing URL")
-			return
+		if isYoutubeLink {
+			u, err := url.Parse(params.AudioURL)
+			if err != nil {
+				fmt.Println("Error parsing URL")
+				return
+			}
+			youtubeId := u.Query().Get("v")
+			if youtubeId == "" {
+				fmt.Println("Could not find YouTube ID in URL")
+				return
+			}
+			youtubeVideoURL := YoutubeDownload(youtubeId)
+			if youtubeVideoURL == "" {
+				fmt.Println("Please try again with a different one.")
+				return
+			}
+			params.AudioURL = youtubeVideoURL
+		} else {
+			isAAICDN := checkAAICDN(params.AudioURL)
+			if !isAAICDN {
+				fmt.Print(params.AudioURL)
+				resp, err := http.Get(params.AudioURL)
+				if err != nil || resp.StatusCode != 200 {
+					fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
+					return
+				}
+			}
 		}
-		youtubeId := u.Query().Get("v")
-		if youtubeId == "" {
-			fmt.Println("Could not find YouTube ID in URL")
-			return
-		}
-		youtubeVideoURL := YoutubeDownload(youtubeId)
-		if youtubeVideoURL == "" {
-			fmt.Println("Please try again with a different one.")
-			return
-		}
-		params.AudioURL = youtubeVideoURL
+
 	} else {
-
-		_, err := url.ParseRequestURI(params.AudioURL)
-		if err != nil {
-			uploadedURL := uploadFile(token, params.AudioURL)
-			if uploadedURL == "" {
-				fmt.Println("The file doesn't exist. Please try again with a different one.")
-				return
-			}
-			params.AudioURL = uploadedURL
+		uploadedURL := uploadFile(token, params.AudioURL)
+		if uploadedURL == "" {
+			fmt.Println("The file doesn't exist. Please try again with a different one.")
+			return
 		}
-
-		isAAICDN := checkAAICDN(params.AudioURL)
-
-		if !isAAICDN {
-			resp, err := http.Get(params.AudioURL)
-			if err != nil || resp.StatusCode != 200 {
-				fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
-				return
-			}
-		}
+		params.AudioURL = uploadedURL
 	}
 
 	paramsJSON, err := json.Marshal(params)
@@ -157,7 +158,10 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	PollTranscription(token, *id, flags)
 }
-
+func IsUrl(str string) bool {
+	u, err := url.Parse(str)
+	return err == nil && u.Scheme != "" && u.Host != ""
+}
 func isYoutubeLink(url string) bool {
 	return strings.HasPrefix(url, "https://www.youtube.com/watch?v=")
 }
@@ -167,6 +171,17 @@ func checkAAICDN(url string) bool {
 }
 
 func uploadFile(token string, path string) string {
+	isAbs := filepath.IsAbs(path)
+	fmt.Println(isAbs)
+	if !isAbs {
+		wd, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error getting current directory")
+			return ""
+		}
+		path = filepath.Join(wd, path)
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
 		return ""
