@@ -56,18 +56,18 @@ func YoutubeDownload(id string) string {
 	}
 
 	var idx int
-	for index, format := range video.StreamingData.Formats {
-		if *format.MIMEType == "video/mp4; codecs=\"avc1.42001E, mp4a.40.2\"" {
-			idx = index
-			break
+	var lowestContentLength int
+	for i, format := range video.StreamingData.Formats {
+		if format.ContentLength == nil {
+			continue
 		}
-	}
-	if idx == 0 {
-		for index, format := range video.StreamingData.Formats {
-			if strings.HasPrefix(*format.MIMEType, "video/mp4") {
-				idx = index
-				break
-			}
+		length, _ := strconv.Atoi(*format.ContentLength)
+		if i == 0 {
+			lowestContentLength = length
+			idx = i
+		} else if length < lowestContentLength {
+			lowestContentLength = length
+			idx = i
 		}
 	}
 	s.Stop()
