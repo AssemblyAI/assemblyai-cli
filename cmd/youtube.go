@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -70,6 +71,10 @@ func YoutubeDownload(id string) string {
 		}
 	}
 	s.Stop()
+	length, err := strconv.Atoi(*video.StreamingData.Formats[idx].ApproxDurationMS)
+
+	TranscriptionLength = (length * 50) / 100
+
 	if video.StreamingData.Formats[idx].URL != nil {
 		return *video.StreamingData.Formats[idx].URL
 	}

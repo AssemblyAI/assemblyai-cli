@@ -20,9 +20,9 @@ import (
 
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
-// transcribeCmd represents the transcribe command
 var transcribeCmd = &cobra.Command{
 	Use:   "transcribe <url | path | youtube URL>",
 	Short: "A brief description of your command",
@@ -83,6 +83,20 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
 	rootCmd.AddCommand(transcribeCmd)
 }
+
+func showProgress(total int) {
+	bar := pb.StartNew(1000)
+	bar.ShowBar = false
+	bar.ShowTimeLeft = false
+	bar.ShowCounters = false
+	for i := 0; i < 1000; i++ {
+		bar.Increment()
+		time.Sleep(time.Duration(total/1000) * time.Millisecond)
+	}
+	bar.Finish()
+}
+
+var TranscriptionLength int
 
 func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	token := GetStoredToken()
@@ -196,28 +210,43 @@ func uploadFile(token string, path string) string {
 	}
 
 	TelemetryCaptureEvent("CLI upload started", nil)
-	s := CallSpinner(" Your file is being uploaded...")
-	response := QueryApi(token, "/upload", "POST", file)
+	fmt.Println(" Your file is being uploaded")
 
+	fileInfo, _ := file.Stat()
+	bar := pb.New(int(fileInfo.Size()))
+	bar.SetUnits(pb.U_BYTES_DEC)
+	bar.ShowBar = false
+	bar.Start()
+
+	response := QueryApi(token, "/upload", "POST", bar.NewProxyReader(file))
+
+	bar.Finish()
 	var uploadResponse UploadResponse
 	if err := json.Unmarshal(response, &uploadResponse); err != nil {
 		return ""
 	}
-	s.Stop()
 	TelemetryCaptureEvent("CLI upload ended", nil)
 
 	return uploadResponse.UploadURL
 }
 
 func PollTranscription(token string, id string, flags TranscribeFlags) {
-	fmt.Println("Your file is being transcribed (id " + id + ")...")
+	fmt.Println(" Your file is being transcribed (id " + id + ")")
 	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
+
+	// var s *spinner.Spinner
+	// if TranscriptionLength != 0 {
+	// 	fmt.Println(" Processing time is usually 20% of the file's duration.")
+	// 	go showProgress(TranscriptionLength)
+	// } else {
+	// 	s = CallSpinner(" Processing time is usually 20% of the file's duration.")
+	// }
+
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
 
 		if response == nil {
 			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
 			fmt.Println("Something went wrong. Please try again later.")
 			return
 		}
@@ -225,12 +254,10 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
 			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
 			return
 		}
 		if transcript.Error != nil {
 			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
 			fmt.Println(*transcript.Error)
 			return
 		}
@@ -252,8 +279,11 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 			properties.TopicDetection = *transcript.IabCategories
 
 			TelemetryCaptureEvent("CLI transcription finished", properties)
+
+			// if TranscriptionLength == 0 {
+			// 	s.Stop()
+			// }
 			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))
@@ -271,7 +301,7 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	if err != nil {
 		width = 512
 	}
-
+	fmt.Print("\033[H\033[2J")
 	fmt.Println("Transcript")
 	if transcript.SpeakerLabels == true {
 		speakerLabelsPrintFormatted(transcript.Utterances, width)
@@ -634,4 +664,9 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	}
 	fmt.Fprintln(w)
 	w.Flush()
+}
+
+type writeCounter struct {
+	BytesDownloaded int64
+	TotalBytes      int64
 }
