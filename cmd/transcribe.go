@@ -11,6 +11,8 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -90,46 +92,42 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		return
 	}
 
-	isYoutubeLink := isYoutubeLink(params.AudioURL)
-
-	if isYoutubeLink {
-		u, err := url.Parse(params.AudioURL)
-		if err != nil {
-			fmt.Println("Error parsing URL")
-			return
-		}
-		youtubeId := u.Query().Get("v")
-		if youtubeId == "" {
-			fmt.Println("Could not find YouTube ID in URL")
-			return
-		}
-		youtubeVideoURL := YoutubeDownload(youtubeId)
-		if youtubeVideoURL == "" {
-			fmt.Println("Please try again with a different one.")
-			return
-		}
-		params.AudioURL = youtubeVideoURL
-	} else {
-
-		_, err := url.ParseRequestURI(params.AudioURL)
-		if err != nil {
-			uploadedURL := uploadFile(token, params.AudioURL)
-			if uploadedURL == "" {
-				fmt.Println("The file doesn't exist. Please try again with a different one.")
+	if isUrl(params.AudioURL) {
+		if isYoutubeLink(params.AudioURL) {
+			if isShortenedYoutubeLink(params.AudioURL) {
+				params.AudioURL = strings.Replace(params.AudioURL, "youtu.be/", "www.youtube.com/watch?v=", 1)
+			}
+			u, err := url.Parse(params.AudioURL)
+			if err != nil {
+				fmt.Println("Error parsing URL")
 				return
 			}
-			params.AudioURL = uploadedURL
+			youtubeId := u.Query().Get("v")
+			if youtubeId == "" {
+				fmt.Println("Could not find YouTube ID in URL")
+				return
+			}
+			youtubeVideoURL := YoutubeDownload(youtubeId)
+			if youtubeVideoURL == "" {
+				fmt.Println("Please try again with a different one.")
+				return
+			}
+			params.AudioURL = youtubeVideoURL
 		}
-
-		isAAICDN := checkAAICDN(params.AudioURL)
-
-		if !isAAICDN {
+		if !checkAAICDN(params.AudioURL) {
 			resp, err := http.Get(params.AudioURL)
 			if err != nil || resp.StatusCode != 200 {
 				fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
 				return
 			}
 		}
+	} else {
+		uploadedURL := uploadFile(token, params.AudioURL)
+		if uploadedURL == "" {
+			fmt.Println("The file doesn't exist. Please try again with a different one.")
+			return
+		}
+		params.AudioURL = uploadedURL
 	}
 
 	paramsJSON, err := json.Marshal(params)
@@ -158,8 +156,23 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	PollTranscription(token, *id, flags)
 }
 
+func isUrl(str string) bool {
+	u, err := url.Parse(str)
+	return err == nil && u.Scheme != "" && u.Host != ""
+}
+
+func isShortenedYoutubeLink(url string) bool {
+	regex := regexp.MustCompile(`^(https?\:\/\/)?(youtu\.?be)\/.+$`)
+	return regex.MatchString(url)
+}
+
+func isFullLengthYoutubeLink(url string) bool {
+	regex := regexp.MustCompile(`^(https?\:\/\/)?(www\.youtube\.com)\/.+$`)
+	return regex.MatchString(url)
+}
+
 func isYoutubeLink(url string) bool {
-	return strings.HasPrefix(url, "https://www.youtube.com/watch?v=")
+	return isFullLengthYoutubeLink(url) || isShortenedYoutubeLink(url)
 }
 
 func checkAAICDN(url string) bool {
@@ -167,6 +180,16 @@ func checkAAICDN(url string) bool {
 }
 
 func uploadFile(token string, path string) string {
+	isAbs := filepath.IsAbs(path)
+	if !isAbs {
+		wd, err := os.Getwd()
+		if err != nil {
+			fmt.Println("Error getting current directory")
+			return ""
+		}
+		path = filepath.Join(wd, path)
+	}
+
 	file, err := os.Open(path)
 	if err != nil {
 		return ""
@@ -187,12 +210,14 @@ func uploadFile(token string, path string) string {
 }
 
 func PollTranscription(token string, id string, flags TranscribeFlags) {
-	s := CallSpinner(" Your file is being transcribed (id " + id + ")... Processing time is usually 20% of the file's duration.")
+	fmt.Println("Your file is being transcribed (id " + id + ")...")
+	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
 
 		if response == nil {
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			fmt.Println("Something went wrong. Please try again later.")
 			return
 		}
@@ -200,10 +225,12 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			return
 		}
 		if transcript.Error != nil {
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			fmt.Println(*transcript.Error)
 			return
 		}
@@ -226,6 +253,7 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 
 			TelemetryCaptureEvent("CLI transcription finished", properties)
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))
