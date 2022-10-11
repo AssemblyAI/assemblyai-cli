@@ -162,6 +162,7 @@ func IsUrl(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
+
 func isYoutubeLink(url string) bool {
 	return strings.HasPrefix(url, "https://www.youtube.com/watch?v=")
 }
@@ -172,7 +173,6 @@ func checkAAICDN(url string) bool {
 
 func uploadFile(token string, path string) string {
 	isAbs := filepath.IsAbs(path)
-	fmt.Println(isAbs)
 	if !isAbs {
 		wd, err := os.Getwd()
 		if err != nil {
@@ -202,12 +202,14 @@ func uploadFile(token string, path string) string {
 }
 
 func PollTranscription(token string, id string, flags TranscribeFlags) {
-	s := CallSpinner(" Your file is being transcribed (id " + id + ")... Processing time is usually 20% of the file's duration.")
+	fmt.Println("Your file is being transcribed (id " + id + ")...")
+	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 	for {
 		response := QueryApi(token, "/transcript/"+id, "GET", nil)
 
 		if response == nil {
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			fmt.Println("Something went wrong. Please try again later.")
 			return
 		}
@@ -215,10 +217,12 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			return
 		}
 		if transcript.Error != nil {
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			fmt.Println(*transcript.Error)
 			return
 		}
@@ -241,6 +245,7 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 
 			TelemetryCaptureEvent("CLI transcription finished", properties)
 			s.Stop()
+			fmt.Printf("\033[1A\033[2K")
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))
