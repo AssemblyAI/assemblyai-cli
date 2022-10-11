@@ -94,8 +94,10 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	isUrl := IsUrl(params.AudioURL)
 	if isUrl {
 		isYoutubeLink := isYoutubeLink(params.AudioURL)
-
 		if isYoutubeLink {
+			if strings.Contains(params.AudioURL, "https://youtu.be") {
+				params.AudioURL = strings.Replace(params.AudioURL, "youtu.be/", "www.youtube.com/watch?v=", 1)
+			}
 			u, err := url.Parse(params.AudioURL)
 			if err != nil {
 				fmt.Println("Error parsing URL")
@@ -115,7 +117,6 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		} else {
 			isAAICDN := checkAAICDN(params.AudioURL)
 			if !isAAICDN {
-				fmt.Print(params.AudioURL)
 				resp, err := http.Get(params.AudioURL)
 				if err != nil || resp.StatusCode != 200 {
 					fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
@@ -164,7 +165,10 @@ func IsUrl(str string) bool {
 }
 
 func isYoutubeLink(url string) bool {
-	return strings.HasPrefix(url, "https://www.youtube.com/watch?v=")
+	if strings.HasPrefix(url, "https://www.youtube.com/watch?v=") || strings.HasPrefix(url, "https://youtu.be/") {
+		return true
+	}
+	return false
 }
 
 func checkAAICDN(url string) bool {
