@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strconv"
 	"strings"
 	"text/tabwriter"
@@ -93,9 +94,8 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	isUrl := IsUrl(params.AudioURL)
 	if isUrl {
-		isYoutubeLink := isYoutubeLink(params.AudioURL)
-		if isYoutubeLink {
-			if strings.Contains(params.AudioURL, "https://youtu.be") {
+		if isYoutubeLink(params.AudioURL) {
+			if isShortenedYoutubeLink(params.AudioURL) {
 				params.AudioURL = strings.Replace(params.AudioURL, "youtu.be/", "www.youtube.com/watch?v=", 1)
 			}
 			u, err := url.Parse(params.AudioURL)
@@ -115,8 +115,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			}
 			params.AudioURL = youtubeVideoURL
 		} else {
-			isAAICDN := checkAAICDN(params.AudioURL)
-			if !isAAICDN {
+			if !checkAAICDN(params.AudioURL) {
 				resp, err := http.Get(params.AudioURL)
 				if err != nil || resp.StatusCode != 200 {
 					fmt.Println("We couldn't transcribe the file in the URL. Please try again with a different one.")
@@ -124,7 +123,6 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 				}
 			}
 		}
-
 	} else {
 		uploadedURL := uploadFile(token, params.AudioURL)
 		if uploadedURL == "" {
@@ -159,16 +157,24 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	PollTranscription(token, *id, flags)
 }
+
 func IsUrl(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
 
+func isShortenedYoutubeLink(url string) bool {
+	regex := regexp.MustCompile(`^(https?\:\/\/)?(youtu\.?be)\/.+$`)
+	return regex.MatchString(url)
+}
+
+func isFullLengthYoutubeLink(url string) bool {
+	regex := regexp.MustCompile(`^(https?\:\/\/)?(www\.youtube\.com)\/.+$`)
+	return regex.MatchString(url)
+}
+
 func isYoutubeLink(url string) bool {
-	if strings.HasPrefix(url, "https://www.youtube.com/watch?v=") || strings.HasPrefix(url, "https://youtu.be/") {
-		return true
-	}
-	return false
+	return isFullLengthYoutubeLink(url) || isShortenedYoutubeLink(url)
 }
 
 func checkAAICDN(url string) bool {
