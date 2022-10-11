@@ -92,8 +92,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		return
 	}
 
-	isUrl := IsUrl(params.AudioURL)
-	if isUrl {
+	if isUrl(params.AudioURL) {
 		if isYoutubeLink(params.AudioURL) {
 			if isShortenedYoutubeLink(params.AudioURL) {
 				params.AudioURL = strings.Replace(params.AudioURL, "youtu.be/", "www.youtube.com/watch?v=", 1)
@@ -158,7 +157,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	PollTranscription(token, *id, flags)
 }
 
-func IsUrl(str string) bool {
+func isUrl(str string) bool {
 	u, err := url.Parse(str)
 	return err == nil && u.Scheme != "" && u.Host != ""
 }
