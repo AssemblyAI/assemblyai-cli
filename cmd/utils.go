@@ -23,7 +23,6 @@ import (
 	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
-var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
 var AAIURL = "https://api.assemblyai.com/v2"
 var PH_TOKEN string
 
