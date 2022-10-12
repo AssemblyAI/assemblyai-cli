@@ -1,6 +1,6 @@
 # AssemblyAI CLI
 
-[![Ghost Status](https://img.shields.io/badge/Homebrew-FBB040.svg?style=for-the-badge&logo=Homebrew&logoColor=black)](https://assemblyai.com)
+![GitHub release (latest by date)](https://img.shields.io/github/v/release/assemblyai/assemblyai-cli) ![GitHub go.mod Go version](https://img.shields.io/github/go-mod/go-version/assemblyai/assemblyai-cli) ![GitHub](https://img.shields.io/github/license/assemblyai/assemblyai-cli)
 
 A quick and easy way to test assemblyAI's transcription features on your terminal
 
