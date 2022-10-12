@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -134,40 +135,24 @@ func BeutifyJSON(data []byte) []byte {
 	return prettyJSON.Bytes()
 }
 
-func showProgress(total int, progressChan chan string) {
-	bar := pb.StartNew(total)
-	bar.Prefix(" Transcribing file: ")
-	bar.ShowBar = false
-	bar.ShowTimeLeft = false
-	bar.ShowCounters = false
-	bar.ShowFinalTime = true
-
-	for i := 0; i < total-1; i++ {
-		bar.Increment()
-		time.Sleep(100 * time.Millisecond)
-	}
-
-	if message := <-progressChan; message != "" {
-		bar.Set(total)
-		Wg.Done()
-		bar.Finish()
+func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			bar.Prefix(" Transcribing file: ")
+			bar.ShowBar = false
+			bar.ShowTimeLeft = false
+			bar.ShowCounters = false
+			bar.ShowFinalTime = true
+			for i := 0; i < total-1; i++ {
+				bar.Set(i * total / 250)
+				time.Sleep(100 * time.Millisecond)
+			}
+			bar.Finish()
+		}
 	}
 }
 
 var TranscriptionLength int
-
-type PostHogProperties struct {
-	Poll              bool  `json:"poll"`
-	Json              bool  `json:"json"`
-	SpeakerLabels     bool  `json:"speaker_labels"`
-	Punctuate         bool  `json:"punctuate"`
-	FormatText        bool  `json:"format_text"`
-	DualChannel       *bool `json:"dual_channel"`
-	RedactPii         bool  `json:"redact_pii"`
-	AutoHighlights    bool  `json:"auto_highlights"`
-	ContentModeration bool  `json:"content_safety"`
-	TopicDetection    bool  `json:"iab_categories"`
-	SentimentAnalysis bool  `json:"sentiment_analysis"`
-	AutoChapters      bool  `json:"auto_chapters"`
-	EntityDetection   bool  `json:"entity_detection"`
-}

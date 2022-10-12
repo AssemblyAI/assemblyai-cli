@@ -176,6 +176,11 @@ func displayDownloadProgress() {
 	bar.Finish()
 }
 
+type writeCounter struct {
+	BytesDownloaded int64
+	TotalBytes      int64
+}
+
 type YoutubeBodyMetaInfo struct {
 	Context         Context         `json:"context"`
 	VideoID         string          `json:"videoId"`

@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -15,7 +16,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 	"text/tabwriter"
 	"time"
 
@@ -69,7 +69,6 @@ var transcribeCmd = &cobra.Command{
 }
 
 var Token string
-var Wg = &sync.WaitGroup{}
 
 func init() {
 	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
@@ -223,14 +222,19 @@ func UploadFile(path string) string {
 
 func PollTranscription(id string, flags TranscribeFlags) {
 	fmt.Println(" Transcribing file with id " + id)
+	showProgressBar := TranscriptionLength != 0
+	timePercentage := (TranscriptionLength * 30) / 100
+
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
 
 	var s *spinner.Spinner
-	progressChan := make(chan string)
-	if TranscriptionLength != 0 {
+	var bar *pb.ProgressBar
+
+	if showProgressBar {
 		fmt.Println(" Processing time is usually 20% of the file's duration.")
-		timePercentage := (TranscriptionLength * 30) / 100
-		Wg.Add(1)
-		go showProgress(timePercentage/100, progressChan)
+		bar = pb.StartNew(timePercentage)
+		go showProgress(timePercentage, ctx, bar)
 	} else {
 		s = CallSpinner(" Processing time is usually 20% of the file's duration.")
 	}
@@ -238,9 +242,10 @@ func PollTranscription(id string, flags TranscribeFlags) {
 	for {
 		response := QueryApi("/transcript/"+id, "GET", nil)
 		if response == nil {
-			if TranscriptionLength != 0 {
-				progressChan <- "stop"
-				Wg.Wait()
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
 			} else {
 				s.Stop()
 			}
@@ -250,18 +255,20 @@ func PollTranscription(id string, flags TranscribeFlags) {
 		var transcript TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
-			if TranscriptionLength != 0 {
-				progressChan <- "stop"
-				Wg.Wait()
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
 			} else {
 				s.Stop()
 			}
 			return
 		}
 		if transcript.Error != nil {
-			if TranscriptionLength != 0 {
-				progressChan <- "stop"
-				Wg.Wait()
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
 			} else {
 				s.Stop()
 			}
@@ -269,8 +276,10 @@ func PollTranscription(id string, flags TranscribeFlags) {
 			return
 		}
 		if *transcript.Status == "completed" {
-			if TranscriptionLength != 0 {
-				progressChan <- "stop"
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
 			} else {
 				s.Stop()
 			}
@@ -299,7 +308,7 @@ func PollTranscription(id string, flags TranscribeFlags) {
 			getFormattedOutput(transcript, flags)
 			return
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
 
@@ -671,9 +680,4 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	}
 	fmt.Fprintln(w)
 	w.Flush()
-}
-
-type writeCounter struct {
-	BytesDownloaded int64
-	TotalBytes      int64
 }
