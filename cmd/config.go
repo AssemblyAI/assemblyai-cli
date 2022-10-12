@@ -16,6 +16,7 @@ import (
 
 var configFolderPath = ".config/assemblyai"
 var configFileName = "config.toml"
+var Token string
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
