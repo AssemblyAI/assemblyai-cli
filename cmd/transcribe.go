@@ -27,13 +27,10 @@ import (
 
 var transcribeCmd = &cobra.Command{
 	Use:   "transcribe <url | path | youtube URL>",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-		and usage of using your command. For example:
-
-		Cobra is a CLI library for Go that empowers applications.
-		This application is a tool to generate the needed files
-		to quickly create a Cobra application.`,
+	Short: "Transcribe and understand audio with a single AI-powered API",
+	Long: `Automatically convert audio and video files and live audio streams to text with AssemblyAI's Speech-to-Text APIs. 
+	Do more with Audio Intelligence - summarization, content moderation, topic detection, and more. 
+	Powered by cutting-edge AI models.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var params TranscribeParams
