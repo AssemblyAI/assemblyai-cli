@@ -54,13 +54,8 @@ func YoutubeDownload(id string) string {
 	requestBody := bytes.NewReader(paramsJSON)
 	fmt.Println(" Transcribing Youtube video...")
 	video := QueryYoutube(requestBody)
-	if *video.PlayabilityStatus.Status != "OK" {
-		fmt.Println("The video is not available for download")
-		return ""
-	}
-
-	if video.StreamingData.Formats == nil {
-		fmt.Println("The video is not available for download")
+	if *video.PlayabilityStatus.Status != "OK" || video.StreamingData.Formats == nil {
+		fmt.Println(" The video is not available for download")
 		return ""
 	}
 

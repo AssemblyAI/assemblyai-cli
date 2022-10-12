@@ -113,7 +113,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			}
 			youtubeVideoURL := YoutubeDownload(youtubeId)
 			if youtubeVideoURL == "" {
-				fmt.Println("Please try again with a different one.")
+				fmt.Println(" Please try again with a different one.")
 				return
 			}
 			params.AudioURL = youtubeVideoURL
