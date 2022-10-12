@@ -66,7 +66,7 @@ func init() {
 
 func CheckIfTokenValid(token string) bool {
 
-	response := QueryApi(token, "/account", "GET", nil)
+	response := QueryApi("/account", "GET", nil)
 
 	if response == nil {
 		return false

@@ -15,9 +15,11 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 	"text/tabwriter"
 	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	pb "gopkg.in/cheggaaa/pb.v1"
@@ -66,6 +68,9 @@ var transcribeCmd = &cobra.Command{
 	},
 }
 
+var Token string
+var Wg = &sync.WaitGroup{}
+
 func init() {
 	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
 	transcribeCmd.PersistentFlags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
@@ -84,24 +89,9 @@ func init() {
 	rootCmd.AddCommand(transcribeCmd)
 }
 
-func showProgress(total int) {
-	bar := pb.StartNew(1000)
-	bar.ShowBar = false
-	bar.ShowTimeLeft = false
-	bar.ShowCounters = false
-	for i := 0; i < 1000; i++ {
-		bar.Increment()
-		time.Sleep(time.Duration(total/1000) * time.Millisecond)
-	}
-	bar.Finish()
-}
-
-var TranscriptionLength int
-
 func transcribe(params TranscribeParams, flags TranscribeFlags) {
-	token := GetStoredToken()
-
-	if token == "" {
+	Token = GetStoredToken()
+	if Token == "" {
 		fmt.Println("You must login first. Run `assemblyai config <token>`")
 		return
 	}
@@ -136,7 +126,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			}
 		}
 	} else {
-		uploadedURL := uploadFile(token, params.AudioURL)
+		uploadedURL := UploadFile(params.AudioURL)
 		if uploadedURL == "" {
 			fmt.Println("The file doesn't exist. Please try again with a different one.")
 			return
@@ -149,7 +139,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	TelemetryCaptureEvent("CLI transcription created", nil)
 	body := bytes.NewReader(paramsJSON)
-	response := QueryApi(token, "/transcript", "POST", body)
+	response := QueryApi("/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
 	if err := json.Unmarshal(response, &transcriptResponse); err != nil {
 		fmt.Println("Can not unmarshal JSON")
@@ -167,7 +157,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		return
 	}
 
-	PollTranscription(token, *id, flags)
+	PollTranscription(*id, flags)
 }
 
 func isUrl(str string) bool {
@@ -193,7 +183,7 @@ func checkAAICDN(url string) bool {
 	return strings.HasPrefix(url, "https://cdn.assemblyai.com/")
 }
 
-func uploadFile(token string, path string) string {
+func UploadFile(path string) string {
 	isAbs := filepath.IsAbs(path)
 	if !isAbs {
 		wd, err := os.Getwd()
@@ -210,15 +200,16 @@ func uploadFile(token string, path string) string {
 	}
 
 	TelemetryCaptureEvent("CLI upload started", nil)
-	fmt.Println(" Your file is being uploaded")
 
 	fileInfo, _ := file.Stat()
 	bar := pb.New(int(fileInfo.Size()))
 	bar.SetUnits(pb.U_BYTES_DEC)
+	bar.Prefix(" Uploading file to our servers: ")
 	bar.ShowBar = false
+	bar.ShowTimeLeft = false
 	bar.Start()
 
-	response := QueryApi(token, "/upload", "POST", bar.NewProxyReader(file))
+	response := QueryApi("/upload", "POST", bar.NewProxyReader(file))
 
 	bar.Finish()
 	var uploadResponse UploadResponse
@@ -230,40 +221,61 @@ func uploadFile(token string, path string) string {
 	return uploadResponse.UploadURL
 }
 
-func PollTranscription(token string, id string, flags TranscribeFlags) {
-	fmt.Println(" Your file is being transcribed (id " + id + ")")
-	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
+func PollTranscription(id string, flags TranscribeFlags) {
+	fmt.Println(" Transcribing file with id " + id)
 
-	// var s *spinner.Spinner
-	// if TranscriptionLength != 0 {
-	// 	fmt.Println(" Processing time is usually 20% of the file's duration.")
-	// 	go showProgress(TranscriptionLength)
-	// } else {
-	// 	s = CallSpinner(" Processing time is usually 20% of the file's duration.")
-	// }
+	var s *spinner.Spinner
+	progressChan := make(chan string)
+	if TranscriptionLength != 0 {
+		fmt.Println(" Processing time is usually 20% of the file's duration.")
+		timePercentage := (TranscriptionLength * 30) / 100
+		Wg.Add(1)
+		go showProgress(timePercentage/100, progressChan)
+	} else {
+		s = CallSpinner(" Processing time is usually 20% of the file's duration.")
+	}
 
 	for {
-		response := QueryApi(token, "/transcript/"+id, "GET", nil)
-
+		response := QueryApi("/transcript/"+id, "GET", nil)
 		if response == nil {
-			s.Stop()
+			if TranscriptionLength != 0 {
+				progressChan <- "completed"
+				Wg.Wait()
+			} else {
+				s.Stop()
+			}
 			fmt.Println("Something went wrong. Please try again later.")
 			return
 		}
 		var transcript TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
-			s.Stop()
+			if TranscriptionLength != 0 {
+				progressChan <- "completed"
+				Wg.Wait()
+			} else {
+				s.Stop()
+			}
 			return
 		}
 		if transcript.Error != nil {
-			s.Stop()
+			if TranscriptionLength != 0 {
+				progressChan <- "completed"
+				Wg.Wait()
+			} else {
+				s.Stop()
+			}
 			fmt.Println(*transcript.Error)
 			return
 		}
 		if *transcript.Status == "completed" {
+			if TranscriptionLength != 0 {
+				progressChan <- "completed"
+				Wg.Wait()
+			} else {
+				s.Stop()
+			}
 			var properties *PostHogProperties = new(PostHogProperties)
-
 			properties.Poll = flags.Poll
 			properties.Json = flags.Json
 			properties.AutoChapters = *transcript.AutoChapters
@@ -280,10 +292,6 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 
 			TelemetryCaptureEvent("CLI transcription finished", properties)
 
-			// if TranscriptionLength == 0 {
-			// 	s.Stop()
-			// }
-			s.Stop()
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))

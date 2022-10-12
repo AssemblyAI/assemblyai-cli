@@ -6,6 +6,7 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/posthog/posthog-go"
 	"golang.org/x/term"
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
 var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
@@ -101,17 +103,17 @@ func CallSpinner(message string) *spinner.Spinner {
 
 func PrintError(err error) {
 	if err != nil {
-		// fmt.Println(err)
+		fmt.Println(err)
 		return
 	}
 }
 
-func QueryApi(token string, path string, method string, body io.Reader) []byte {
+func QueryApi(path string, method string, body io.Reader) []byte {
 	resp, err := http.NewRequest(method, AAIURL+path, body)
 	PrintError(err)
 
 	resp.Header.Add("Accept", "application/json")
-	resp.Header.Add("Authorization", token)
+	resp.Header.Add("Authorization", Token)
 	resp.Header.Add("Transfer-Encoding", "chunked")
 
 	response, err := http.DefaultClient.Do(resp)
@@ -131,6 +133,28 @@ func BeutifyJSON(data []byte) []byte {
 	}
 	return prettyJSON.Bytes()
 }
+
+func showProgress(total int, progressChan chan string) {
+	bar := pb.StartNew(total)
+	bar.Prefix(" Transcribing file: ")
+	bar.ShowBar = false
+	bar.ShowTimeLeft = false
+	bar.ShowCounters = false
+	bar.ShowFinalTime = true
+
+	for i := 0; i < total-1; i++ {
+		bar.Increment()
+		time.Sleep(100 * time.Millisecond)
+	}
+
+	if message := <-progressChan; message != "" {
+		bar.Set(total)
+		Wg.Done()
+		bar.Finish()
+	}
+}
+
+var TranscriptionLength int
 
 type PostHogProperties struct {
 	Poll              bool  `json:"poll"`

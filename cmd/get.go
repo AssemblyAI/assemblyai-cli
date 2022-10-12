@@ -31,13 +31,13 @@ to quickly create a Cobra application.`,
 		flags.Poll, _ = cmd.Flags().GetBool("poll")
 		flags.Json, _ = cmd.Flags().GetBool("json")
 
-		token := GetStoredToken()
-		if token == "" {
+		Token = GetStoredToken()
+		if Token == "" {
 			fmt.Println("You must login first. Run `assemblyai config <token>`")
 			return
 		}
 
-		PollTranscription(token, id, flags)
+		PollTranscription(id, flags)
 	},
 }
 
