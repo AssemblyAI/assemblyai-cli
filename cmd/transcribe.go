@@ -271,7 +271,6 @@ func PollTranscription(id string, flags TranscribeFlags) {
 		if *transcript.Status == "completed" {
 			if TranscriptionLength != 0 {
 				progressChan <- "stop"
-				Wg.Wait()
 			} else {
 				s.Stop()
 			}
