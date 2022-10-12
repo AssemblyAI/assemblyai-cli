@@ -9,13 +9,20 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"net/url"
+	"os"
+	"strconv"
 	"strings"
+
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
 var key = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
-var Filename = "tmp-video.mp4"
+var Filename = os.TempDir() + "tmp-video.mp4"
+var fileLength = 0
+var percent = 0
 
 func YoutubeDownload(id string) string {
 	var body YoutubeBodyMetaInfo
@@ -45,44 +52,62 @@ func YoutubeDownload(id string) string {
 	}
 
 	requestBody := bytes.NewReader(paramsJSON)
-
-	s := CallSpinner(" The video is being downloaded...")
+	fmt.Println(" Transcribing Youtube video...")
 	video := QueryYoutube(requestBody)
-	if *video.PlayabilityStatus.Status != "OK" {
-		s.Stop()
-		fmt.Println("The video is not available for download")
+	if *video.PlayabilityStatus.Status != "OK" || video.StreamingData.Formats == nil {
+		fmt.Println(" The video is not available for download")
 		return ""
 	}
-
 	var idx int
-	for index, format := range video.StreamingData.Formats {
-		if *format.MIMEType == "video/mp4; codecs=\"avc1.42001E, mp4a.40.2\"" {
-			idx = index
-			break
+	var lowestContentLength int
+	for i, format := range video.StreamingData.Formats {
+		if format.ContentLength != nil {
+			length, _ := strconv.Atoi(*format.ContentLength)
+			if i == 0 {
+				fileLength = length
+				lowestContentLength = length
+				idx = i
+			} else if length < lowestContentLength {
+				lowestContentLength = length
+				fileLength = length
+				idx = i
+			}
 		}
 	}
-	if idx == 0 {
-		for index, format := range video.StreamingData.Formats {
-			if strings.HasPrefix(*format.MIMEType, "video/mp4") {
-				idx = index
+	if fileLength == 0 {
+		for i, format := range video.StreamingData.Formats {
+			length := int(*format.Bitrate)
+			if i == 0 {
+				lowestContentLength = length
+				idx = i
+			} else if length < lowestContentLength {
+				lowestContentLength = length
+				idx = i
+			}
+		}
+	}
+	TranscriptionLength, err = strconv.Atoi(*video.StreamingData.Formats[idx].ApproxDurationMS)
+	videoUrl := ""
+	if video.StreamingData.Formats[idx].URL != nil {
+		videoUrl = *video.StreamingData.Formats[idx].URL
+	} else {
+		split := strings.Split(*video.StreamingData.Formats[idx].SignatureCipher, "&")
+		youtubeUrl := ""
+		for _, value := range split {
+			if strings.HasPrefix(value, "url=") {
+				youtubeUrl = strings.TrimPrefix(value, "url=")
+				videoUrl, err = url.QueryUnescape(youtubeUrl)
 				break
 			}
 		}
 	}
-	s.Stop()
-	if video.StreamingData.Formats[idx].URL != nil {
-		return *video.StreamingData.Formats[idx].URL
+	DownloadVideo(videoUrl)
+	uploadedURL := UploadFile(Filename)
+	if uploadedURL == "" {
+		fmt.Println("The file doesn't exist. Please try again with a different one.")
 	}
-	split := strings.Split(*video.StreamingData.Formats[idx].SignatureCipher, "&")
-	youtubeUrl := ""
-	for _, value := range split {
-		if strings.HasPrefix(value, "url=") {
-			youtubeUrl = strings.TrimPrefix(value, "url=")
-			youtubeUrl, err = url.QueryUnescape(youtubeUrl)
-			break
-		}
-	}
-	return youtubeUrl
+	err = os.Remove(Filename)
+	return uploadedURL
 }
 
 func QueryYoutube(body io.Reader) YoutubeMetaInfo {
@@ -107,6 +132,53 @@ func QueryYoutube(body io.Reader) YoutubeMetaInfo {
 	}
 
 	return videoResponse
+}
+
+func DownloadVideo(url string) {
+	resp, err := http.Head(url)
+	PrintError(err)
+	fileLength, err = strconv.Atoi(resp.Header.Get("Content-Length"))
+	PrintError(err)
+
+	file, err := os.Create(Filename)
+	PrintError(err)
+	defer file.Close()
+
+	resp, err = http.Get(url)
+	PrintError(err)
+	defer resp.Body.Close()
+
+	go displayDownloadProgress()
+	body := io.TeeReader(resp.Body, &writeCounter{0, int64(fileLength)})
+
+	_, err = io.Copy(file, body)
+	PrintError(err)
+}
+
+func (pWc *writeCounter) Write(b []byte) (n int, err error) {
+	n = len(b)
+	pWc.BytesDownloaded += int64(n)
+	percent = int(math.Round(float64(pWc.BytesDownloaded) * 100.0 / float64(pWc.TotalBytes)))
+	return
+}
+
+func displayDownloadProgress() {
+	bar := pb.New(fileLength)
+	bar.Prefix(" Downloading video: ")
+	bar.SetUnits(pb.U_BYTES_DEC)
+	bar.ShowBar = false
+	bar.ShowTimeLeft = false
+	bar.Start()
+	for percent < 100 {
+		bar.Set(percent * fileLength / 100)
+	}
+	bar.Set(fileLength)
+	bar.Finish()
+}
+
+type writeCounter struct {
+	BytesDownloaded int64
+	TotalBytes      int64
 }
 
 type YoutubeBodyMetaInfo struct {

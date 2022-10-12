@@ -21,9 +21,9 @@ Cobra is a CLI library for Go that empowers applications.
 This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		token := GetStoredToken()
-		if token != "" {
-			fmt.Printf("Your Token is %s\n", token)
+		Token = GetStoredToken()
+		if Token != "" {
+			fmt.Printf("Your Token is %s\n", Token)
 			return
 		} else {
 			fmt.Println("You must login first. Run `assemblyai config <token>`")

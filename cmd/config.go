@@ -16,6 +16,7 @@ import (
 
 var configFolderPath = ".config/assemblyai"
 var configFileName = "config.toml"
+var Token string
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
@@ -66,7 +67,7 @@ func init() {
 
 func CheckIfTokenValid(token string) bool {
 
-	response := QueryApi(token, "/account", "GET", nil)
+	response := QueryApi("/account", "GET", nil)
 
 	if response == nil {
 		return false

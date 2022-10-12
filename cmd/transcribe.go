@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -18,11 +19,12 @@ import (
 	"text/tabwriter"
 	"time"
 
+	"github.com/briandowns/spinner"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
-// transcribeCmd represents the transcribe command
 var transcribeCmd = &cobra.Command{
 	Use:   "transcribe <url | path | youtube URL>",
 	Short: "A brief description of your command",
@@ -85,9 +87,8 @@ func init() {
 }
 
 func transcribe(params TranscribeParams, flags TranscribeFlags) {
-	token := GetStoredToken()
-
-	if token == "" {
+	Token = GetStoredToken()
+	if Token == "" {
 		fmt.Println("You must login first. Run `assemblyai config <token>`")
 		return
 	}
@@ -109,7 +110,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			}
 			youtubeVideoURL := YoutubeDownload(youtubeId)
 			if youtubeVideoURL == "" {
-				fmt.Println("Please try again with a different one.")
+				fmt.Println(" Please try again with a different one.")
 				return
 			}
 			params.AudioURL = youtubeVideoURL
@@ -122,7 +123,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			}
 		}
 	} else {
-		uploadedURL := uploadFile(token, params.AudioURL)
+		uploadedURL := UploadFile(params.AudioURL)
 		if uploadedURL == "" {
 			fmt.Println("The file doesn't exist. Please try again with a different one.")
 			return
@@ -135,7 +136,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	TelemetryCaptureEvent("CLI transcription created", nil)
 	body := bytes.NewReader(paramsJSON)
-	response := QueryApi(token, "/transcript", "POST", body)
+	response := QueryApi("/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
 	if err := json.Unmarshal(response, &transcriptResponse); err != nil {
 		fmt.Println("Can not unmarshal JSON")
@@ -153,7 +154,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		return
 	}
 
-	PollTranscription(token, *id, flags)
+	PollTranscription(*id, flags)
 }
 
 func isUrl(str string) bool {
@@ -179,7 +180,7 @@ func checkAAICDN(url string) bool {
 	return strings.HasPrefix(url, "https://cdn.assemblyai.com/")
 }
 
-func uploadFile(token string, path string) string {
+func UploadFile(path string) string {
 	isAbs := filepath.IsAbs(path)
 	if !isAbs {
 		wd, err := os.Getwd()
@@ -196,47 +197,91 @@ func uploadFile(token string, path string) string {
 	}
 
 	TelemetryCaptureEvent("CLI upload started", nil)
-	s := CallSpinner(" Your file is being uploaded...")
-	response := QueryApi(token, "/upload", "POST", file)
 
+	fileInfo, _ := file.Stat()
+	bar := pb.New(int(fileInfo.Size()))
+	bar.SetUnits(pb.U_BYTES_DEC)
+	bar.Prefix(" Uploading file to our servers: ")
+	bar.ShowBar = false
+	bar.ShowTimeLeft = false
+	bar.Start()
+
+	response := QueryApi("/upload", "POST", bar.NewProxyReader(file))
+
+	bar.Finish()
 	var uploadResponse UploadResponse
 	if err := json.Unmarshal(response, &uploadResponse); err != nil {
 		return ""
 	}
-	s.Stop()
 	TelemetryCaptureEvent("CLI upload ended", nil)
 
 	return uploadResponse.UploadURL
 }
 
-func PollTranscription(token string, id string, flags TranscribeFlags) {
-	fmt.Println("Your file is being transcribed (id " + id + ")...")
-	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
-	for {
-		response := QueryApi(token, "/transcript/"+id, "GET", nil)
+func PollTranscription(id string, flags TranscribeFlags) {
+	fmt.Println(" Transcribing file with id " + id)
+	showProgressBar := TranscriptionLength != 0
+	timePercentage := (TranscriptionLength * 30) / 100
 
+	ctx, cancelCtx := context.WithCancel(context.Background())
+	defer cancelCtx()
+
+	var s *spinner.Spinner
+	var bar *pb.ProgressBar
+
+	if showProgressBar {
+		fmt.Println(" Processing time is usually 20% of the file's duration.")
+		bar = pb.StartNew(timePercentage)
+		go showProgress(timePercentage, ctx, bar)
+	} else {
+		s = CallSpinner(" Processing time is usually 20% of the file's duration.")
+	}
+
+	for {
+		response := QueryApi("/transcript/"+id, "GET", nil)
 		if response == nil {
-			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
+			} else {
+				s.Stop()
+			}
 			fmt.Println("Something went wrong. Please try again later.")
 			return
 		}
 		var transcript TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
-			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
+			} else {
+				s.Stop()
+			}
 			return
 		}
 		if transcript.Error != nil {
-			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
+			} else {
+				s.Stop()
+			}
 			fmt.Println(*transcript.Error)
 			return
 		}
 		if *transcript.Status == "completed" {
+			if showProgressBar {
+				cancelCtx()
+				bar.Set(timePercentage)
+				bar.Finish()
+			} else {
+				s.Stop()
+			}
 			var properties *PostHogProperties = new(PostHogProperties)
-
 			properties.Poll = flags.Poll
 			properties.Json = flags.Json
 			properties.AutoChapters = *transcript.AutoChapters
@@ -252,8 +297,7 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 			properties.TopicDetection = *transcript.IabCategories
 
 			TelemetryCaptureEvent("CLI transcription finished", properties)
-			s.Stop()
-			fmt.Printf("\033[1A\033[2K")
+
 			if flags.Json {
 				print := BeutifyJSON(response)
 				fmt.Println(string(print))
@@ -262,7 +306,7 @@ func PollTranscription(token string, id string, flags TranscribeFlags) {
 			getFormattedOutput(transcript, flags)
 			return
 		}
-		time.Sleep(5 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
 
@@ -271,7 +315,7 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	if err != nil {
 		width = 512
 	}
-
+	fmt.Print("\033[H\033[2J")
 	fmt.Println("Transcript")
 	if transcript.SpeakerLabels == true {
 		speakerLabelsPrintFormatted(transcript.Utterances, width)

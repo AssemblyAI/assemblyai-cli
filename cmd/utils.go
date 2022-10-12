@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"io"
 	"io/ioutil"
@@ -18,9 +19,9 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/posthog/posthog-go"
 	"golang.org/x/term"
+	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
-var AAITokenEnvName = "ASSMEBLYAI_TOKEN"
 var AAIURL = "https://api.assemblyai.com/v2"
 var PH_TOKEN string
 
@@ -106,12 +107,12 @@ func PrintError(err error) {
 	}
 }
 
-func QueryApi(token string, path string, method string, body io.Reader) []byte {
+func QueryApi(path string, method string, body io.Reader) []byte {
 	resp, err := http.NewRequest(method, AAIURL+path, body)
 	PrintError(err)
 
 	resp.Header.Add("Accept", "application/json")
-	resp.Header.Add("Authorization", token)
+	resp.Header.Add("Authorization", Token)
 	resp.Header.Add("Transfer-Encoding", "chunked")
 
 	response, err := http.DefaultClient.Do(resp)
@@ -132,18 +133,19 @@ func BeutifyJSON(data []byte) []byte {
 	return prettyJSON.Bytes()
 }
 
-type PostHogProperties struct {
-	Poll              bool  `json:"poll"`
-	Json              bool  `json:"json"`
-	SpeakerLabels     bool  `json:"speaker_labels"`
-	Punctuate         bool  `json:"punctuate"`
-	FormatText        bool  `json:"format_text"`
-	DualChannel       *bool `json:"dual_channel"`
-	RedactPii         bool  `json:"redact_pii"`
-	AutoHighlights    bool  `json:"auto_highlights"`
-	ContentModeration bool  `json:"content_safety"`
-	TopicDetection    bool  `json:"iab_categories"`
-	SentimentAnalysis bool  `json:"sentiment_analysis"`
-	AutoChapters      bool  `json:"auto_chapters"`
-	EntityDetection   bool  `json:"entity_detection"`
+func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
+	for {
+		bar.Prefix(" Transcribing file: ")
+		bar.ShowBar = false
+		bar.ShowTimeLeft = false
+		bar.ShowCounters = false
+		bar.ShowFinalTime = true
+		for i := 0; i < total-1; i++ {
+			bar.Set(i * total / 300)
+			time.Sleep(100 * time.Millisecond)
+		}
+		bar.Finish()
+	}
 }
+
+var TranscriptionLength int
