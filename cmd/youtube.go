@@ -58,7 +58,6 @@ func YoutubeDownload(id string) string {
 		fmt.Println(" The video is not available for download")
 		return ""
 	}
-
 	var idx int
 	var lowestContentLength int
 	for i, format := range video.StreamingData.Formats {
@@ -77,7 +76,7 @@ func YoutubeDownload(id string) string {
 	}
 	if fileLength == 0 {
 		for i, format := range video.StreamingData.Formats {
-			length, _ := strconv.Atoi(*format.ContentLength)
+			length := int(*format.Bitrate)
 			if i == 0 {
 				lowestContentLength = length
 				idx = i
@@ -102,7 +101,6 @@ func YoutubeDownload(id string) string {
 			}
 		}
 	}
-
 	DownloadVideo(videoUrl)
 	uploadedURL := UploadFile(Filename)
 	if uploadedURL == "" {
