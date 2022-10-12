@@ -12,14 +12,9 @@ import (
 // get represents the getTranscription command
 var get = &cobra.Command{
 	Use:   "get [transcription ID]",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	Args: cobra.MinimumNArgs(1),
+	Short: "Getting the Transcription Result",
+	Long:  `After you submit an audio file for processing, get transcription response including the results of any Audio Intelligence features you enabled, using your unique transcription ID as a parameter.`,
+	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var flags TranscribeFlags
 		args = cmd.Flags().Args()
