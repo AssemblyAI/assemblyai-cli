@@ -137,21 +137,16 @@ func BeutifyJSON(data []byte) []byte {
 
 func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
 	for {
-		select {
-		case <-ctx.Done():
-			return
-		default:
-			bar.Prefix(" Transcribing file: ")
-			bar.ShowBar = false
-			bar.ShowTimeLeft = false
-			bar.ShowCounters = false
-			bar.ShowFinalTime = true
-			for i := 0; i < total-1; i++ {
-				bar.Set(i * total / 250)
-				time.Sleep(100 * time.Millisecond)
-			}
-			bar.Finish()
+		bar.Prefix(" Transcribing file: ")
+		bar.ShowBar = false
+		bar.ShowTimeLeft = false
+		bar.ShowCounters = false
+		bar.ShowFinalTime = true
+		for i := 0; i < total-1; i++ {
+			bar.Set(i * total / 300)
+			time.Sleep(100 * time.Millisecond)
 		}
+		bar.Finish()
 	}
 }
 
