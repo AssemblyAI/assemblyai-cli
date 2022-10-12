@@ -34,6 +34,11 @@ github.com/fsnotify/fsnotify
 github.com/google/uuid
 # github.com/googleapis/gax-go/v2 v2.4.0
 ## explicit; go 1.15
+# github.com/gosuri/uitable v0.0.4
+## explicit
+github.com/gosuri/uitable
+github.com/gosuri/uitable/util/strutil
+github.com/gosuri/uitable/util/wordwrap
 # github.com/hashicorp/hcl v1.0.0
 ## explicit
 github.com/hashicorp/hcl
