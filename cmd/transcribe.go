@@ -239,7 +239,7 @@ func PollTranscription(id string, flags TranscribeFlags) {
 		response := QueryApi("/transcript/"+id, "GET", nil)
 		if response == nil {
 			if TranscriptionLength != 0 {
-				progressChan <- "completed"
+				progressChan <- "stop"
 				Wg.Wait()
 			} else {
 				s.Stop()
@@ -251,7 +251,7 @@ func PollTranscription(id string, flags TranscribeFlags) {
 		if err := json.Unmarshal(response, &transcript); err != nil {
 			fmt.Println(err)
 			if TranscriptionLength != 0 {
-				progressChan <- "completed"
+				progressChan <- "stop"
 				Wg.Wait()
 			} else {
 				s.Stop()
@@ -260,7 +260,7 @@ func PollTranscription(id string, flags TranscribeFlags) {
 		}
 		if transcript.Error != nil {
 			if TranscriptionLength != 0 {
-				progressChan <- "completed"
+				progressChan <- "stop"
 				Wg.Wait()
 			} else {
 				s.Stop()
@@ -270,7 +270,7 @@ func PollTranscription(id string, flags TranscribeFlags) {
 		}
 		if *transcript.Status == "completed" {
 			if TranscriptionLength != 0 {
-				progressChan <- "completed"
+				progressChan <- "stop"
 				Wg.Wait()
 			} else {
 				s.Stop()

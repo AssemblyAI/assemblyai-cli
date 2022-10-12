@@ -59,6 +59,11 @@ func YoutubeDownload(id string) string {
 		return ""
 	}
 
+	if video.StreamingData.Formats == nil {
+		fmt.Println("The video is not available for download")
+		return ""
+	}
+
 	var idx int
 	var lowestContentLength int
 	for i, format := range video.StreamingData.Formats {
