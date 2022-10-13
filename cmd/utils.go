@@ -44,21 +44,29 @@ func TelemetryCaptureEvent(event string, properties *PostHogProperties) {
 			setConfigFileValue("config.distinct_id", distinctId)
 		}
 		if properties != nil {
-			PhProperties := posthog.NewProperties().
-				Set("poll", properties.Poll).
-				Set("json", properties.Json).
-				Set("speaker_labels", properties.SpeakerLabels).
-				Set("punctuate", properties.Punctuate).
-				Set("format_text", properties.FormatText).
-				Set("dual_channel", properties.DualChannel).
-				Set("redact_pii", properties.RedactPii).
-				Set("auto_highlights", properties.AutoHighlights).
-				Set("content_moderation", properties.ContentModeration).
-				Set("topic_detection", properties.TopicDetection).
-				Set("sentiment_analysis", properties.SentimentAnalysis).
-				Set("auto_chapters", properties.AutoChapters).
-				Set("entity_detection", properties.EntityDetection)
-
+			var PhProperties posthog.Properties
+			if properties.I == true {
+				PhProperties = posthog.NewProperties().
+					Set("OS", properties.OS).
+					Set("Arch", properties.Arch).
+					Set("Version", properties.Version).
+					Set("Method", properties.Method)
+			} else {
+				PhProperties = posthog.NewProperties().
+					Set("poll", properties.Poll).
+					Set("json", properties.Json).
+					Set("speaker_labels", properties.SpeakerLabels).
+					Set("punctuate", properties.Punctuate).
+					Set("format_text", properties.FormatText).
+					Set("dual_channel", properties.DualChannel).
+					Set("redact_pii", properties.RedactPii).
+					Set("auto_highlights", properties.AutoHighlights).
+					Set("content_moderation", properties.ContentModeration).
+					Set("topic_detection", properties.TopicDetection).
+					Set("sentiment_analysis", properties.SentimentAnalysis).
+					Set("auto_chapters", properties.AutoChapters).
+					Set("entity_detection", properties.EntityDetection)
+			}
 			client.Enqueue(posthog.Capture{
 				DistinctId: distinctId,
 				Event:      event,

@@ -30,5 +30,6 @@ COPY_PATH="$(echo "$PATH" | cut -d: -f1)"
 tar -xf "$TAR_FILE" -C "$TMPDIR"
 mv "${TMPDIR}/${FILE_BASENAME}" $COPY_PATH
 
-"${COPY_PATH}/${FILE_BASENAME}" "$@"
+"${COPY_PATH}/${FILE_BASENAME}" welcome -i -o="$(uname -s)" -m="curl" -v="$VERSION" --a="$(uname -m)"
+
 
