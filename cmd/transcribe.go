@@ -59,6 +59,18 @@ var transcribeCmd = &cobra.Command{
 			policies, _ := cmd.Flags().GetString("redact_pii_policies")
 			params.RedactPiiPolicies = strings.Split(policies, ",")
 		}
+		webhook := cmd.Flags().Lookup("webhook_url").Value.String()
+		if webhook != "" {
+			params.WebhookURL = webhook
+			webhookHeaderName := cmd.Flags().Lookup("webhook_auth_header_name").Value.String()
+			webhookHeaderValue := cmd.Flags().Lookup("webhook_auth_header_value").Value.String()
+			if webhookHeaderName != "" {
+				params.WebhookAuthHeaderName = webhookHeaderName
+			}
+			if webhookHeaderValue != "" {
+				params.WebhookAuthHeaderValue = webhookHeaderValue
+			}
+		}
 
 		transcribe(params, flags)
 	},
@@ -79,6 +91,9 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
 	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
+	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
+	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_name", "b", "", "Containing the header's name which will be inserted into the webhook request")
+	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_value", "o", "", "The value of the header that will be inserted into the webhook request.")
 	rootCmd.AddCommand(transcribeCmd)
 }
 
@@ -132,6 +147,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	TelemetryCaptureEvent("CLI transcription created", nil)
 	body := bytes.NewReader(paramsJSON)
+
 	response := QueryApi("/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
 	if err := json.Unmarshal(response, &transcriptResponse); err != nil {
