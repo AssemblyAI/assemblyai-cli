@@ -17,6 +17,7 @@ import (
 var configFolderPath = ".config/assemblyai"
 var configFileName = "config.toml"
 var Token string
+var distinctId string
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
@@ -43,7 +44,6 @@ var configCmd = &cobra.Command{
 			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
 			return
 		}
-		distinctId := uuid.New().String()
 
 		createConfigFile()
 		setConfigFileValue("features.telemetry", "true")
@@ -61,13 +61,10 @@ func init() {
 }
 
 func CheckIfTokenValid(token string) bool {
-
 	response := QueryApi("/account", "GET", nil)
-
 	if response == nil {
 		return false
 	}
-
 	var result Account
 	if err := json.Unmarshal(response, &result); err != nil {
 		fmt.Println("Can not unmarshal JSON")
@@ -75,6 +72,12 @@ func CheckIfTokenValid(token string) bool {
 	if result.Error != nil {
 		return false
 	}
+	if result.Id != nil && *result.Id != "" {
+		distinctId = *result.Id
+	} else {
+		distinctId = uuid.New().String()
+	}
+
 	return true
 }
 
