@@ -138,7 +138,10 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		fmt.Println("Can not unmarshal JSON")
 		return
 	}
-
+	if transcriptResponse.Error != nil {
+		fmt.Println(*transcriptResponse.Error)
+		return
+	}
 	id := transcriptResponse.ID
 	if !flags.Poll {
 		if flags.Json {
