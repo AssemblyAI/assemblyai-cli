@@ -177,19 +177,22 @@ type TranscribeFlags struct {
 }
 
 type TranscribeParams struct {
-	RedactPiiPolicies []string `json:"redact_pii_policies"`
-	AudioURL          string   `json:"audio_url"`
-	AutoChapters      bool     `json:"auto_chapters"`
-	AutoHighlights    bool     `json:"auto_highlights"`
-	ContentModeration bool     `json:"content_safety"`
-	DualChannel       bool     `json:"dual_channel"`
-	EntityDetection   bool     `json:"entity_detection"`
-	FormatText        bool     `json:"format_text"`
-	Punctuate         bool     `json:"punctuate"`
-	RedactPii         bool     `json:"redact_pii"`
-	SentimentAnalysis bool     `json:"sentiment_analysis"`
-	SpeakerLabels     bool     `json:"speaker_labels"`
-	TopicDetection    bool     `json:"iab_categories"`
+	RedactPiiPolicies      []string `json:"redact_pii_policies"`
+	AudioURL               string   `json:"audio_url"`
+	AutoChapters           bool     `json:"auto_chapters"`
+	AutoHighlights         bool     `json:"auto_highlights"`
+	ContentModeration      bool     `json:"content_safety"`
+	DualChannel            bool     `json:"dual_channel"`
+	EntityDetection        bool     `json:"entity_detection"`
+	FormatText             bool     `json:"format_text"`
+	Punctuate              bool     `json:"punctuate"`
+	RedactPii              bool     `json:"redact_pii"`
+	SentimentAnalysis      bool     `json:"sentiment_analysis"`
+	SpeakerLabels          bool     `json:"speaker_labels"`
+	TopicDetection         bool     `json:"iab_categories"`
+	WebhookURL             string   `json:"webhook_url,omitempty"`
+	WebhookAuthHeaderName  string   `json:"webhook_auth_header_name,omitempty"`
+	WebhookAuthHeaderValue string   `json:"webhook_auth_header_value,omitempty"`
 }
 
 type RedactPiiPolicy string
