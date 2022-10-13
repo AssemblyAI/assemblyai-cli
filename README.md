@@ -76,3 +76,6 @@ Ex:
 |sentiment_analysis|x|false|Detect the sentiment of each sentence of speech spoken in the file.|
 |auto_chapters|s|false|A "summary over time" for the audio file transcribed.|
 |entity_detection|e|false|Identify a wide range of entities that are spoken in the audio file.|
+|webhook_url|w|null|Receive a webhook once your transcript is complete.|
+|webhook_auth_header_name|b|null|Containing the header's name which will be inserted into the webhook request|
+|webhook_auth_header_value|o|null|The value of the header that will be inserted into the webhook request.|
