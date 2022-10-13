@@ -62,6 +62,7 @@ type TranscriptResponse struct {
 	SpeakerLabels            bool                      `json:"speaker_labels,omitempty"`
 	SpeedBoost               *bool                     `json:"speed_boost,omitempty"`
 	Status                   *string                   `json:"status,omitempty"`
+	Summary                  *string                   `json:"summary,omitempty"`
 	Text                     *string                   `json:"text,omitempty"`
 	Throttled                interface{}               `json:"throttled"`
 	Utterances               []SentimentAnalysisResult `json:"utterances,omitempty"`
@@ -190,6 +191,8 @@ type TranscribeParams struct {
 	SentimentAnalysis bool     `json:"sentiment_analysis"`
 	SpeakerLabels     bool     `json:"speaker_labels"`
 	TopicDetection    bool     `json:"iab_categories"`
+	Summarization     bool     `json:"summarization"`
+	SummaryType       string   `json:"summary_type"`
 }
 
 type RedactPiiPolicy string

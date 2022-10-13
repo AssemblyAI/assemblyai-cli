@@ -55,9 +55,13 @@ var transcribeCmd = &cobra.Command{
 		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
 		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
 		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
+		params.Summarization, _ = cmd.Flags().GetBool("summarization")
 		if params.RedactPii {
 			policies, _ := cmd.Flags().GetString("redact_pii_policies")
 			params.RedactPiiPolicies = strings.Split(policies, ",")
+		}
+		if params.Summarization {
+			params.SummaryType, _ = cmd.Flags().GetString("summary_type")
 		}
 
 		transcribe(params, flags)
@@ -65,7 +69,7 @@ var transcribeCmd = &cobra.Command{
 }
 
 func init() {
-	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
+	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between.")
 	transcribeCmd.PersistentFlags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
 	transcribeCmd.PersistentFlags().BoolP("auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
 	transcribeCmd.PersistentFlags().BoolP("content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
@@ -79,6 +83,8 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
 	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
+	transcribeCmd.PersistentFlags().BoolP("summarization", "z", false, "Automatically summarize audio and video files at scale.")
+	transcribeCmd.PersistentFlags().StringP("summary_type", "y", "bullets", "Presentation way of summarization. Available: bullets, paragraph, headline or gist")
 	rootCmd.AddCommand(transcribeCmd)
 }
 
@@ -138,7 +144,10 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		fmt.Println("Can not unmarshal JSON")
 		return
 	}
-
+	if transcriptResponse.Error != nil || *transcriptResponse.Error != "" {
+		fmt.Println(*transcriptResponse.Error)
+		return
+	}
 	id := transcriptResponse.ID
 	if !flags.Poll {
 		if flags.Json {
@@ -346,6 +355,10 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Println("Entity Detection")
 		entityDetectionPrintFormatted(transcript.Entities, width)
 	}
+	if *transcript.Summary != "" {
+		fmt.Println("Entity Detection")
+		summaryPrintFormatted(*transcript.Summary, width)
+	}
 }
 
 func textPrintFormatted(text string, width int) {
@@ -512,5 +525,21 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 		table.AddRow(entity.EntityType, entity.Text)
 	}
 	table.AddRow("", "")
+	fmt.Println(table)
+}
+
+func summaryPrintFormatted(summary string, width int) {
+	if summary == "" {
+		fmt.Println("Could not retrieve summary")
+		return
+	}
+
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 5)
+	table.Separator = "|"
+	table.AddRow("Summary")
+	table.AddRow(summary)
+	table.AddRow("")
 	fmt.Println(table)
 }
