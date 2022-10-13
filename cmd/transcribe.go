@@ -15,7 +15,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -363,32 +362,18 @@ func textPrintFormatted(text string, width int) {
 }
 
 func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) {
-	textWidth := width - 21
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 21)
 	for _, utterance := range utterances {
 		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
-		if len(utterance.Text) > textWidth {
-			words := strings.Split(utterance.Text, " ")
-			line := ""
-			for _, word := range words {
-				if len(line)+len(word) > textWidth {
-					fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, line)
-					line = ""
-					start = "        "
-					speaker = "        "
-				}
-				line += word + " "
-			}
-			fmt.Fprintf(w, "%s\t%s\t%s\n", start, speaker, line)
-		} else {
-			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text)
-		}
+		table.AddRow(start, speaker, utterance.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "", "")
+	fmt.Println(table)
 }
 
 func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int) {
@@ -411,13 +396,15 @@ func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 		return
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 10, 1, '\t', 0)
-	fmt.Fprintf(w, "| COUNT\t | TEXT\t\n")
+	table := uitable.New()
+	table.Wrap = true
+	table.Separator = "|"
+	table.AddRow("COUNT", "TEXT")
 	for _, highlight := range highlights.Results {
-		fmt.Fprintf(w, "| %s\t | %s\t\n", strconv.FormatInt(*highlight.Count, 10), highlight.Text)
+		table.AddRow(strconv.FormatInt(*highlight.Count, 10), highlight.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "")
+	fmt.Println(table)
 }
 
 func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
@@ -515,31 +502,15 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 		fmt.Println("Could not retrieve entity detection")
 		return
 	}
-	textWidth := width - 20
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
-	fmt.Fprintf(w, "| TYPE\t | TEXT\t\n")
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 20)
+	table.Separator = "|"
+	table.AddRow("TYPE", "TEXT")
 	for _, entity := range entities {
-		if len(entity.Text) > textWidth {
-			maxLength := len(entity.Text)
-
-			for i := 0; i < maxLength; i += textWidth {
-				textStart := i
-				textEnd := i + textWidth
-				if textEnd > len(entity.Text) {
-					if i > len(entity.Text) {
-						textStart = len(entity.Text)
-					}
-					textEnd = len(entity.Text)
-				}
-				fmt.Fprintf(w, "| %s\t | %s\t\n", entity.EntityType, entity.Text[textStart:textEnd])
-			}
-
-		} else {
-			fmt.Fprintf(w, "| %s\t | %s\t\n", entity.EntityType, entity.Text)
-		}
-
+		table.AddRow(entity.EntityType, entity.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "")
+	fmt.Println(table)
 }
