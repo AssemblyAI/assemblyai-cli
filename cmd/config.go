@@ -36,10 +36,9 @@ var configCmd = &cobra.Command{
 			fmt.Println("Too many arguments. Please provide a single token.")
 			return
 		}
-		token := argsArray[0]
+		Token = argsArray[0]
 
-		checkToken := CheckIfTokenValid(token)
-
+		checkToken := CheckIfTokenValid()
 		if !checkToken {
 			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
 			return
@@ -47,7 +46,7 @@ var configCmd = &cobra.Command{
 
 		createConfigFile()
 		setConfigFileValue("features.telemetry", "true")
-		setConfigFileValue("config.token", token)
+		setConfigFileValue("config.token", Token)
 		setConfigFileValue("config.distinct_id", distinctId)
 
 		TelemetryCaptureEvent("CLI configured", nil)
@@ -60,7 +59,7 @@ func init() {
 	rootCmd.AddCommand(configCmd)
 }
 
-func CheckIfTokenValid(token string) bool {
+func CheckIfTokenValid() bool {
 	response := QueryApi("/account", "GET", nil)
 	if response == nil {
 		return false

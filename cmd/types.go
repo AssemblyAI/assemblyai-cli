@@ -227,17 +227,22 @@ const (
 )
 
 type PostHogProperties struct {
-	Poll              bool  `json:"poll"`
-	Json              bool  `json:"json"`
-	SpeakerLabels     bool  `json:"speaker_labels"`
-	Punctuate         bool  `json:"punctuate"`
-	FormatText        bool  `json:"format_text"`
-	DualChannel       *bool `json:"dual_channel"`
-	RedactPii         bool  `json:"redact_pii"`
-	AutoHighlights    bool  `json:"auto_highlights"`
-	ContentModeration bool  `json:"content_safety"`
-	TopicDetection    bool  `json:"iab_categories"`
-	SentimentAnalysis bool  `json:"sentiment_analysis"`
-	AutoChapters      bool  `json:"auto_chapters"`
-	EntityDetection   bool  `json:"entity_detection"`
+	Poll              bool   `json:"poll,omitempty"`
+	Json              bool   `json:"json,omitempty"`
+	SpeakerLabels     bool   `json:"speaker_labels,omitempty"`
+	Punctuate         bool   `json:"punctuate,omitempty"`
+	FormatText        bool   `json:"format_text,omitempty"`
+	DualChannel       *bool  `json:"dual_channel,omitempty"`
+	RedactPii         bool   `json:"redact_pii,omitempty"`
+	AutoHighlights    bool   `json:"auto_highlights,omitempty"`
+	ContentModeration bool   `json:"content_safety,omitempty"`
+	TopicDetection    bool   `json:"iab_categories,omitempty"`
+	SentimentAnalysis bool   `json:"sentiment_analysis,omitempty"`
+	AutoChapters      bool   `json:"auto_chapters,omitempty"`
+	EntityDetection   bool   `json:"entity_detection,omitempty"`
+	Version           string `json:"version,omitempty"`
+	OS                string `json:"os,omitempty"`
+	Arch              string `json:"arch,omitempty"`
+	Method            string `json:"method,omitempty"`
+	I                 bool   `json:"i,omitempty"`
 }
