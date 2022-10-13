@@ -8,7 +8,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"math"
 	"net/http"
 	"net/url"
 	"os"
@@ -16,10 +15,10 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"text/tabwriter"
 	"time"
 
 	"github.com/briandowns/spinner"
+	uitable "github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
 	pb "gopkg.in/cheggaaa/pb.v1"
@@ -139,7 +138,10 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 		fmt.Println("Can not unmarshal JSON")
 		return
 	}
-
+	if transcriptResponse.Error != nil {
+		fmt.Println(*transcriptResponse.Error)
+		return
+	}
 	id := transcriptResponse.ID
 	if !flags.Poll {
 		if flags.Json {
@@ -363,62 +365,32 @@ func textPrintFormatted(text string, width int) {
 }
 
 func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) {
-	textWidth := width - 21
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 21)
 	for _, utterance := range utterances {
 		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
-		if len(utterance.Text) > textWidth {
-			words := strings.Split(utterance.Text, " ")
-			line := ""
-			for _, word := range words {
-				if len(line)+len(word) > textWidth {
-					fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, line)
-					line = ""
-					start = "        "
-					speaker = "        "
-				}
-				line += word + " "
-			}
-			fmt.Fprintf(w, "%s\t%s\t%s\n", start, speaker, line)
-		} else {
-			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text)
-		}
+		table.AddRow(start, speaker, utterance.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "", "")
+	fmt.Println(table)
 }
 
 func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int) {
-	textWidth := width - 21
-	w := tabwriter.NewWriter(os.Stdout, 10, 1, 1, ' ', 0)
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 25)
 	for _, utterance := range utterances {
 		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
-		if len(utterance.Text) > textWidth {
-
-			words := strings.Split(utterance.Text, " ")
-			var line string
-			for _, word := range words {
-				if len(line)+len(word) > textWidth {
-					fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, line)
-					start = "        "
-					speaker = "        "
-					line = word
-				} else {
-					line = line + " " + word
-				}
-			}
-			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, line)
-		} else {
-			fmt.Fprintf(w, "%s  %s  %s\n", start, speaker, utterance.Text)
-		}
+		table.AddRow(start, speaker, utterance.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "", "")
+	fmt.Println(table)
 }
 
 func highlightsPrintFormatted(highlights AutoHighlightsResult) {
@@ -427,13 +399,15 @@ func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 		return
 	}
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 10, 1, '\t', 0)
-	fmt.Fprintf(w, "| COUNT\t | TEXT\t\n")
+	table := uitable.New()
+	table.Wrap = true
+	table.Separator = "|"
+	table.AddRow("COUNT", "TEXT")
 	for _, highlight := range highlights.Results {
-		fmt.Fprintf(w, "| %s\t | %s\t\n", strconv.FormatInt(*highlight.Count, 10), highlight.Text)
+		table.AddRow(strconv.FormatInt(*highlight.Count, 10), highlight.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "")
+	fmt.Println(table)
 }
 
 func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
@@ -441,49 +415,20 @@ func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
 		fmt.Println("Could not retrieve content safety labels")
 		return
 	}
-	textWidth := width - 20
-	labelWidth := 13
-
-	w := tabwriter.NewWriter(os.Stdout, 1, 10, 1, '\t', 0)
-	fmt.Fprintf(w, "| LABEL\t | TEXT\t\n")
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 20)
+	table.Separator = "|"
+	table.AddRow("LABEL", "TEXT")
 	for _, label := range labels.Results {
 		var labelString string
 		for _, innerLabel := range label.Labels {
 			labelString = innerLabel.Label + " " + labelString
 		}
-
-		if len(label.Text) > textWidth || len(labelString) > 30 {
-			maxLength := int(math.Max(float64(len(label.Text)), float64(len(labelString))))
-			x := 0
-			for i := 0; i < maxLength; i += textWidth {
-				labelStart := x
-				labelEnd := x + labelWidth
-				if labelEnd > len(labelString) {
-					if x > len(labelString) {
-						labelStart = len(labelString)
-					}
-					labelEnd = len(labelString)
-				}
-				textStart := i
-				textEnd := i + textWidth
-				if textEnd > len(label.Text) {
-					if i > len(label.Text) {
-						textStart = len(label.Text)
-					}
-					textEnd = len(label.Text)
-				}
-				fmt.Fprintf(w, "| %s\t | %s\t\n", labelString[labelStart:labelEnd], label.Text[textStart:textEnd])
-
-				x += labelWidth
-			}
-
-		} else {
-			fmt.Fprintf(w, "| %s\t | %s\t\n", labelString, label.Text)
-		}
-
+		table.AddRow(labelString, label.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "")
+	fmt.Println(table)
 }
 
 func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
@@ -491,59 +436,24 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 		fmt.Println("Could not retrieve topic detection")
 		return
 	}
-	textWidth := int(math.Abs(float64(width - 80)))
 
-	w := tabwriter.NewWriter(os.Stdout, 40, 8, 1, '\t', 0)
-	fmt.Fprintf(w, "| TOPIC \t| TEXT\n")
-	labelWidth := 0
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint((width / 2) - 5)
+	table.Separator = "|"
+	table.AddRow("TOPIC", "TEXT")
 	for _, category := range categories.Results {
-		for i, innerLabel := range category.Labels {
-			if i < 3 {
-				labelWidth = int(math.Max(float64(len(innerLabel.Label)), float64(labelWidth)))
+		categories := ""
+		for i, innerCategory := range category.Labels {
+			categories += innerCategory.Label + " "
+			if i == 2 {
 				break
 			}
 		}
+		table.AddRow(categories, category.Text)
+		table.AddRow("", "")
 	}
-	textWidth = int(math.Abs(float64(width - labelWidth)))
-	for _, category := range categories.Results {
-		if labelWidth > int(math.Floor(float64(width)*0.6)) {
-			fmt.Fprintf(w, "| %s\n", category.Labels[0].Label)
-			words := strings.Split(category.Text, " ")
-			var line string
-			for _, word := range words {
-				if len(line)+len(word) > width-10 {
-					fmt.Fprintf(w, "| %s\n", line)
-					line = word
-				} else {
-					line = line + " " + word
-				}
-			}
-			fmt.Fprintf(w, "| %s\n", line)
-		} else if len(category.Text) > textWidth || len(category.Labels) > 1 {
-			x := 0
-			words := strings.Split(category.Text, " ")
-			var line string
-			for _, word := range words {
-				if len(line)+len(word) > (width - labelWidth - 20) {
-					label := " "
-					if x < 3 && x < len(category.Labels) {
-						label = category.Labels[x].Label
-					}
-					fmt.Fprintf(w, "| %s\t | %s\n", label, line)
-					x++
-					line = word
-				} else {
-					line = line + " " + word
-				}
-			}
-		} else {
-			fmt.Fprintf(w, "| %s\t| %s\n", category.Labels[0].Label, category.Text)
-		}
-
-		fmt.Fprintf(w, "| \t| \n")
-	}
-	fmt.Fprintln(w)
-	w.Flush()
+	fmt.Println(table)
 }
 
 func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width int) {
@@ -551,35 +461,18 @@ func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width
 		fmt.Println("Could not retrieve sentiment analysis")
 		return
 	}
-	textWidth := width - 20
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
-	fmt.Fprintf(w, "| SENTIMENT\t | TEXT\t\n")
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 20)
+	table.Separator = "|"
+	table.AddRow("SENTIMENT", "TEXT")
 	for _, sentiment := range sentiments {
 		sentimentStatus := sentiment.Sentiment
-		if len(sentiment.Text) > textWidth {
-			maxLength := len(sentiment.Text)
-
-			for i := 0; i < maxLength; i += textWidth {
-				textStart := i
-				textEnd := i + textWidth
-				if textEnd > len(sentiment.Text) {
-					if i > len(sentiment.Text) {
-						textStart = len(sentiment.Text)
-					}
-					textEnd = len(sentiment.Text)
-				}
-				fmt.Fprintf(w, "| %s\t | %s\t\n", sentimentStatus, sentiment.Text[textStart:textEnd])
-				sentimentStatus = ""
-			}
-
-		} else {
-			fmt.Fprintf(w, "| %s\t | %s\t\n", sentimentStatus, sentiment.Text)
-		}
-
+		table.AddRow(sentimentStatus, sentiment.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "")
+	fmt.Println(table)
 }
 
 func chaptersPrintFormatted(chapters []Chapter, width int) {
@@ -587,60 +480,24 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 		fmt.Println("Could not retrieve chapters")
 		return
 	}
-	textWidth := width - 21
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 15)
+	table.Separator = "|"
 	for _, chapter := range chapters {
 		// Gist
-		fmt.Fprintf(w, "| Gist\t | %v\n", chapter.Gist)
-		fmt.Fprintf(w, "| \t | \n")
+		table.AddRow("Gist", chapter.Gist)
+		table.AddRow("", "")
 
 		// Headline
-		headline := "Headline"
-		if len(chapter.Headline) > textWidth {
-			// maxLength := len(chapter.Headline)
+		table.AddRow("Headline", chapter.Headline)
 
-			words := strings.Split(chapter.Headline, " ")
-			var line string
-			for _, word := range words {
-				if len(line)+len(word) > (width - 21) {
-					fmt.Fprintf(w, "| %s\t | %s\n", headline, line)
-					headline = ""
-					line = word
-				} else {
-					line = line + " " + word
-				}
-			}
-			fmt.Fprintf(w, "| %s\t | %s\n", headline, line)
-
-		} else {
-			fmt.Fprintf(w, "| %s\t | %s\n", headline, chapter.Headline)
-		}
-
-		fmt.Fprintf(w, "| \t | \n")
-		// Summary
-		summary := "Summary"
-		if len(chapter.Summary) > textWidth {
-			words := strings.Split(chapter.Summary, " ")
-			var line string
-			for _, word := range words {
-				if len(line)+len(word) > (width - 21) {
-					fmt.Fprintf(w, "| %s\t | %s\n", summary, line)
-					summary = ""
-					line = word
-				} else {
-					line = line + " " + word
-				}
-			}
-			fmt.Fprintf(w, "| %s\t | %s\n", summary, line)
-
-		} else {
-			fmt.Fprintf(w, "| %s\t | %s\n", summary, chapter.Summary)
-		}
-		fmt.Fprintf(w, "| \t | \n")
+		table.AddRow("", "")
+		table.AddRow("Summary", chapter.Summary)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "")
+	fmt.Println(table)
 }
 
 func entityDetectionPrintFormatted(entities []Entity, width int) {
@@ -648,31 +505,15 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 		fmt.Println("Could not retrieve entity detection")
 		return
 	}
-	textWidth := width - 20
 
-	w := tabwriter.NewWriter(os.Stdout, 10, 8, 1, '\t', 0)
-	fmt.Fprintf(w, "| TYPE\t | TEXT\t\n")
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 20)
+	table.Separator = "|"
+	table.AddRow("TYPE", "TEXT")
 	for _, entity := range entities {
-		if len(entity.Text) > textWidth {
-			maxLength := len(entity.Text)
-
-			for i := 0; i < maxLength; i += textWidth {
-				textStart := i
-				textEnd := i + textWidth
-				if textEnd > len(entity.Text) {
-					if i > len(entity.Text) {
-						textStart = len(entity.Text)
-					}
-					textEnd = len(entity.Text)
-				}
-				fmt.Fprintf(w, "| %s\t | %s\t\n", entity.EntityType, entity.Text[textStart:textEnd])
-			}
-
-		} else {
-			fmt.Fprintf(w, "| %s\t | %s\t\n", entity.EntityType, entity.Text)
-		}
-
+		table.AddRow(entity.EntityType, entity.Text)
 	}
-	fmt.Fprintln(w)
-	w.Flush()
+	table.AddRow("", "")
+	fmt.Println(table)
 }
