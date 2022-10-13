@@ -14,6 +14,7 @@ type Account struct {
 	Error          *string        `json:"error,omitempty"`
 	IsVerified     bool           `json:"is_verified"`
 	CurrentBalance CurrentBalance `json:"current_balance"`
+	Id             *string        `json:"id,omitempty"`
 }
 
 type CurrentBalance struct {
