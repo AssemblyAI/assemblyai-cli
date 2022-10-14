@@ -332,38 +332,38 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		width = 512
 	}
 	fmt.Print("\033[H\033[2J")
-	fmt.Println("Transcript")
+	fmt.Printf("\033[1m%s\033[0m\n", "Transcript")
 	if transcript.SpeakerLabels == true {
 		speakerLabelsPrintFormatted(transcript.Utterances, width)
 	} else {
 		textPrintFormatted(*transcript.Text, width)
 	}
 	if transcript.DualChannel != nil && *transcript.DualChannel == true {
-		fmt.Println("\nDual Channel")
+		fmt.Printf("\033[1m%s\033[0m\n", "\nDual Channel")
 		dualChannelPrintFormatted(transcript.Utterances, width)
 	}
 	if *transcript.AutoHighlights == true {
-		fmt.Println("Highlights")
+		fmt.Printf("\033[1m%s\033[0m\n", "Highlights")
 		highlightsPrintFormatted(*transcript.AutoHighlightsResult)
 	}
 	if *transcript.ContentSafety == true {
-		fmt.Println("Content Moderation")
+		fmt.Printf("\033[1m%s\033[0m\n", "Content Moderation")
 		contentSafetyPrintFormatted(*transcript.ContentSafetyLabels, width)
 	}
 	if *transcript.IabCategories == true {
-		fmt.Println("Topic Detection")
+		fmt.Printf("\033[1m%s\033[0m\n", "Topic Detection")
 		topicDetectionPrintFormatted(*transcript.IabCategoriesResult, width)
 	}
 	if *transcript.SentimentAnalysis == true {
-		fmt.Println("Sentiment Analysis")
+		fmt.Printf("\033[1m%s\033[0m\n", "Sentiment Analysis")
 		sentimentAnalysisPrintFormatted(transcript.SentimentAnalysisResults, width)
 	}
 	if *transcript.AutoChapters == true {
-		fmt.Println("Chapters")
+		fmt.Printf("\033[1m%s\033[0m\n", "Chapters")
 		chaptersPrintFormatted(transcript.Chapters, width)
 	}
 	if *transcript.EntityDetection == true {
-		fmt.Println("Entity Detection")
+		fmt.Printf("\033[1m%s\033[0m\n", "Entity Detection")
 		entityDetectionPrintFormatted(transcript.Entities, width)
 	}
 }
