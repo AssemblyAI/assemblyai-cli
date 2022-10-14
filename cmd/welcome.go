@@ -14,15 +14,9 @@ import (
 var welcomeCmd = &cobra.Command{
 	Hidden: true,
 	Use:    "welcome",
-	Short:  "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short:  "Welcome to AssemblyAI CLI!",
+	Long:   `With the newly released CLI, we're making it even easier for everyone to get started, build using our latest releases, and see the results right from the command line.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		// welcome to cli
 		fmt.Println("Welcome to the AssemblyAI CLI!")
 		fmt.Println("Please start by running `assemblyai config <token>`")
 
@@ -30,9 +24,14 @@ to quickly create a Cobra application.`,
 		if i {
 			createConfigFile()
 			setConfigFileValue("features.telemetry", "true")
-			setConfigFileValue("config.distinct_id", uuid.New().String())
+
+			distinctId := getConfigFileValue("config.distinct_id")
+			if distinctId == "" {
+				setConfigFileValue("config.distinct_id", uuid.New().String())
+				setConfigFileValue("config.new", "true")
+			}
 			var properties *PostHogProperties = new(PostHogProperties)
-			properties.I, _ = cmd.Flags().GetBool("i")
+			properties.I = i
 			properties.OS, _ = cmd.Flags().GetString("os")
 			properties.Arch, _ = cmd.Flags().GetString("arch")
 			properties.Method, _ = cmd.Flags().GetString("method")
