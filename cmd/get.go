@@ -10,7 +10,7 @@ import (
 )
 
 // get represents the getTranscription command
-var get = &cobra.Command{
+var getCmd = &cobra.Command{
 	Use:   "get [transcription ID]",
 	Short: "Getting the Transcription Result",
 	Long:  `After you submit an audio file for processing, get transcription response including the results of any Audio Intelligence features you enabled, using your unique transcription ID as a parameter.`,
@@ -37,7 +37,7 @@ var get = &cobra.Command{
 }
 
 func init() {
-	rootCmd.AddCommand(get)
-	get.Flags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
-	get.Flags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
+	rootCmd.AddCommand(getCmd)
+	getCmd.Flags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
+	getCmd.Flags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
 }
