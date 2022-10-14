@@ -51,7 +51,7 @@ This command will validate your account, and store your token safely in `~/.conf
 
 ## Usage
 
-Installing the CLI provides access to the assemblyai command:
+Installing the CLI provides access to the `assemblyai` command:
 
 ```bash
 assemblyai [command] [--flags]
