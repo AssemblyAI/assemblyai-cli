@@ -11,9 +11,9 @@ import (
 
 // get represents the getTranscription command
 var getCmd = &cobra.Command{
-	Use:   "get [transcription ID]",
-	Short: "Getting the Transcription Result",
-	Long:  `After you submit an audio file for processing, get transcription response including the results of any Audio Intelligence features you enabled, using your unique transcription ID as a parameter.`,
+	Use:   "get [transcription_id]",
+	Short: "Get a transcription",
+	Long:  `After submitting a file for transcription, you can fetch it by passing its ID.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		var flags TranscribeFlags
@@ -28,7 +28,7 @@ var getCmd = &cobra.Command{
 
 		Token = GetStoredToken()
 		if Token == "" {
-			fmt.Println("You must login first. Run `assemblyai config <token>`")
+			fmt.Println("You're not authenticated yet. Get started by running `assemblyai config [token]`")
 			return
 		}
 

@@ -23,16 +23,15 @@ var distinctId string
 
 // configCmd represents the config command
 var configCmd = &cobra.Command{
-	Use:   "config <token>",
-	Short: "Authenticate with AssemblyAI",
-	Long: `Authenticate with AssemblyAI. 
-	You can get your token from https://app.assemblyai.com/account.`,
+	Use:   "config [token]",
+	Short: "Authenticate the CLI",
+	Long: `This command will validate your account and store your token safely, later to be used when transcribing files.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		argsArray := cmd.Flags().Args()
 
 		if len(argsArray) == 0 {
-			fmt.Println("Please provide a token. If you don't have one, you can get it at https://app.assemblyai.com")
+			fmt.Println("Please provide a token. If you don't have one, create an account at https://app.assemblyai.com")
 			return
 		} else if len(argsArray) > 1 {
 			fmt.Println("Too many arguments. Please provide a single token.")
@@ -42,7 +41,7 @@ var configCmd = &cobra.Command{
 
 		checkToken := CheckIfTokenValid()
 		if !checkToken {
-			fmt.Println("Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com")
+			fmt.Println("Your token appears to be invalid. Try again, and if the problem persists, contact support at support@assemblyai.com")
 			return
 		}
 
