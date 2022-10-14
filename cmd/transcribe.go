@@ -462,17 +462,21 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 	table.Wrap = true
 	table.MaxColWidth = uint((width / 2) - 5)
 	table.Separator = "|"
-	table.AddRow("TOPIC", "TEXT")
-	for _, category := range categories.Results {
-		categories := ""
-		for i, innerCategory := range category.Labels {
-			categories += innerCategory.Label + " "
-			if i == 2 {
-				break
-			}
+	table.AddRow("RANK", "TOPIC")
+	var ArrayCategoriesSorted []ArrayCategories
+	for category, i := range categories.Summary {
+		add := ArrayCategories{
+			Category: category,
+			Score:    i,
 		}
-		table.AddRow(categories, category.Text)
-		table.AddRow("", "")
+		ArrayCategoriesSorted = append(ArrayCategoriesSorted, add)
+	}
+	sort.SliceStable(ArrayCategoriesSorted, func(i, j int) bool {
+		return ArrayCategoriesSorted[i].Score > ArrayCategoriesSorted[j].Score
+	})
+
+	for i, category := range ArrayCategoriesSorted {
+		table.AddRow(i+1, category.Category)
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -550,4 +554,9 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	}
 	fmt.Println(table)
 	fmt.Println()
+}
+
+type ArrayCategories struct {
+	Score    float64 `json:"score"`
+	Category string  `json:"category"`
 }
