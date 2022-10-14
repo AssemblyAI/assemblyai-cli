@@ -143,13 +143,9 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 
 ## Contributing
 
----
-
 We're more than happy to welcome new contributors. If there's something you'd like to fix or improve, start by [creating an issue](https://github.com/AssemblyAI/assemblyai-cli/issues). Please make sure to follow our [code of conduct](https://github.com/AssemblyAI/assemblyai-cli/blob/main/CODE_OF_CONDUCT.md).
 
 ## Telemetry
-
----
 
 The AssemblyAI CLI includes a telemetry feature that collects usage data, and is enabled by default.
 
@@ -157,13 +153,9 @@ To opt out of telemetry, set the telemetry variable in the `config.toml` file to
 
 ## Feedback
 
----
-
 Please don't hesitate to [let us know what you think](https://forms.gle/oQgktMWyL7xStH2J8)!
 
 ## License
-
----
 
 Copyright (c) AssemblyAI. All rights reserved.
 
