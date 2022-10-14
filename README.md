@@ -4,6 +4,16 @@
 
 A quick and easy way to test AssemblyAI's transcription features on your terminal
 
+## Quickstart
+
+1. Install the CLI with any of the methods described below
+2. Add your token by executing `assemblyai config <YOUT-TOKEN>`
+3. Get started transcribing any local, URL or YouTube audio or video by running
+
+    ``` bash
+    assemblyai transcribe https://youtu.be/BivrdU9xcIo --auto_chapters --auto_highlights --content_moderation --entity_detection --redact_pii --redact_pii_policies=drug,number_sequence,person_name --sentiment_analysis --topic_detection
+    ```
+
 ## Installation
 
 To install AssemblyAI CLI, use any of the following methods:
@@ -71,7 +81,7 @@ Ex:
 |--entity_detection|-e|false|Identify a wide range of entities that are spoken in the audio file.|
 |--format_text|-f|true|Enable text formatting|
 |--punctuate|-u|true|Enable automatic punctuation|
-|--redact_pii_policies*|-i|drug,number_sequence,person_name*|The list of PII policies to redact (source), comma-separated. Required if the redact_pii flag is true, with the default value including drugs, number sequences, and person names. |
+|--redact_pii_policies|-i|drug,number_sequence,person_name|The list of PII policies to redact (source), comma-separated. Required if the redact_pii flag is true, with the default value including drugs, number sequences, and person names. |
 |--redact_pii|-r|false|Remove personally identifiable information from the transcription.|
 |--sentiment_analysis|-x|false|Detect the sentiment of each sentence of speech spoken in the file.|
 |--speaker_labels|-l|true|Automatically detect the number of speakers in the file.|
