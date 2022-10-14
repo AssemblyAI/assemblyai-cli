@@ -527,8 +527,22 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = "|"
 	table.AddRow("TYPE", "TEXT")
+	// group entities by type
+	entityMap := make(map[string][]string)
 	for _, entity := range entities {
-		table.AddRow(entity.EntityType, entity.Text)
+		isAlreadyInMap := false
+		for _, text := range entityMap[entity.EntityType] {
+			if text == entity.Text {
+				isAlreadyInMap = true
+				break
+			}
+		}
+		if !isAlreadyInMap {
+			entityMap[entity.EntityType] = append(entityMap[entity.EntityType], entity.Text)
+		}
+	}
+	for entityType, entityTexts := range entityMap {
+		table.AddRow(entityType, strings.Join(entityTexts, ", "))
 	}
 	fmt.Println(table)
 	fmt.Println()
