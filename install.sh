@@ -20,16 +20,31 @@ export TAR_FILE="$TMPDIR/${FILE_BASENAME}_$(uname -s)_$(uname -m).tar.gz"
 
 (
 	cd "$TMPDIR"
-	echo "Downloading AssemblyAI $VERSION..."
-  echo "$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION:1}_$(uname -s)_$(uname -m).tar.gz"
+	echo "Downloading AssemblyAI CLI $VERSION..."
 	curl -sfLo "$TAR_FILE" \
 		"$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION:1}_$(uname -s)_$(uname -m).tar.gz"
 )
 
-COPY_PATH="$(echo "$PATH" | cut -d: -f1)"
-tar -xf "$TAR_FILE" -C "$TMPDIR"
-mv "${TMPDIR}/${FILE_BASENAME}" $COPY_PATH
+BINARY_PATH="$HOME/AssemblyAI"
+mkdir -p "$BINARY_PATH"
+echo "Installing AssemblyAI to $BINARY_PATH"
+tar -xzf "$TAR_FILE" -C "$BINARY_PATH"
+chmod +x "$BINARY_PATH"
+echo "$BINARY_PATH" >> "$HOME/.assemblyai"
 
-"${COPY_PATH}/${FILE_BASENAME}" welcome -i -o="$(uname -s)" -m="curl" -v="$VERSION" -a="$(uname -m)"
+if [ -f "$HOME/.zshrc" ]; then
+	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.zshrc"
+fi
+if [ -f "$HOME/.bashrc" ]; then
+	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.bashrc"
+fi
 
+"${BINARY_PATH}/${FILE_BASENAME}" welcome -i -o="$(uname -s)" -m="curl" -v="$VERSION" -a="$(uname -m)"
 
+if [ -f "$HOME/.bashrc" ]; then
+	source "$HOME/.bashrc"
+fi
+if [ -f "$HOME/.zshrc" ]; then
+	zsh
+	source "$HOME/.zshrc"
+fi
