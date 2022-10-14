@@ -10,8 +10,6 @@ The AssemblyAI CLI helps you quickly test our latest AI models right from your t
 
 ## Installation
 
----
-
 The CLI is simple to install, supports a wide range of operating systems like macOS, Windows, and Linux, and makes it more seamless to build with AssemblyAI.
 
 ### Homebrew
@@ -43,8 +41,6 @@ New-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai.e
 
 ## Getting started
 
----
-
 Get started by configuring the CLI with your AssemblyAI token. If you don't yet have an account, create one [here](https://app.assemblyai.com/).
 
 ```bash
@@ -55,8 +51,6 @@ This command will validate your account, and store your token safely in `~/.conf
 
 ## Usage
 
----
-
 Installing the CLI provides access to the assemblyai command:
 
 ```bash
@@ -65,14 +59,12 @@ assemblyai [command] [--flags]
 
 ## Commands
 
----
-
 ### Transcribe
 
 With the CLI, you can transcribe local files, remote URLs, and YouTube links.
 
 ```bash
-assemblyai transcribe [local file | remote url | youtube links]
+assemblyai transcribe [local file | remote url | youtube links] [--flags]
 ```
 
 <details>
@@ -123,7 +115,7 @@ assemblyai transcribe [local file | remote url | youtube links]
 > Remove personally identifiable information from the transcription.
 
 > **-i, --redact_pii_policies**  
-> default: drug,number_sequence,person_name   
+> default: drug,number_sequence,person_name  
 > The list of PII policies to redact ([source](https://www.assemblyai.com/docs/audio-intelligence#pii-redaction)), comma-separated. Required if the redact_pii flag is true.
 
 > **-x, --sentiment_analysis**  
@@ -153,67 +145,26 @@ assemblyai transcribe [local file | remote url | youtube links]
 
 ---
 
-foo
+We're more than happy to welcome new contributors. If there's something you'd like to fix or improve, start by [creating an issue](https://github.com/AssemblyAI/assemblyai-cli/issues). Please make sure to follow our [code of conduct](https://github.com/AssemblyAI/assemblyai-cli/blob/main/CODE_OF_CONDUCT.md).
 
 ## Telemetry
 
 ---
 
-foo
+The AssemblyAI CLI includes a telemetry feature that collects usage data, and is enabled by default.
+
+To opt out of telemetry, set the telemetry variable in the `config.toml` file to false.
 
 ## Feedback
 
 ---
 
-foo
+Please don't hesitate to [let us know what you think](https://forms.gle/oQgktMWyL7xStH2J8)!
 
 ## License
 
 ---
 
-foo
+Copyright (c) AssemblyAI. All rights reserved.
 
-## Commands
-
-- `config`: Use the config command to store your authentication token and automatically use it in any subsequent request.
-  Ex:
-
-  ```bash
-  assemblyai config <token>
-  ```
-
-- `transcribe`: Runs the transcription of a local or URL file with all the features specified by the flags.
-  Ex:
-
-  ```bash
-  assemblyai transcribe <path | url | youtube url> [flags]
-  ```
-
-- `get`: Retrieves a previously transcribed file.
-  Ex:
-
-  ```bash
-  assemblyai get <transcription id> [flags]
-  ```
-
-## Flags
-
-| Name                        | Abbreviation | Default                          | Description                                                                                                                                                                        |
-| --------------------------- | ------------ | -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| --json                      | -j           | false                            | If true, the CLI will output the JSON.                                                                                                                                             |
-| --poll                      | -p           | true                             | The CLI will poll the transcription every 3 seconds until it's complete.                                                                                                           |
-| --auto_chapters             | -s           | false                            | A "summary over time" for the audio file transcribed.                                                                                                                              |
-| --auto_highlights           | -a           | false                            | Automatically detect important phrases and words in the text.                                                                                                                      |
-| --content_moderation        | -c           | false                            | Detect if sensitive content is spoken in the file.                                                                                                                                 |
-| --dual_channel              | -d           | false                            | Enable dual channel                                                                                                                                                                |
-| --entity_detection          | -e           | false                            | Identify a wide range of entities that are spoken in the audio file.                                                                                                               |
-| --format_text               | -f           | true                             | Enable text formatting                                                                                                                                                             |
-| --punctuate                 | -u           | true                             | Enable automatic punctuation                                                                                                                                                       |
-| --redact_pii_policies       | -i           | drug,number_sequence,person_name | The list of PII policies to redact (source), comma-separated. Required if the redact_pii flag is true, with the default value including drugs, number sequences, and person names. |
-| --redact_pii                | -r           | false                            | Remove personally identifiable information from the transcription.                                                                                                                 |
-| --sentiment_analysis        | -x           | false                            | Detect the sentiment of each sentence of speech spoken in the file.                                                                                                                |
-| --speaker_labels            | -l           | true                             | Automatically detect the number of speakers in the file.                                                                                                                           |
-| --topic_detection           | -t           | false                            | Label the topics that are spoken in the file.                                                                                                                                      |
-| --webhook_auth_header_name  | -b           | null                             | Containing the header's name which will be inserted into the webhook request                                                                                                       |
-| --webhook_auth_header_value | -o           | null                             | The value of the header that will be inserted into the webhook request.                                                                                                            |
-| --webhook_url               | -w           | null                             | Receive a webhook once your transcript is complete.                                                                                                                                |
+Licensed under the [Apache License 2.0 license](https://github.com/AssemblyAI/assemblyai-cli/blob/main/LICENSE).
