@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -420,6 +421,9 @@ func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 	table.Wrap = true
 	table.Separator = "|"
 	table.AddRow("COUNT", "TEXT")
+	sort.SliceStable(highlights.Results, func(i, j int) bool {
+		return int(*highlights.Results[i].Count) > int(*highlights.Results[j].Count)
+	})
 	for _, highlight := range highlights.Results {
 		table.AddRow(strconv.FormatInt(*highlight.Count, 10), highlight.Text)
 	}
