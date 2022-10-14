@@ -18,6 +18,9 @@ var rootCmd = &cobra.Command{
 	Short: "AssemblyAI CLI",
 	Long: `Please authenticate with AssemblyAI to use this CLI.
 assemblyai config {YOUR TOKEN}`,
+	CompletionOptions: cobra.CompletionOptions{
+		DisableDefaultCmd: true,
+	},
 	Run: func(cmd *cobra.Command, args []string) {
 		versionFlag, _ := cmd.Flags().GetBool("version")
 		if versionFlag {

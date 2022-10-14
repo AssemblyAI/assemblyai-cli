@@ -13,6 +13,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -378,6 +379,7 @@ func textPrintFormatted(text string, width int) {
 		line += word + " "
 	}
 	fmt.Println(line)
+	fmt.Println()
 }
 
 func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) {
@@ -391,8 +393,8 @@ func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) 
 
 		table.AddRow(start, speaker, utterance.Text)
 	}
-	table.AddRow("", "", "")
 	fmt.Println(table)
+	fmt.Println()
 }
 
 func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int) {
@@ -405,8 +407,8 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
 		table.AddRow(start, speaker, utterance.Text)
 	}
-	table.AddRow("", "", "")
 	fmt.Println(table)
+	fmt.Println()
 }
 
 func highlightsPrintFormatted(highlights AutoHighlightsResult) {
@@ -419,11 +421,14 @@ func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 	table.Wrap = true
 	table.Separator = "|"
 	table.AddRow("COUNT", "TEXT")
+	sort.SliceStable(highlights.Results, func(i, j int) bool {
+		return int(*highlights.Results[i].Count) > int(*highlights.Results[j].Count)
+	})
 	for _, highlight := range highlights.Results {
 		table.AddRow(strconv.FormatInt(*highlight.Count, 10), highlight.Text)
 	}
-	table.AddRow("", "")
 	fmt.Println(table)
+	fmt.Println()
 }
 
 func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
@@ -443,8 +448,8 @@ func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
 		}
 		table.AddRow(labelString, label.Text)
 	}
-	table.AddRow("", "")
 	fmt.Println(table)
+	fmt.Println()
 }
 
 func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
@@ -470,6 +475,7 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 		table.AddRow("", "")
 	}
 	fmt.Println(table)
+	fmt.Println()
 }
 
 func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width int) {
@@ -487,8 +493,8 @@ func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width
 		sentimentStatus := sentiment.Sentiment
 		table.AddRow(sentimentStatus, sentiment.Text)
 	}
-	table.AddRow("", "")
 	fmt.Println(table)
+	fmt.Println()
 }
 
 func chaptersPrintFormatted(chapters []Chapter, width int) {
@@ -502,18 +508,16 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 	table.MaxColWidth = uint(width - 15)
 	table.Separator = "|"
 	for _, chapter := range chapters {
-		// Gist
+		start := time.Duration(*chapter.Start) * time.Millisecond
+		end := time.Duration(*chapter.End) * time.Millisecond
+		table.AddRow("timestamp", fmt.Sprintf("%02d:%02d-%02d:%02d", int(start.Minutes()), int(start.Seconds())%60, int(end.Minutes()), int(end.Seconds())%60))
 		table.AddRow("Gist", chapter.Gist)
-		table.AddRow("", "")
-
-		// Headline
 		table.AddRow("Headline", chapter.Headline)
-
-		table.AddRow("", "")
 		table.AddRow("Summary", chapter.Summary)
+		table.AddRow("", "")
 	}
-	table.AddRow("", "")
 	fmt.Println(table)
+	fmt.Println()
 }
 
 func entityDetectionPrintFormatted(entities []Entity, width int) {
@@ -527,9 +531,23 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = "|"
 	table.AddRow("TYPE", "TEXT")
+	// group entities by type
+	entityMap := make(map[string][]string)
 	for _, entity := range entities {
-		table.AddRow(entity.EntityType, entity.Text)
+		isAlreadyInMap := false
+		for _, text := range entityMap[entity.EntityType] {
+			if text == entity.Text {
+				isAlreadyInMap = true
+				break
+			}
+		}
+		if !isAlreadyInMap {
+			entityMap[entity.EntityType] = append(entityMap[entity.EntityType], entity.Text)
+		}
 	}
-	table.AddRow("", "")
+	for entityType, entityTexts := range entityMap {
+		table.AddRow(entityType, strings.Join(entityTexts, ", "))
+	}
 	fmt.Println(table)
+	fmt.Println()
 }
