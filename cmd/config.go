@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 
 	"github.com/google/uuid"
+	"github.com/joho/godotenv"
+	"github.com/posthog/posthog-go"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -44,10 +46,15 @@ var configCmd = &cobra.Command{
 			return
 		}
 
+		if getConfigFileValue("config.new") == "true" {
+			SetUserAlias()
+		}
+
 		createConfigFile()
 		setConfigFileValue("features.telemetry", "true")
 		setConfigFileValue("config.token", Token)
 		setConfigFileValue("config.distinct_id", distinctId)
+		setConfigFileValue("config.new", "false")
 
 		TelemetryCaptureEvent("CLI configured", nil)
 
@@ -139,4 +146,24 @@ func getConfigFileValue(key string) string {
 
 func GetStoredToken() string {
 	return getConfigFileValue("config.token")
+}
+
+func SetUserAlias() {
+	if getConfigFileValue("features.telemetry") == "true" {
+		tempID := getConfigFileValue("config.distinct_id")
+		if tempID != distinctId {
+			if PH_TOKEN == "" {
+				godotenv.Load()
+				PH_TOKEN = os.Getenv("POSTHOG_API_TOKEN")
+			}
+
+			client := posthog.New(PH_TOKEN)
+			defer client.Close()
+
+			client.Enqueue(posthog.Alias{
+				DistinctId: distinctId,
+				Alias:      tempID,
+			})
+		}
+	}
 }
