@@ -16,8 +16,8 @@ var VERSION string
 var rootCmd = &cobra.Command{
 	Use:   "assemblyai",
 	Short: "AssemblyAI CLI",
-	Long: `Please authenticate with AssemblyAI to use this CLI.
-assemblyai config {YOUR TOKEN}`,
+	Long: `Please authenticate to use the CLI.
+assemblyai config [token]`,
 	CompletionOptions: cobra.CompletionOptions{
 		DisableDefaultCmd: true,
 	},

@@ -15,10 +15,10 @@ var welcomeCmd = &cobra.Command{
 	Hidden: true,
 	Use:    "welcome",
 	Short:  "Welcome to AssemblyAI CLI!",
-	Long:   `With the newly released CLI, we're making it even easier for everyone to get started, build using our latest releases, and see the results right from the command line.`,
+	Long:   "We are excited to announce the AssemblyAI CLI, a quick way to test our latest models right from your terminal, with minimal installation required.",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Welcome to the AssemblyAI CLI!")
-		fmt.Println("Please start by running `assemblyai config <token>`")
+		fmt.Println("Please start by running `assemblyai config [token]`")
 
 		i, _ := cmd.Flags().GetBool("i")
 		if i {
