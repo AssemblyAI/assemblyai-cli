@@ -5,6 +5,7 @@ package cmd
 
 import (
 	"fmt"
+	"runtime"
 
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
@@ -36,6 +37,14 @@ var welcomeCmd = &cobra.Command{
 			properties.Arch, _ = cmd.Flags().GetString("arch")
 			properties.Method, _ = cmd.Flags().GetString("method")
 			properties.Version, _ = cmd.Flags().GetString("version")
+			if properties.OS == "" {
+				// get system os
+				properties.OS = runtime.GOOS
+			}
+			if properties.Arch == "" {
+				// get system arch
+				properties.Arch = runtime.GOARCH
+			}
 
 			TelemetryCaptureEvent("CLI installed", properties)
 		}
