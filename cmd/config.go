@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -25,7 +26,7 @@ var distinctId string
 var configCmd = &cobra.Command{
 	Use:   "config [token]",
 	Short: "Authenticate the CLI",
-	Long: `This command will validate your account and store your token safely, later to be used when transcribing files.`,
+	Long:  `This command will validate your account and store your token safely, later to be used when transcribing files.`,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		argsArray := cmd.Flags().Args()
@@ -77,8 +78,8 @@ func CheckIfTokenValid() bool {
 	if result.Error != nil {
 		return false
 	}
-	if result.Id != nil && *result.Id != "" {
-		distinctId = *result.Id
+	if result.Id != nil {
+		distinctId = strconv.Itoa(*result.Id)
 	} else {
 		distinctId = uuid.New().String()
 	}
