@@ -71,6 +71,10 @@ type TranscriptResponse struct {
 	WebhookURL               interface{}               `json:"webhook_url"`
 	WordBoost                []interface{}             `json:"word_boost,omitempty"`
 	Words                    []SentimentAnalysisResult `json:"words,omitempty"`
+
+	Summary       *string `json:"summary,omitempty"`
+	Summarization *bool   `json:"summarization,omitempty"`
+	SummaryType   *string `json:"summary_type,omitempty"`
 }
 
 type AutoHighlightsResult struct {
