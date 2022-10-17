@@ -19,6 +19,12 @@ for path in $(echo "$PATH" | tr ":" "
   fi
 done
 
-
-
 echo "AssemblyAI CLI uninstalled."
+
+if [ -f "$HOME/.bashrc" ]; then
+	source "$HOME/.bashrc"
+fi
+if [ -f "$HOME/.zshrc" ]; then
+	zsh
+	source "$HOME/.zshrc"
+fi
