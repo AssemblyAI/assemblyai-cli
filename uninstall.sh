@@ -1,4 +1,4 @@
-# #!/bin/sh
+#!/bin/sh
 
 echo "Uninstalling AssemblyAI CLI..."
 rm -f "$HOME/.assemblyai-cli"
