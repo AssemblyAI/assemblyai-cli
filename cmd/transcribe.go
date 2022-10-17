@@ -58,7 +58,16 @@ var transcribeCmd = &cobra.Command{
 		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
 		if params.RedactPii {
 			policies, _ := cmd.Flags().GetString("redact_pii_policies")
-			params.RedactPiiPolicies = strings.Split(policies, ",")
+			policiesArray := strings.Split(policies, ",")
+
+			for _, policy := range policiesArray {
+				if _, ok := PIIRedactionPolicyMap[policy]; !ok {
+					fmt.Printf("%s is not a valid policy. See https://www.assemblyai.com/docs/audio-intelligence#pii-redaction for the complete list of supported policies.", policy)
+					return
+				}
+			}
+
+			params.RedactPiiPolicies = policiesArray
 		}
 		webhook := cmd.Flags().Lookup("webhook_url").Value.String()
 		if webhook != "" {

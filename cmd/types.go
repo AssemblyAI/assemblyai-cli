@@ -267,3 +267,39 @@ var LanguageMap = map[string]string{
 	"hi":    "Hindi",
 	"ja":    "Japanese",
 }
+
+var SummarizationTypeMap = map[string]string{
+	"paragraph":       "Paragraph",
+	"headline":        "Headline",
+	"gist":            "Gist",
+	"bullets":         "Bullets",
+	"bullets_verbose": "Bullets Verbose",
+}
+
+var PIIRedactionPolicyMap = map[string]string{
+	"banking_information":       "Banking Information",
+	"blood_type":                "Blood Type",
+	"credit_card_cvv":           "Credit Card CVV",
+	"credit_card_expiration":    "Credit Card Expiration",
+	"credit_card_number":        "Credit Card Number",
+	"date":                      "Date",
+	"drivers_license":           "Drivers License",
+	"drug":                      "Drug",
+	"email_address":             "Email Address",
+	"event":                     "Event",
+	"injury":                    "Injury",
+	"language":                  "Language",
+	"location":                  "Location",
+	"medical_condition":         "Medical Condition",
+	"medical_process":           "Medical Process",
+	"money_amount":              "Money Amount",
+	"nationality":               "Nationality",
+	"occupation":                "Occupation",
+	"organization":              "Organization",
+	"person_age":                "Person Age",
+	"person_name":               "Person Name",
+	"phone_number":              "Phone Number",
+	"political_affiliation":     "Political Affiliation",
+	"religion":                  "Religion",
+	"us_social_security_number": "US Social Security Number",
+}
