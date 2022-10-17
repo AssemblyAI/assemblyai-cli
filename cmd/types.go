@@ -294,6 +294,7 @@ var PIIRedactionPolicyMap = map[string]string{
 	"medical_process":           "Medical Process",
 	"money_amount":              "Money Amount",
 	"nationality":               "Nationality",
+	"number_sequence":           "Number Sequence",
 	"occupation":                "Occupation",
 	"organization":              "Organization",
 	"person_age":                "Person Age",
