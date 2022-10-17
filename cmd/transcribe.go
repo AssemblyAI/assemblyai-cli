@@ -191,7 +191,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	response := QueryApi("/transcript", "POST", body)
 	var transcriptResponse TranscriptResponse
 	if err := json.Unmarshal(response, &transcriptResponse); err != nil {
-		fmt.Println("Can not unmarshal JSON")
+		PrintError(err)
 		return
 	}
 	if transcriptResponse.Error != nil {
