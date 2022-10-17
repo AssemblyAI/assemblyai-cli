@@ -48,12 +48,10 @@ var transcribeCmd = &cobra.Command{
 		params.AutoChapters, _ = cmd.Flags().GetBool("auto_chapters")
 		params.AutoHighlights, _ = cmd.Flags().GetBool("auto_highlights")
 		params.ContentModeration, _ = cmd.Flags().GetBool("content_moderation")
-		params.DualChannel, _ = cmd.Flags().GetBool("dual_channel")
 		params.EntityDetection, _ = cmd.Flags().GetBool("entity_detection")
 		params.FormatText, _ = cmd.Flags().GetBool("format_text")
 		params.Punctuate, _ = cmd.Flags().GetBool("punctuate")
 		params.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
-		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
 		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
 		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
 		if params.RedactPii {
@@ -81,10 +79,29 @@ var transcribeCmd = &cobra.Command{
 				params.WebhookAuthHeaderValue = webhookHeaderValue
 			}
 		}
+		speakerLabels, _ := cmd.Flags().GetBool("speaker_labels")
+		params.DualChannel, _ = cmd.Flags().GetBool("dual_channel")
+
 		languageCode, _ := cmd.Flags().GetString("language_code")
 		if languageCode == "" {
-			params.LanguageDetection, _ = cmd.Flags().GetBool("language_detection")
+			languageDetection, _ := cmd.Flags().GetBool("language_detection")
+			if languageDetection && speakerLabels {
+				fmt.Println("Speaker Labels is currently supported in English. Please disable language_detection if you’d like to use it.")
+				return
+			} else if languageDetection {
+				params.LanguageDetection = true
+			} else {
+				if cmd.Flags().Lookup("speaker_labels").Changed {
+					params.SpeakerLabels = speakerLabels
+				} else {
+					params.SpeakerLabels = true
+				}
+			}
 		} else {
+			if speakerLabels {
+				fmt.Println("Speaker Labels is currently supported in English. Please disable language_code if you’d like to use it.")
+				return
+			}
 			if _, ok := LanguageMap[languageCode]; !ok {
 				fmt.Println("Invalid language code. See https://www.assemblyai.com/docs#supported-languages for supported languages.")
 				return
@@ -105,14 +122,14 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("dual_channel", "d", false, "Enable dual channel")
 	transcribeCmd.PersistentFlags().BoolP("entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
 	transcribeCmd.PersistentFlags().BoolP("format_text", "f", true, "Enable text formatting")
-	transcribeCmd.PersistentFlags().BoolP("language_detection", "n", true, "Identify the dominant language that’s spoken in an audio file.")
+	transcribeCmd.PersistentFlags().BoolP("language_detection", "n", false, "Identify the dominant language that’s spoken in an audio file.")
 	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
 	transcribeCmd.PersistentFlags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
 	transcribeCmd.PersistentFlags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
 	transcribeCmd.PersistentFlags().BoolP("punctuate", "u", true, "Enable automatic punctuation.")
 	transcribeCmd.PersistentFlags().BoolP("redact_pii", "r", false, "Remove personally identifiable information from the transcription.")
 	transcribeCmd.PersistentFlags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
-	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
+	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", false, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
 	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_name", "b", "", "Containing the header's name which will be inserted into the webhook request")
@@ -353,7 +370,6 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	if err != nil {
 		width = 512
 	}
-	fmt.Print("\033[H\033[2J")
 	fmt.Printf("\033[1m%s\033[0m\n", "Transcript")
 	if transcript.SpeakerLabels == true {
 		speakerLabelsPrintFormatted(transcript.Utterances, width)

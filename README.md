@@ -136,7 +136,7 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > Receive a webhook once your transcript is complete.
 
 > **-n, --language_detection**  
-> default: true  
+> default: false  
 > Automatic identify the dominant language that’s spoken in an audio file.
 > [Here](https://www.assemblyai.com/docs/core-transcription#automatic-language-detection) you can view the ALD list for supported languages
 

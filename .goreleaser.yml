@@ -43,9 +43,9 @@ brews:
     commit_author:
       name: assemblyai
       email: support@assemblyai.compost_install
-    post_install: |
-      etc.install puts "Welcome to AssemblyAI CLI"
-      system "assemblyai", "welcome", "-i", "-v={{ .Tag }}", "-m=brew"
+    # post_install: |
+    #   etc.install puts "Welcome to AssemblyAI CLI"
+    #   system "assemblyai", "welcome", "-i", "-v={{ .Tag }}", "-m=brew"
 
 checksum:
   name_template: 'checksums.txt'
