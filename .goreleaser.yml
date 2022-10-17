@@ -28,14 +28,14 @@ brews:
     license: "Apache 2.0"
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
     test: |
-        output = shell_output("#{bin}/assemblyai-cli config 1234567890")
+        output = shell_output("#{bin}/assemblyai config 1234567890")
         expected = "Invalid token. Try again, and if the problem persists, contact support at support@assemblyai.com"
         assert_match expected, output
 
-        output = shell_output("#{bin}/assemblyai-cli transcribe 1234567890")
+        output = shell_output("#{bin}/assemblyai transcribe 1234567890")
         assert_match "You must login first. Run `assemblyai config <token>`\n", output
 
-        output = shell_output("#{bin}/assemblyai-cli get 1234567890")
+        output = shell_output("#{bin}/assemblyai get 1234567890")
         assert_match "You must login first. Run `assemblyai config <token>`\n", output
     tap:
       owner: assemblyai
@@ -44,7 +44,7 @@ brews:
       name: assemblyai
       email: support@assemblyai.com
     post_install: |
-      etc.install "assemblyai welcome -i -v="{{ .Tag }}" -m=brew"
+      etc.install puts `assemblyai welcome -i -v={{ .Tag }} -m=brew`
       
 
 checksum:
