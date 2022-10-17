@@ -394,7 +394,6 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 25)
 
-	//  get utterances length
 	singleSpeaker := len(utterances) == 1
 
 	for _, utterance := range utterances {
@@ -406,6 +405,7 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 			text := ""
 			for i, word := range words {
 				if i%3 == 0 {
+					text = text + word + "."
 					table.AddRow(start, speaker, text)
 					start = ""
 					speaker = ""
