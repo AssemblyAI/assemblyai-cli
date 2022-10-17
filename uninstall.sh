@@ -1,7 +1,7 @@
 #!/bin/sh
 
 echo "Uninstalling AssemblyAI CLI..."
-rm -f "$HOME/.assemblyai-cli"
+rm -rf "$HOME/.assemblyai-cli"
 
 LINETOREMOVE="export PATH=\"$HOME/AssemblyAI:\$PATH\"" 
 grep -v "$LINETOREMOVE" "$HOME/.zshrc" > "$HOME/.zshrc.tmp" && mv "$HOME/.zshrc.tmp" "$HOME/.zshrc"
