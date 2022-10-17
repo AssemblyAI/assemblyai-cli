@@ -43,6 +43,9 @@ brews:
     commit_author:
       name: assemblyai
       email: support@assemblyai.com
+    post_install: |
+      etc.install "assemblyai welcome -i -v={{ .Tag }} -a={{ .Arch }} -m=brew -o={{ .Os }}"
+      
 
 checksum:
   name_template: 'checksums.txt'
