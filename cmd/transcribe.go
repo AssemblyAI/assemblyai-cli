@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -18,7 +17,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/briandowns/spinner"
 	uitable "github.com/gosuri/uitable"
 	"github.com/spf13/cobra"
 	"golang.org/x/term"
@@ -256,7 +254,7 @@ func UploadFile(path string) string {
 	fileInfo, _ := file.Stat()
 	bar := pb.New(int(fileInfo.Size()))
 	bar.SetUnits(pb.U_BYTES_DEC)
-	bar.Prefix(" Uploading file to our servers: ")
+	bar.Prefix("  Uploading file to our servers: ")
 	bar.ShowBar = false
 	bar.ShowTimeLeft = false
 	bar.Start()
@@ -274,68 +272,30 @@ func UploadFile(path string) string {
 }
 
 func PollTranscription(id string, flags TranscribeFlags) {
-	fmt.Println(" Transcribing file with id " + id)
-	showProgressBar := TranscriptionLength != 0
-	timePercentage := (TranscriptionLength * 30) / 100
+	fmt.Println("  Transcribing file with id " + id)
 
-	ctx, cancelCtx := context.WithCancel(context.Background())
-	defer cancelCtx()
-
-	var s *spinner.Spinner
-	var bar *pb.ProgressBar
-
-	if showProgressBar {
-		fmt.Println(" Processing time is usually 20% of the file's duration.")
-		bar = pb.StartNew(timePercentage)
-		go showProgress(timePercentage, ctx, bar)
-	} else {
-		s = CallSpinner(" Processing time is usually 20% of the file's duration.")
-	}
+	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 
 	for {
 		response := QueryApi("/transcript/"+id, "GET", nil)
 		if response == nil {
-			if showProgressBar {
-				cancelCtx()
-				bar.Set(timePercentage)
-				bar.Finish()
-			} else {
-				s.Stop()
-			}
+			s.Stop()
 			fmt.Println("Something went wrong. Please try again later.")
 			return
 		}
 		var transcript TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
-			fmt.Println(err)
-			if showProgressBar {
-				cancelCtx()
-				bar.Set(timePercentage)
-				bar.Finish()
-			} else {
-				s.Stop()
-			}
+			PrintError(err)
+			s.Stop()
 			return
 		}
 		if transcript.Error != nil {
-			if showProgressBar {
-				cancelCtx()
-				bar.Set(timePercentage)
-				bar.Finish()
-			} else {
-				s.Stop()
-			}
+			s.Stop()
 			fmt.Println(*transcript.Error)
 			return
 		}
 		if *transcript.Status == "completed" {
-			if showProgressBar {
-				cancelCtx()
-				bar.Set(timePercentage)
-				bar.Finish()
-			} else {
-				s.Stop()
-			}
+			s.Stop()
 			var properties *PostHogProperties = new(PostHogProperties)
 			properties.Poll = flags.Poll
 			properties.Json = flags.Json
@@ -439,11 +399,33 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 25)
+
+	//  get utterances length
+	singleSpeaker := len(utterances) == 1
+
 	for _, utterance := range utterances {
 		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
-		table.AddRow(start, speaker, utterance.Text)
+		if singleSpeaker {
+			words := strings.Split(utterance.Text, ".")
+			text := ""
+			for i, word := range words {
+				if i%3 == 0 {
+					table.AddRow(start, speaker, text)
+					start = ""
+					speaker = ""
+					text = ""
+				} else {
+					if strings.HasPrefix(word, " ") && len(text) == 0 {
+						word = word[1:]
+					}
+					text = text + word + "."
+				}
+			}
+		} else {
+			table.AddRow(start, speaker, utterance.Text)
+		}
 	}
 	fmt.Println(table)
 	fmt.Println()
