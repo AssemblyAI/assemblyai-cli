@@ -76,6 +76,10 @@ var transcribeCmd = &cobra.Command{
 		if languageCode == "" {
 			params.LanguageDetection, _ = cmd.Flags().GetBool("language_detection")
 		} else {
+			if _, ok := LanguageMap[languageCode]; !ok {
+				fmt.Println("Invalid language code. See https://www.assemblyai.com/docs#supported-languages for supported languages.")
+				return
+			}
 			params.LanguageDetection = false
 			params.LanguageCode = &languageCode
 		}

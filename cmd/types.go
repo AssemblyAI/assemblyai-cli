@@ -252,3 +252,18 @@ type PostHogProperties struct {
 	Method            string `json:"method,omitempty"`
 	I                 bool   `json:"i,omitempty"`
 }
+
+var LanguageMap = map[string]string{
+	"en":    "Global English",
+	"en-au": "Australian English",
+	"en_uk": "British English",
+	"en-US": "US English",
+	"es":    "Spanish",
+	"fr":    "French",
+	"de":    "German",
+	"it":    "Italian",
+	"pt":    "Portuguese",
+	"nl":    "Dutch",
+	"hi":    "Hindi",
+	"ja":    "Japanese",
+}

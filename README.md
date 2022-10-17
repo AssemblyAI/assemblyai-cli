@@ -82,10 +82,6 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > default: false  
 > A "summary over time" for the audio file transcribed.
 
-> **-j, --json**  
-> default: false  
-> If true, the CLI will output the JSON.
-
 > **-a, --auto_highlights**  
 > default: false  
 > Automatically detect important phrases and words in the text.
@@ -138,6 +134,15 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 
 > **-o, --webhook_auth_header_value**  
 > Receive a webhook once your transcript is complete.
+
+> **-n, --language_detection**  
+> default: true  
+> Automatic identify the dominant language that’s spoken in an audio file.
+> [Here](https://www.assemblyai.com/docs/core-transcription#automatic-language-detection) you can view the ALD list for supported languages
+
+> **-g, --language_code**  
+> Manually secify the language of the speech in your audio file.
+> Click [here](https://www.assemblyai.com/docs#supported-languages) to view all the supported languages
 
 </details>
 
