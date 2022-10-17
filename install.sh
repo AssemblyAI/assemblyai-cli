@@ -25,7 +25,7 @@ export TAR_FILE="$TMPDIR/${FILE_BASENAME}_$(uname -s)_$(uname -m).tar.gz"
 		"$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION:1}_$(uname -s)_$(uname -m).tar.gz"
 )
 
-BINARY_PATH="$HOME/AssemblyAI"
+BINARY_PATH="$HOME/.assemblyai-cli"
 mkdir -p "$BINARY_PATH"
 echo "Installing AssemblyAI to $BINARY_PATH"
 tar -xzf "$TAR_FILE" -C "$BINARY_PATH"
