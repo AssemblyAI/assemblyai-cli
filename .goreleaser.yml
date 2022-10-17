@@ -42,9 +42,9 @@ brews:
       name: homebrew-assemblyai
     commit_author:
       name: assemblyai
-      email: support@assemblyai.com
+      email: support@assemblyai.compost_install
     post_install: |
-      etc.install system("assemblyai welcome -i -v={{ .Tag }} -m=brew")
+      system "assemblyai", "welcome", "-i", "-v={{ .Tag }} -m=brew"
 
 checksum:
   name_template: 'checksums.txt'
