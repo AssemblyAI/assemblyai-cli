@@ -149,7 +149,9 @@ func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
 		bar.ShowCounters = false
 		bar.ShowFinalTime = true
 		for i := 0; i < total-1; i++ {
-			bar.Set(i * total / 300)
+			if i*total/300 < total {
+				bar.Set(i * total / 300)
+			}
 			time.Sleep(100 * time.Millisecond)
 		}
 		bar.Finish()

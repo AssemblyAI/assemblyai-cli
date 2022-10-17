@@ -442,7 +442,7 @@ func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 	table := uitable.New()
 	table.Wrap = true
 	table.Separator = " |\t"
-	table.AddRow("| COUNT", "TEXT")
+	table.AddRow("| count", "text")
 	sort.SliceStable(highlights.Results, func(i, j int) bool {
 		return int(*highlights.Results[i].Count) > int(*highlights.Results[j].Count)
 	})
@@ -462,7 +462,7 @@ func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 24)
 	table.Separator = " |\t"
-	table.AddRow("| LABEL", "TEXT")
+	table.AddRow("| label", "text")
 	for _, label := range labels.Results {
 		var labelString string
 		for _, innerLabel := range label.Labels {
@@ -484,7 +484,7 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 	table.Wrap = true
 	table.MaxColWidth = uint((width / 2) - 5)
 	table.Separator = " |\t"
-	table.AddRow("| RANK", "TOPIC")
+	table.AddRow("| rank", "topic")
 	var ArrayCategoriesSorted []ArrayCategories
 	for category, i := range categories.Summary {
 		add := ArrayCategories{
@@ -514,7 +514,7 @@ func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
-	table.AddRow("| SENTIMENT", "TEXT")
+	table.AddRow("| sentiment", "text")
 	for _, sentiment := range sentiments {
 		sentimentStatus := sentiment.Sentiment
 		table.AddRow("| "+sentimentStatus, sentiment.Text)
@@ -556,8 +556,7 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
-	table.AddRow("| TYPE", "TEXT")
-	// group entities by type
+	table.AddRow("| type", "text")
 	entityMap := make(map[string][]string)
 	for _, entity := range entities {
 		isAlreadyInMap := false
