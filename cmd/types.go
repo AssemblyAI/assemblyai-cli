@@ -185,6 +185,8 @@ type TranscribeParams struct {
 	DualChannel            bool     `json:"dual_channel"`
 	EntityDetection        bool     `json:"entity_detection"`
 	FormatText             bool     `json:"format_text"`
+	LanguageDetection      bool     `json:"language_detection"`
+	LanguageCode           *string  `json:"language_code,omitempty"`
 	Punctuate              bool     `json:"punctuate"`
 	RedactPii              bool     `json:"redact_pii"`
 	SentimentAnalysis      bool     `json:"sentiment_analysis"`

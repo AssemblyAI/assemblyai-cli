@@ -72,6 +72,13 @@ var transcribeCmd = &cobra.Command{
 				params.WebhookAuthHeaderValue = webhookHeaderValue
 			}
 		}
+		languageCode, _ := cmd.Flags().GetString("language_code")
+		if languageCode == "" {
+			params.LanguageDetection, _ = cmd.Flags().GetBool("language_detection")
+		} else {
+			params.LanguageDetection = false
+			params.LanguageCode = &languageCode
+		}
 
 		transcribe(params, flags)
 	},
@@ -85,6 +92,8 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("dual_channel", "d", false, "Enable dual channel")
 	transcribeCmd.PersistentFlags().BoolP("entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
 	transcribeCmd.PersistentFlags().BoolP("format_text", "f", true, "Enable text formatting")
+	transcribeCmd.PersistentFlags().BoolP("language_detection", "n", true, "Identify the dominant language that’s spoken in an audio file.")
+	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
 	transcribeCmd.PersistentFlags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
 	transcribeCmd.PersistentFlags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
 	transcribeCmd.PersistentFlags().BoolP("punctuate", "u", true, "Enable automatic punctuation.")
@@ -419,13 +428,13 @@ func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 
 	table := uitable.New()
 	table.Wrap = true
-	table.Separator = "|"
-	table.AddRow("COUNT", "TEXT")
+	table.Separator = " |\t"
+	table.AddRow("| COUNT", "TEXT")
 	sort.SliceStable(highlights.Results, func(i, j int) bool {
 		return int(*highlights.Results[i].Count) > int(*highlights.Results[j].Count)
 	})
 	for _, highlight := range highlights.Results {
-		table.AddRow(strconv.FormatInt(*highlight.Count, 10), highlight.Text)
+		table.AddRow("| "+strconv.FormatInt(*highlight.Count, 10), highlight.Text)
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -438,15 +447,15 @@ func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
 	}
 	table := uitable.New()
 	table.Wrap = true
-	table.MaxColWidth = uint(width - 20)
-	table.Separator = "|"
-	table.AddRow("LABEL", "TEXT")
+	table.MaxColWidth = uint(width - 24)
+	table.Separator = " |\t"
+	table.AddRow("| LABEL", "TEXT")
 	for _, label := range labels.Results {
 		var labelString string
 		for _, innerLabel := range label.Labels {
 			labelString = innerLabel.Label + " " + labelString
 		}
-		table.AddRow(labelString, label.Text)
+		table.AddRow("| "+labelString, label.Text)
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -461,8 +470,8 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint((width / 2) - 5)
-	table.Separator = "|"
-	table.AddRow("RANK", "TOPIC")
+	table.Separator = " |\t"
+	table.AddRow("| RANK", "TOPIC")
 	var ArrayCategoriesSorted []ArrayCategories
 	for category, i := range categories.Summary {
 		add := ArrayCategories{
@@ -476,7 +485,7 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 	})
 
 	for i, category := range ArrayCategoriesSorted {
-		table.AddRow(i+1, category.Category)
+		table.AddRow(fmt.Sprintf("| %o", i+1), category.Category)
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -491,11 +500,11 @@ func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)
-	table.Separator = "|"
-	table.AddRow("SENTIMENT", "TEXT")
+	table.Separator = " |\t"
+	table.AddRow("| SENTIMENT", "TEXT")
 	for _, sentiment := range sentiments {
 		sentimentStatus := sentiment.Sentiment
-		table.AddRow(sentimentStatus, sentiment.Text)
+		table.AddRow("| "+sentimentStatus, sentiment.Text)
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -509,15 +518,15 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 
 	table := uitable.New()
 	table.Wrap = true
-	table.MaxColWidth = uint(width - 15)
-	table.Separator = "|"
+	table.MaxColWidth = uint(width - 17)
+	table.Separator = " |\t"
 	for _, chapter := range chapters {
 		start := time.Duration(*chapter.Start) * time.Millisecond
 		end := time.Duration(*chapter.End) * time.Millisecond
-		table.AddRow("timestamp", fmt.Sprintf("%02d:%02d-%02d:%02d", int(start.Minutes()), int(start.Seconds())%60, int(end.Minutes()), int(end.Seconds())%60))
-		table.AddRow("Gist", chapter.Gist)
-		table.AddRow("Headline", chapter.Headline)
-		table.AddRow("Summary", chapter.Summary)
+		table.AddRow("| timestamp", fmt.Sprintf("%02d:%02d-%02d:%02d", int(start.Minutes()), int(start.Seconds())%60, int(end.Minutes()), int(end.Seconds())%60))
+		table.AddRow("| Gist", chapter.Gist)
+		table.AddRow("| Headline", chapter.Headline)
+		table.AddRow("| Summary", chapter.Summary)
 		table.AddRow("", "")
 	}
 	fmt.Println(table)
@@ -533,8 +542,8 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)
-	table.Separator = "|"
-	table.AddRow("TYPE", "TEXT")
+	table.Separator = " |\t"
+	table.AddRow("| TYPE", "TEXT")
 	// group entities by type
 	entityMap := make(map[string][]string)
 	for _, entity := range entities {
@@ -550,7 +559,7 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 		}
 	}
 	for entityType, entityTexts := range entityMap {
-		table.AddRow(entityType, strings.Join(entityTexts, ", "))
+		table.AddRow("| "+entityType, strings.Join(entityTexts, ", "))
 	}
 	fmt.Println(table)
 	fmt.Println()
