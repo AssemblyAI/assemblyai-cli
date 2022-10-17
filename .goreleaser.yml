@@ -44,7 +44,7 @@ brews:
       name: assemblyai
       email: support@assemblyai.com
     post_install: |
-      etc.install system(`assemblyai welcome -i -v={{ .Tag }} -m=brew`)
+      etc.install system "assemblyai welcome -i -v={{ .Tag }} -m=brew"
 
 checksum:
   name_template: 'checksums.txt'
