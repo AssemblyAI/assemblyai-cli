@@ -23,6 +23,7 @@ var key = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
 var Filename = os.TempDir() + "tmp-video.mp4"
 var fileLength = 0
 var percent = 0
+var chunkSize = 8000000
 
 func YoutubeDownload(id string) string {
 	var body YoutubeBodyMetaInfo
@@ -138,12 +139,31 @@ func DownloadVideo(url string) {
 
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
-	req.Header.Set("Range", fmt.Sprintf("Bytes=0-%d", fileLength))
-	resp, err = client.Do(req)
-	PrintError(err)
-	defer resp.Body.Close()
 
-	go displayDownloadProgress()
+	if fileLength > chunkSize {
+		chunkSize := chunkSize
+		chunks := int(math.Ceil(float64(fileLength) / float64(chunkSize)))
+		for i := 0; i < chunks; i++ {
+			start := i * chunkSize
+			end := start + chunkSize - 1
+			if end > fileLength {
+				end = fileLength
+			}
+			req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
+			resp, err := client.Do(req)
+			PrintError(err)
+			defer resp.Body.Close()
+			_, err = io.Copy(file, resp.Body)
+			PrintError(err)
+		}
+	} else {
+		req.Header.Set("Range", fmt.Sprintf("Bytes=0-%d", fileLength))
+		resp, err = client.Do(req)
+		PrintError(err)
+		defer resp.Body.Close()
+	}
+
+	// go displayDownloadProgress()
 	body := io.TeeReader(resp.Body, &writeCounter{0, int64(fileLength)})
 
 	_, err = io.Copy(file, body)
