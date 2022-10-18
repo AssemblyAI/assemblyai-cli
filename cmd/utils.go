@@ -158,4 +158,33 @@ func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
 	}
 }
 
-var TranscriptionLength int
+func SplitSentences(wholeText string) []string {
+	words := strings.Split(wholeText, ".")
+	sentences := []string{}
+	text := ""
+	extra := "."
+	if len(words) > 9 {
+		extra = ".\n"
+	}
+	for i, word := range words {
+		if i == len(words)-1 {
+			text += word
+			sentences = append(sentences, text)
+			text = ""
+		} else {
+			if word != "" {
+				if i%3 == 0 && i != 0 || i == len(words)-1 {
+					text += word + extra
+					sentences = append(sentences, text)
+					text = ""
+				} else {
+					if strings.HasPrefix(word, " ") && len(text) == 0 {
+						word = word[1:]
+					}
+					text += word + "."
+				}
+			}
+		}
+	}
+	return sentences
+}

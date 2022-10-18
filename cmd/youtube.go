@@ -86,7 +86,6 @@ func YoutubeDownload(id string) string {
 			}
 		}
 	}
-	TranscriptionLength, err = strconv.Atoi(*video.StreamingData.Formats[idx].ApproxDurationMS)
 	videoUrl := ""
 	if video.StreamingData.Formats[idx].URL != nil {
 		videoUrl = *video.StreamingData.Formats[idx].URL
