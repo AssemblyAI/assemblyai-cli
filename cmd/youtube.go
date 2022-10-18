@@ -141,9 +141,15 @@ func DownloadVideo(url string) {
 	req, _ := http.NewRequest("GET", url, nil)
 
 	if fileLength > chunkSize {
-		chunkSize := chunkSize
+		bar := pb.New(fileLength)
+		bar.Prefix("  Downloading video: ")
+		bar.SetUnits(pb.U_BYTES_DEC)
+		bar.ShowBar = false
+		bar.ShowTimeLeft = false
+		bar.Start()
 		chunks := int(math.Ceil(float64(fileLength) / float64(chunkSize)))
 		for i := 0; i < chunks; i++ {
+			bar.Set(i * chunkSize)
 			start := i * chunkSize
 			end := start + chunkSize - 1
 			if end > fileLength {
@@ -156,18 +162,19 @@ func DownloadVideo(url string) {
 			_, err = io.Copy(file, resp.Body)
 			PrintError(err)
 		}
+		bar.Set(fileLength)
+		bar.Finish()
 	} else {
 		req.Header.Set("Range", fmt.Sprintf("Bytes=0-%d", fileLength))
 		resp, err = client.Do(req)
 		PrintError(err)
 		defer resp.Body.Close()
+		go displayDownloadProgress()
+		body := io.TeeReader(resp.Body, &writeCounter{0, int64(fileLength)})
+		_, err = io.Copy(file, body)
+		PrintError(err)
 	}
 
-	// go displayDownloadProgress()
-	body := io.TeeReader(resp.Body, &writeCounter{0, int64(fileLength)})
-
-	_, err = io.Copy(file, body)
-	PrintError(err)
 }
 
 func (pWc *writeCounter) Write(b []byte) (n int, err error) {
