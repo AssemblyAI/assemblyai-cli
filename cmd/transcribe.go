@@ -138,6 +138,10 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 
 	if isUrl(params.AudioURL) {
 		if isYoutubeLink(params.AudioURL) {
+			if isYoutubeShortLink(params.AudioURL) {
+				fmt.Println("The AssemblyAI CLI doesn’t support YouTube Shorts yet.")
+				return
+			}
 			if isShortenedYoutubeLink(params.AudioURL) {
 				params.AudioURL = strings.Replace(params.AudioURL, "youtu.be/", "www.youtube.com/watch?v=", 1)
 			}
@@ -219,8 +223,15 @@ func isFullLengthYoutubeLink(url string) bool {
 	return regex.MatchString(url)
 }
 
+func isYoutubeShortLink(url string) bool {
+	regex := regexp.MustCompile(`^(https?\:\/\/)?(www\.youtube\.com)\/shorts\/.+$`)
+	regexShare := regexp.MustCompile(`^(https?\:\/\/)?(youtube\.com)\/shorts\/.+$`)
+
+	return regex.MatchString(url) || regexShare.MatchString(url)
+}
+
 func isYoutubeLink(url string) bool {
-	return isFullLengthYoutubeLink(url) || isShortenedYoutubeLink(url)
+	return isFullLengthYoutubeLink(url) || isShortenedYoutubeLink(url) || isYoutubeShortLink(url)
 }
 
 func checkAAICDN(url string) bool {
