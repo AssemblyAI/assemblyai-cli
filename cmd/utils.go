@@ -159,6 +159,10 @@ func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
 }
 
 func SplitSentences(wholeText string) []string {
+	for _, splitException := range splitExceptions {
+		wholeText = strings.ReplaceAll(wholeText, splitException[0], splitException[1])
+	}
+
 	words := strings.Split(wholeText, ".")
 	sentences := []string{}
 	text := ""
@@ -173,6 +177,8 @@ func SplitSentences(wholeText string) []string {
 			text = ""
 		} else {
 			if word != "" {
+				word = strings.ReplaceAll(word, "{{}}", ".")
+
 				if i%3 == 0 && i != 0 || i == len(words)-1 {
 					text += word + extra
 					sentences = append(sentences, text)
@@ -187,4 +193,24 @@ func SplitSentences(wholeText string) []string {
 		}
 	}
 	return sentences
+}
+
+var splitExceptions = [][]string{
+	{"Mr.", "Mr{{}}"},
+	{"Mrs.", "Mrs{{}}"},
+	{"Ms.", "Ms{{}}"},
+	{"Dr.", "Dr{{}}"},
+	{"Prof.", "Prof{{}}"},
+	{"St.", "St{{}}"},
+	{"Mt.", "Mt{{}}"},
+	{"Gen.", "Gen{{}}"},
+	{"Sen.", "Sen{{}}"},
+	{"Rep.", "Rep{{}}"},
+	{"Gov.", "Gov{{}}"},
+	{"Pres.", "Pres{{}}"},
+	{"Rev.", "Rev{{}}"},
+	{"Fr.", "Fr{{}}"},
+	{"Br.", "Br{{}}"},
+	{"Jr.", "Jr{{}}"},
+	{"Sr.", "Sr{{}}"},
 }
