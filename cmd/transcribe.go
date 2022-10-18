@@ -400,6 +400,7 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
+
 		if singleSpeaker {
 			words := strings.Split(utterance.Text, ".")
 			text := ""
@@ -415,6 +416,9 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 						word = word[1:]
 					}
 					text = text + word + "."
+					if i == len(words)-1 {
+						table.AddRow(start, speaker, text)
+					}
 				}
 			}
 		} else {
