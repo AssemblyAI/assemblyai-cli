@@ -362,6 +362,8 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 
 func textPrintFormatted(text string, width int) {
 	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 5)
 	sentences := SplitSentences(text)
 	for _, sentence := range sentences {
 		table.AddRow(sentence)
