@@ -30,7 +30,7 @@ func YoutubeDownload(id string) string {
 	body.Context.Client.ClientName = "ANDROID"
 	body.Context.Client.ClientVersion = "17.31.35"
 	body.Context.Client.AndroidSDKVersion = 30
-	body.Context.Client.UserAgent = "com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip"	
+	body.Context.Client.UserAgent = "com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip"
 	body.Context.Client.TimeZone = "UTC"
 	body.Context.Client.UtcOffsetMinutes = 0
 	body.VideoID = id
@@ -45,7 +45,7 @@ func YoutubeDownload(id string) string {
 	}
 
 	requestBody := bytes.NewReader(paramsJSON)
-	fmt.Println(" Transcribing Youtube video...")
+	fmt.Println("  Transcribing Youtube video...")
 	video := QueryYoutube(requestBody)
 	if *video.PlayabilityStatus.Status != "OK" || video.StreamingData.Formats == nil {
 		fmt.Println(" The video is not available for download")
@@ -135,7 +135,7 @@ func DownloadVideo(url string) {
 	file, err := os.Create(Filename)
 	PrintError(err)
 	defer file.Close()
-	
+
 	client := &http.Client{}
 	req, _ := http.NewRequest("GET", url, nil)
 	req.Header.Set("Range", fmt.Sprintf("Bytes=0-%d", fileLength))
@@ -159,7 +159,7 @@ func (pWc *writeCounter) Write(b []byte) (n int, err error) {
 
 func displayDownloadProgress() {
 	bar := pb.New(fileLength)
-	bar.Prefix(" Downloading video: ")
+	bar.Prefix("  Downloading video: ")
 	bar.SetUnits(pb.U_BYTES_DEC)
 	bar.ShowBar = false
 	bar.ShowTimeLeft = false
@@ -186,17 +186,17 @@ type YoutubeBodyMetaInfo struct {
 }
 
 type Context struct {
-	Client  Client  `json:"client"`
+	Client Client `json:"client"`
 }
 
 type Client struct {
-	Hl                 string         `json:"hl"`
-	ClientName         string         `json:"clientName"`
-	ClientVersion      string         `json:"clientVersion"`
-	AndroidSDKVersion  int64          `json:"androidSdkVersion"`
-	UserAgent          string         `json:"userAgent"`
-	TimeZone   				 string				  `json:"timeZone"`
-	UtcOffsetMinutes   int64 					`json:"utcOffsetMinutes"`
+	Hl                string `json:"hl"`
+	ClientName        string `json:"clientName"`
+	ClientVersion     string `json:"clientVersion"`
+	AndroidSDKVersion int64  `json:"androidSdkVersion"`
+	UserAgent         string `json:"userAgent"`
+	TimeZone          string `json:"timeZone"`
+	UtcOffsetMinutes  int64  `json:"utcOffsetMinutes"`
 }
 
 type MainAppWebInfo struct {
@@ -218,7 +218,7 @@ type PlaybackContext struct {
 }
 
 type ContentPlaybackContext struct {
-	Html5Preference       string `json:"html5Preference"`
+	Html5Preference string `json:"html5Preference"`
 }
 
 type YoutubeMetaInfo struct {
