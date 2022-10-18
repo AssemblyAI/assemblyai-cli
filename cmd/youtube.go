@@ -19,7 +19,7 @@ import (
 	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
-var key = "AIzaSyAO_FJ2SlqU8Q4STEHLGCilw_Y9_11qcW8"
+var key = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
 var Filename = os.TempDir() + "tmp-video.mp4"
 var fileLength = 0
 var percent = 0
@@ -27,24 +27,17 @@ var percent = 0
 func YoutubeDownload(id string) string {
 	var body YoutubeBodyMetaInfo
 	body.Context.Client.Hl = "en"
-	body.Context.Client.ClientName = "WEB"
-	body.Context.Client.ClientVersion = "2.20210721.08.00"
-	body.Context.Client.ClientFormFactor = "UNKNOWN_FORM_FACTOR"
-	body.Context.Client.ClientScreen = "WATCH"
-	body.Context.Client.MainAppWebInfo.GraftURL = "/watch?v=" + id
-	body.Context.User.LockedSafetyMode = false
-	body.Context.Request.UseSSL = true
-	body.Context.Request.InternalExperimentFlags = nil
-	body.Context.Request.ConsistencyTokenJars = nil
+	body.Context.Client.ClientName = "ANDROID"
+	body.Context.Client.ClientVersion = "17.31.35"
+	body.Context.Client.AndroidSDKVersion = 30
+	body.Context.Client.UserAgent = "com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip"	
+	body.Context.Client.TimeZone = "UTC"
+	body.Context.Client.UtcOffsetMinutes = 0
 	body.VideoID = id
-	body.PlaybackContext.ContentPlaybackContext.Vis = 0
-	body.PlaybackContext.ContentPlaybackContext.Splay = false
-	body.PlaybackContext.ContentPlaybackContext.AutoCaptionsDefaultOn = false
-	body.PlaybackContext.ContentPlaybackContext.AutonavState = "STATE_NONE"
+	body.Params = "8AEB"
 	body.PlaybackContext.ContentPlaybackContext.Html5Preference = "HTML5_PREF_WANTS"
-	body.PlaybackContext.ContentPlaybackContext.LactMilliseconds = "-1"
-	body.RacyCheckOk = false
-	body.ContentCheckOk = false
+	body.RacyCheckOk = true
+	body.ContentCheckOk = true
 
 	paramsJSON, err := json.Marshal(body)
 	if err != nil {
@@ -142,8 +135,11 @@ func DownloadVideo(url string) {
 	file, err := os.Create(Filename)
 	PrintError(err)
 	defer file.Close()
-
-	resp, err = http.Get(url)
+	
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Range", fmt.Sprintf("Bytes=0-%d", fileLength))
+	resp, err = client.Do(req)
 	PrintError(err)
 	defer resp.Body.Close()
 
@@ -183,6 +179,7 @@ type writeCounter struct {
 type YoutubeBodyMetaInfo struct {
 	Context         Context         `json:"context"`
 	VideoID         string          `json:"videoId"`
+	Params          string          `json:"params"`
 	PlaybackContext PlaybackContext `json:"playbackContext"`
 	RacyCheckOk     bool            `json:"racyCheckOk"`
 	ContentCheckOk  bool            `json:"contentCheckOk"`
@@ -190,17 +187,16 @@ type YoutubeBodyMetaInfo struct {
 
 type Context struct {
 	Client  Client  `json:"client"`
-	User    User    `json:"user"`
-	Request Request `json:"request"`
 }
 
 type Client struct {
-	Hl               string         `json:"hl"`
-	ClientName       string         `json:"clientName"`
-	ClientVersion    string         `json:"clientVersion"`
-	ClientFormFactor string         `json:"clientFormFactor"`
-	ClientScreen     string         `json:"clientScreen"`
-	MainAppWebInfo   MainAppWebInfo `json:"mainAppWebInfo"`
+	Hl                 string         `json:"hl"`
+	ClientName         string         `json:"clientName"`
+	ClientVersion      string         `json:"clientVersion"`
+	AndroidSDKVersion  int64          `json:"androidSdkVersion"`
+	UserAgent          string         `json:"userAgent"`
+	TimeZone   				 string				  `json:"timeZone"`
+	UtcOffsetMinutes   int64 					`json:"utcOffsetMinutes"`
 }
 
 type MainAppWebInfo struct {
@@ -222,12 +218,7 @@ type PlaybackContext struct {
 }
 
 type ContentPlaybackContext struct {
-	Vis                   int64  `json:"vis"`
-	Splay                 bool   `json:"splay"`
-	AutoCaptionsDefaultOn bool   `json:"autoCaptionsDefaultOn"`
-	AutonavState          string `json:"autonavState"`
 	Html5Preference       string `json:"html5Preference"`
-	LactMilliseconds      string `json:"lactMilliseconds"`
 }
 
 type YoutubeMetaInfo struct {
