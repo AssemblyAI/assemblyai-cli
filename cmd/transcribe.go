@@ -361,16 +361,12 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 }
 
 func textPrintFormatted(text string, width int) {
-	words := strings.Split(text, " ")
-	var line string
-	for _, word := range words {
-		if len(line)+len(word) > width-1 {
-			fmt.Println(line)
-			line = ""
-		}
-		line += word + " "
+	table := uitable.New()
+	sentences := SplitSentences(text)
+	for _, sentence := range sentences {
+		table.AddRow(sentence)
 	}
-	fmt.Println(line)
+	fmt.Println(table)
 	fmt.Println()
 }
 
@@ -383,7 +379,12 @@ func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) 
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
-		table.AddRow(start, speaker, utterance.Text)
+		sentences := SplitSentences(utterance.Text)
+		for _, sentence := range sentences {
+			table.AddRow(start, speaker, sentence)
+			start = ""
+			speaker = ""
+		}
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -394,36 +395,18 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 25)
 
-	singleSpeaker := len(utterances) == 1
-
 	for _, utterance := range utterances {
 		duration := time.Duration(*utterance.Start) * time.Millisecond
 		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
 		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
 
-		if singleSpeaker {
-			words := strings.Split(utterance.Text, ".")
-			text := ""
-			for i, word := range words {
-				if i%3 == 0 {
-					text = text + word + "."
-					table.AddRow(start, speaker, text)
-					start = ""
-					speaker = ""
-					text = ""
-				} else {
-					if strings.HasPrefix(word, " ") && len(text) == 0 {
-						word = word[1:]
-					}
-					text = text + word + "."
-					if i == len(words)-1 {
-						table.AddRow(start, speaker, text)
-					}
-				}
-			}
-		} else {
-			table.AddRow(start, speaker, utterance.Text)
+		sentences := SplitSentences(utterance.Text)
+		for _, sentence := range sentences {
+			table.AddRow(start, speaker, sentence)
+			start = ""
+			speaker = ""
 		}
+
 	}
 	fmt.Println(table)
 	fmt.Println()
