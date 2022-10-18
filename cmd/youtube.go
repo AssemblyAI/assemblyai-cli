@@ -128,6 +128,9 @@ func QueryYoutube(body io.Reader) YoutubeMetaInfo {
 }
 
 func DownloadVideo(url string) {
+	// With the smallest URL, and knowing the content length,
+	// we can specify the range, bypassing YouTube's throttling.
+	
 	resp, err := http.Head(url)
 	PrintError(err)
 	fileLength, err = strconv.Atoi(resp.Header.Get("Content-Length"))
@@ -136,8 +139,11 @@ func DownloadVideo(url string) {
 	file, err := os.Create(Filename)
 	PrintError(err)
 	defer file.Close()
-
-	resp, err = http.Get(url)
+	
+	client := &http.Client{}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("Range", fmt.Sprintf("Bytes=0-%d", fileLength))
+	resp, err = client.Do(req)
 	PrintError(err)
 	defer resp.Body.Close()
 
