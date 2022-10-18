@@ -32,9 +32,9 @@ func YoutubeDownload(id string) string {
 	body.Context.Client.AndroidSDKVersion = 30
 	body.Context.Client.UserAgent = "com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip"	
 	body.Context.Client.TimeZone = "UTC"
-	body.Context.CLient.UtcOffsetMinutes = 0
+	body.Context.Client.UtcOffsetMinutes = 0
 	body.VideoID = id
-	body.params = "8AEB"
+	body.Params = "8AEB"
 	body.PlaybackContext.ContentPlaybackContext.Html5Preference = "HTML5_PREF_WANTS"
 	body.RacyCheckOk = true
 	body.ContentCheckOk = true
@@ -176,6 +176,7 @@ type writeCounter struct {
 type YoutubeBodyMetaInfo struct {
 	Context         Context         `json:"context"`
 	VideoID         string          `json:"videoId"`
+	Params          string          `json:"params"`
 	PlaybackContext PlaybackContext `json:"playbackContext"`
 	RacyCheckOk     bool            `json:"racyCheckOk"`
 	ContentCheckOk  bool            `json:"contentCheckOk"`
@@ -183,17 +184,16 @@ type YoutubeBodyMetaInfo struct {
 
 type Context struct {
 	Client  Client  `json:"client"`
-	User    User    `json:"user"`
-	Request Request `json:"request"`
 }
 
 type Client struct {
-	Hl               string         `json:"hl"`
-	ClientName       string         `json:"clientName"`
-	ClientVersion    string         `json:"clientVersion"`
-	ClientFormFactor string         `json:"clientFormFactor"`
-	ClientScreen     string         `json:"clientScreen"`
-	MainAppWebInfo   MainAppWebInfo `json:"mainAppWebInfo"`
+	Hl                 string         `json:"hl"`
+	ClientName         string         `json:"clientName"`
+	ClientVersion      string         `json:"clientVersion"`
+	AndroidSDKVersion  int64          `json:"androidSdkVersion"`
+	UserAgent          string         `json:"userAgent"`
+	TimeZone   				 string				  `json:"timeZone"`
+	UtcOffsetMinutes   int64 					`json:"utcOffsetMinutes"`
 }
 
 type MainAppWebInfo struct {
@@ -215,12 +215,7 @@ type PlaybackContext struct {
 }
 
 type ContentPlaybackContext struct {
-	Vis                   int64  `json:"vis"`
-	Splay                 bool   `json:"splay"`
-	AutoCaptionsDefaultOn bool   `json:"autoCaptionsDefaultOn"`
-	AutonavState          string `json:"autonavState"`
 	Html5Preference       string `json:"html5Preference"`
-	LactMilliseconds      string `json:"lactMilliseconds"`
 }
 
 type YoutubeMetaInfo struct {
