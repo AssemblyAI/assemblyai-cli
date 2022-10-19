@@ -72,75 +72,94 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
   
   > **-j, --json**  
   > default: false  
+  > example: `--json` or `--json=true`  
   > If true, the CLI will output the JSON.
 
 > **-p, --poll**  
 > default: true  
+> example: `--poll=false`  
 > The CLI will poll the transcription every 3 seconds until it's complete.
 
 > **-s, --auto_chapters**  
 > default: false  
+> example: `--auto_chapters` or `--auto_chapters=true`  
 > A "summary over time" for the audio file transcribed.
 
 > **-a, --auto_highlights**  
 > default: false  
+> example: `--auto_highlights` or `--auto_highlights=true`  
 > Automatically detect important phrases and words in the text.
 
 > **-c, --content_moderation**  
 > default: false  
+> example: `--content_moderation` or `--content_moderation=true`  
 > Detect if sensitive content is spoken in the file.
 
 > **-d, --dual_channel**  
 > default: false  
+> example: `--dual_channel` or `--dual_channel=true`  
 > Enable dual channel
 
 > **-e, --entity_detection**  
 > default: false  
+> example: `--entity_detection` or `--entity_detection=true`  
 > Identify a wide range of entities that are spoken in the audio file.
 
 > **-f, --format_text**  
 > default: true  
+> example: `--format_text=false`  
 > Enable text formatting
 
 > **-u, --punctuate**  
 > default: true  
+> example: `--punctuate=false`  
 > Enable automatic punctuation
 
 > **-r, --redact_pii**  
 > default: false  
+> example: `--redact_pii` or `--redact_pii=true`  
 > Remove personally identifiable information from the transcription.
 
 > **-i, --redact_pii_policies**  
 > default: drug,number_sequence,person_name  
+> example: `--redact_pii_policies medical_process,nationality`  
 > The list of PII policies to redact ([source](https://www.assemblyai.com/docs/audio-intelligence#pii-redaction)), comma-separated. Required if the redact_pii flag is true.
 
 > **-x, --sentiment_analysis**  
 > default: false  
+> example: `--sentiment_analysis` or `--sentiment_analysis=true`  
 > Detect the sentiment of each sentence of speech spoken in the file.
 
 > **-l, --speaker_labels**  
 > default: true  
+> example: `--speaker_labels=false`  
 > Automatically detect the number of speakers in the file.
 
 > **-t, --topic_detection**  
 > default: false  
+> example: `--topic_detection` or `--topic_detection=true`  
 > Label the topics that are spoken in the file.
 
 > **-w, --webhook_url**  
+> example: `--webhook_url "https://example.com/"`  
 > Receive a webhook once your transcript is complete.
 
 > **-b, --webhook_auth_header_name**  
+> example: `--webhook_auth_header_name "Authorization"`  
 > Containing the header's name which will be inserted into the webhook request.
 
 > **-o, --webhook_auth_header_value**  
+> example: `--webhook_auth_header_value "foo:bar"`  
 > Receive a webhook once your transcript is complete.
 
 > **-n, --language_detection**  
 > default: false  
+> example: `--language_detection` or `--language_detection=true`  
 > Automatic identify the dominant language that’s spoken in an audio file.
 > [Here](https://www.assemblyai.com/docs/core-transcription#automatic-language-detection) you can view the ALD list for supported languages
 
 > **-g, --language_code**  
+> example: `--language_code es`  
 > Manually secify the language of the speech in your audio file.
 > Click [here](https://www.assemblyai.com/docs#supported-languages) to view all the supported languages
 
