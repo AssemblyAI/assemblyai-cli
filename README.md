@@ -195,6 +195,8 @@ Please don't hesitate to [let us know what you think](https://forms.gle/oQgktMWy
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/uninstall.sh)"
 ```
 
+We'd love to understand why you're uninstalling the CLI, and what we can do to improve it. Feel free to [reach out](https://forms.gle/oQgktMWyL7xStH2J8).
+
 ## License
 
 Copyright (c) AssemblyAI. All rights reserved.
