@@ -419,7 +419,6 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 				table.AddRow(info[0], info[1], sentence)
 			}
 		}
-
 	}
 	fmt.Println(table)
 	fmt.Println()

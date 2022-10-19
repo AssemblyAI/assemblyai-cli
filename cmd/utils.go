@@ -194,6 +194,11 @@ func SplitSentences(wholeText string, isLineBreeakEnabled bool) []string {
 			}
 		}
 	}
+	for i, sentence := range sentences {
+		if sentence == "" {
+			sentences = append(sentences[:i], sentences[i+1:]...)
+		}
+	}
 	return sentences
 }
 
@@ -257,6 +262,9 @@ func GetSentenceTimestampsAndSpeaker(sentences []string, words []SentimentAnalys
 	var lastIndex int
 	timestamps := [][]string{}
 	for index, sentence := range sentences {
+		if sentence[0] == ' ' {
+			sentence = sentence[1:]
+		}
 		if sentence != "" {
 			if index == 0 {
 				timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[0].Start), fmt.Sprintf("(Speaker %s)", words[0].Speaker)})
@@ -267,7 +275,6 @@ func GetSentenceTimestampsAndSpeaker(sentences []string, words []SentimentAnalys
 					if strings.Contains(sentence, words[i].Text) {
 						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
 							timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
-
 							lastIndex = i
 							break
 						}
