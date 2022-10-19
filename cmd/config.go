@@ -5,9 +5,9 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
-	"errors"
 	"path/filepath"
 	"strconv"
 
@@ -68,7 +68,7 @@ func init() {
 }
 
 func CheckIfTokenValid() bool {
-	response := QueryApi("/account", "GET", nil)
+	response := QueryApi("/account", "GET", nil, nil)
 	if response == nil {
 		return false
 	}

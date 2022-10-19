@@ -184,7 +184,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	TelemetryCaptureEvent("CLI transcription created", nil)
 	body := bytes.NewReader(paramsJSON)
 
-	response := QueryApi("/transcript", "POST", body)
+	response := QueryApi("/transcript", "POST", body, nil)
 	var transcriptResponse TranscriptResponse
 	if err := json.Unmarshal(response, &transcriptResponse); err != nil {
 		PrintError(err)
@@ -264,7 +264,7 @@ func UploadFile(path string) string {
 	bar.ShowTimeLeft = false
 	bar.Start()
 
-	response := QueryApi("/upload", "POST", bar.NewProxyReader(file))
+	response := QueryApi("/upload", "POST", bar.NewProxyReader(file), nil)
 
 	bar.Finish()
 	var uploadResponse UploadResponse
@@ -282,7 +282,7 @@ func PollTranscription(id string, flags TranscribeFlags) {
 	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 
 	for {
-		response := QueryApi("/transcript/"+id, "GET", nil)
+		response := QueryApi("/transcript/"+id, "GET", nil, s)
 		if response == nil {
 			s.Stop()
 			fmt.Println("Something went wrong. Please try again later.")
