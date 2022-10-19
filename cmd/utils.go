@@ -262,11 +262,11 @@ func GetSentenceTimestampsAndSpeaker(sentences []string, words []SentimentAnalys
 			lastIndex = 0
 		} else {
 			sentenceWords := strings.Split(sentence, " ")
-
 			for i := lastIndex; i < len(words); i++ {
 				if strings.Contains(sentence, words[i].Text) {
-					if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] && words[i+2].Text == sentenceWords[2] {
+					if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
 						timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
+
 						lastIndex = i
 						break
 					}

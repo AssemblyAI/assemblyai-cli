@@ -378,7 +378,9 @@ func textPrintFormatted(text string, width int, words []SentimentAnalysisResult)
 	sentences := SplitSentences(text, true)
 	timestamps := GetSentenceTimestamps(sentences, words)
 	for index, sentence := range sentences {
-		table.AddRow(timestamps[index], sentence)
+		if sentence != "" {
+			table.AddRow(timestamps[index], sentence)
+		}
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -412,8 +414,10 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 		sentences := SplitSentences(utterance.Text, false)
 		timestamps := GetSentenceTimestampsAndSpeaker(sentences, utterance.Words)
 		for index, sentence := range sentences {
-			info := timestamps[index]
-			table.AddRow(info[0], info[1], sentence)
+			if sentence != "" {
+				info := timestamps[index]
+				table.AddRow(info[0], info[1], sentence)
+			}
 		}
 
 	}
