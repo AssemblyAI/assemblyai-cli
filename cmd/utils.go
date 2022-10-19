@@ -144,7 +144,7 @@ func BeutifyJSON(data []byte) []byte {
 
 func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
 	for {
-		bar.Prefix(" Transcribing file: ")
+		bar.Prefix("Transcribing file: ")
 		bar.ShowBar = false
 		bar.ShowTimeLeft = false
 		bar.ShowCounters = false
