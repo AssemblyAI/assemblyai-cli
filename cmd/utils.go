@@ -116,7 +116,7 @@ func PrintError(err error) {
 	}
 }
 
-func QueryApi(path string, method string, body io.Reader) []byte {
+func QueryApi(path string, method string, body io.Reader, s *spinner.Spinner) []byte {
 	resp, err := http.NewRequest(method, AAIURL+path, body)
 	PrintError(err)
 
@@ -127,6 +127,13 @@ func QueryApi(path string, method string, body io.Reader) []byte {
 	response, err := http.DefaultClient.Do(resp)
 	PrintError(err)
 	defer response.Body.Close()
+	if response.StatusCode != 200 {
+		if s != nil {
+			s.Stop()
+		}
+		fmt.Println("Something just went wrong. Please try again.")
+		os.Exit(1)
+	}
 
 	responseData, err := ioutil.ReadAll(response.Body)
 	PrintError(err)
