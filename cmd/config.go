@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"errors"
 	"path/filepath"
 	"strconv"
 
@@ -87,6 +88,13 @@ func CheckIfTokenValid() bool {
 	return true
 }
 
+func ConfigFolderExist() bool {
+	home, err := os.UserHomeDir()
+	configFile := filepath.Join(home, configFolderPath, configFileName)
+	_, err = os.Stat(configFile)
+	return errors.Is(err, os.ErrNotExist) == false
+}
+
 func createConfigFile() {
 	home, err := os.UserHomeDir()
 	if err != nil {
@@ -117,7 +125,7 @@ func setConfigFileValue(key string, value string) {
 	configFolder := filepath.Join(home, configFolderPath)
 	configFile := filepath.Join(configFolder, configFileName)
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		fmt.Println("Config file does not exist. Please run `assemblyai config` first.")
+		fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
 		return
 	}
 	viper.SetConfigName("config") // name of config file (without extension)
