@@ -49,6 +49,12 @@ assemblyai config [token]
 
 This command will validate your account, and store your token safely in `~/.config/assemblyai/config.toml` later to be used when transcribing files.
 
+You can now transcribe local files, remote URLs, or YouTube videos.
+
+```bash
+assemblyai transcribe https://youtu.be/0wvBu014E5o --auto_highlights --entity_detection
+```
+
 ## Usage
 
 Installing the CLI provides access to the `assemblyai` command:
@@ -178,10 +184,12 @@ assemblyai get [id]
   
   > **-j, --json**  
   > default: false  
+  > example: `--json` or `--json=true`  
   > If true, the CLI will output the JSON.
 
 > **-p, --poll**  
 > default: true  
+> example: `--poll=false`  
 > The CLI will poll the transcription every 3 seconds until it's complete.
 
 </details>
