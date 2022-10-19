@@ -154,6 +154,19 @@ If you're not polling the transcription, you can fetch it later:
 assemblyai get [id]
 ```
 
+<details>
+  <summary>Flags</summary>
+  
+  > **-j, --json**  
+  > default: false  
+  > If true, the CLI will output the JSON.
+
+> **-p, --poll**  
+> default: true  
+> The CLI will poll the transcription every 3 seconds until it's complete.
+
+</details>
+
 ## Contributing
 
 We're more than happy to welcome new contributors. If there's something you'd like to fix or improve, start by [creating an issue](https://github.com/AssemblyAI/assemblyai-cli/issues). Please make sure to follow our [code of conduct](https://github.com/AssemblyAI/assemblyai-cli/blob/main/CODE_OF_CONDUCT.md).
@@ -164,9 +177,23 @@ The AssemblyAI CLI includes a telemetry feature that collects usage data, and is
 
 To opt out of telemetry, set the telemetry variable in the `config.toml` file to false.
 
+## Upgrade
+
+Our team regularly releases updates to ensure world-class service, so make sure to update your CLI when a new release is available. You can do so by running the same commands as shown on the [Installation](#installation) section, or, if you've installed using brew, run:
+
+```bash
+brew upgrade assemblyai
+```
+
 ## Feedback
 
 Please don't hesitate to [let us know what you think](https://forms.gle/oQgktMWyL7xStH2J8)!
+
+## Uninstall
+
+```bash
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/uninstall.sh)"
+```
 
 ## License
 
