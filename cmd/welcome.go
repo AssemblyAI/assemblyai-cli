@@ -1,6 +1,3 @@
-/*
-Copyright © 2022 NAME HERE <EMAIL ADDRESS>
-*/
 package cmd
 
 import (
@@ -19,18 +16,23 @@ var welcomeCmd = &cobra.Command{
 	Long:   "We are excited to announce the AssemblyAI CLI, a quick way to test our latest models right from your terminal, with minimal installation required.",
 	Run: func(cmd *cobra.Command, args []string) {
 		fmt.Println("Welcome to the AssemblyAI CLI!")
-		fmt.Println("Please start by running `assemblyai config [token]`")
 
 		i, _ := cmd.Flags().GetBool("i")
 		if i {
+			isUpgrading := ConfigFolderExist()
 			createConfigFile()
-			setConfigFileValue("features.telemetry", "true")
+
+			if !isUpgrading {
+				setConfigFileValue("features.telemetry", "true")
+				fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
+			}
 
 			distinctId := getConfigFileValue("config.distinct_id")
-			if distinctId == "" {
+			if isUpgrading == false && distinctId == "" {
 				setConfigFileValue("config.distinct_id", uuid.New().String())
 				setConfigFileValue("config.new", "true")
 			}
+			
 			var properties *PostHogProperties = new(PostHogProperties)
 			properties.I = i
 			properties.OS, _ = cmd.Flags().GetString("os")

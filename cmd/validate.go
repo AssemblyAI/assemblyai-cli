@@ -21,7 +21,7 @@ var validateCmd = &cobra.Command{
 			fmt.Printf("Your Token is %s\n", Token)
 			return
 		} else {
-			fmt.Println("You must login first. Run `assemblyai config <token>`")
+			fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
 		}
 	},
 }

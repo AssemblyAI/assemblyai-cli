@@ -132,7 +132,7 @@ func init() {
 func transcribe(params TranscribeParams, flags TranscribeFlags) {
 	Token = GetStoredToken()
 	if Token == "" {
-		fmt.Println("You must login first. Run `assemblyai config <token>`")
+		fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
 		return
 	}
 

@@ -28,7 +28,7 @@ var getCmd = &cobra.Command{
 
 		Token = GetStoredToken()
 		if Token == "" {
-			fmt.Println("You're not authenticated yet. Get started by running `assemblyai config [token]`")
+			fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
 			return
 		}
 
