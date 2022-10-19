@@ -257,22 +257,24 @@ func GetSentenceTimestampsAndSpeaker(sentences []string, words []SentimentAnalys
 	var lastIndex int
 	timestamps := [][]string{}
 	for index, sentence := range sentences {
-		if index == 0 {
-			timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[0].Start), fmt.Sprintf("(Speaker %s)", words[0].Speaker)})
-			lastIndex = 0
-		} else {
-			sentenceWords := strings.Split(sentence, " ")
-			for i := lastIndex; i < len(words); i++ {
-				if strings.Contains(sentence, words[i].Text) {
-					if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
-						timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
+		if sentence != "" {
+			if index == 0 {
+				timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[0].Start), fmt.Sprintf("(Speaker %s)", words[0].Speaker)})
+				lastIndex = 0
+			} else {
+				sentenceWords := strings.Split(sentence, " ")
+				for i := lastIndex; i < len(words); i++ {
+					if strings.Contains(sentence, words[i].Text) {
+						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
+							timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
 
-						lastIndex = i
-						break
+							lastIndex = i
+							break
+						}
 					}
 				}
-			}
 
+			}
 		}
 	}
 	return timestamps
