@@ -32,8 +32,12 @@ tar -xzf "$TAR_FILE" -C "$BINARY_PATH"
 chmod +x "$BINARY_PATH"
 echo "$BINARY_PATH" >> "$HOME/.assemblyai"
 
-if [ ! -f "$HOME/.bashrc" ] && [ ! -f "$HOME/.zshrc" ]; then
+if [ ! -f "$HOME/.bashrc" ]; then
 	touch "$HOME/.bashrc"
+fi
+
+if [ ! -f "$HOME/.zshrc" ]; then
+	touch "$HOME/.zshrc"
 fi
 
 if [ -f "$HOME/.zshrc" ]; then
