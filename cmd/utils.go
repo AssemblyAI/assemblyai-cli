@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -158,29 +159,30 @@ func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
 	}
 }
 
-func SplitSentences(wholeText string) []string {
+func SplitSentences(wholeText string, isLineBreeakEnabled bool) []string {
 	for _, splitException := range splitExceptions {
 		wholeText = strings.ReplaceAll(wholeText, splitException[0], splitException[1])
 	}
+	// reg := regexp.MustCompile(`\d\.\d`)
 
 	words := strings.Split(wholeText, ".")
 	sentences := []string{}
 	text := ""
 	extra := "."
-	if len(words) > 9 {
+	if isLineBreeakEnabled {
 		extra = ".\n"
 	}
 	for i, word := range words {
 		if i == len(words)-1 {
 			text += word
+			text = strings.ReplaceAll(text, "{{}}", ".")
 			sentences = append(sentences, text)
 			text = ""
 		} else {
 			if word != "" {
-				word = strings.ReplaceAll(word, "{{}}", ".")
-
 				if i%3 == 0 && i != 0 || i == len(words)-1 {
 					text += word + extra
+					text = strings.ReplaceAll(text, "{{}}", ".")
 					sentences = append(sentences, text)
 					text = ""
 				} else {
@@ -190,6 +192,11 @@ func SplitSentences(wholeText string) []string {
 					text += word + "."
 				}
 			}
+		}
+	}
+	for i, sentence := range sentences {
+		if sentence == "" {
+			sentences = append(sentences[:i], sentences[i+1:]...)
 		}
 	}
 	return sentences
@@ -213,4 +220,69 @@ var splitExceptions = [][]string{
 	{"Br.", "Br{{}}"},
 	{"Jr.", "Jr{{}}"},
 	{"Sr.", "Sr{{}}"},
+	{"Ud.", "Ud{{}}"},
+	{"Uds.", "Uds{{}}"},
+	{" A.", " A{{}}"},
+	{" I.", " I{{}}"},
+	{" C.", " C{{}}"},
+	{" R.", " R{{}}"},
+	{" P.", " P{{}}"},
+}
+
+func TransformMsToTimestamp(ms int64) string {
+	duration := time.Duration(ms) * time.Millisecond
+	return fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
+}
+
+func GetSentenceTimestamps(sentences []string, words []SentimentAnalysisResult) []string {
+	var lastIndex int
+	timestamps := []string{}
+	for index, sentence := range sentences {
+		if index == 0 {
+			timestamps = append(timestamps, TransformMsToTimestamp(*words[0].Start))
+			lastIndex = 0
+		} else {
+			sentenceWords := strings.Split(sentence, " ")
+			for i := lastIndex; i < len(words); i++ {
+				if strings.Contains(sentence, words[i].Text) {
+					if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] && words[i+2].Text == sentenceWords[2] {
+						timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start))
+						lastIndex = i
+						break
+					}
+				}
+			}
+
+		}
+	}
+	return timestamps
+}
+
+func GetSentenceTimestampsAndSpeaker(sentences []string, words []SentimentAnalysisResult) [][]string {
+	var lastIndex int
+	timestamps := [][]string{}
+	for index, sentence := range sentences {
+		if sentence[0] == ' ' {
+			sentence = sentence[1:]
+		}
+		if sentence != "" {
+			if index == 0 {
+				timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[0].Start), fmt.Sprintf("(Speaker %s)", words[0].Speaker)})
+				lastIndex = 0
+			} else {
+				sentenceWords := strings.Split(sentence, " ")
+				for i := lastIndex; i < len(words); i++ {
+					if strings.Contains(sentence, words[i].Text) {
+						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
+							timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
+							lastIndex = i
+							break
+						}
+					}
+				}
+
+			}
+		}
+	}
+	return timestamps
 }
