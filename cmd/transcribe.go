@@ -339,7 +339,7 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	if transcript.SpeakerLabels == true {
 		speakerLabelsPrintFormatted(transcript.Utterances, width)
 	} else {
-		textPrintFormatted(*transcript.Text, width)
+		textPrintFormatted(*transcript.Text, width, transcript.Words)
 	}
 	if transcript.DualChannel != nil && *transcript.DualChannel == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "\nDual Channel")
@@ -371,13 +371,14 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	}
 }
 
-func textPrintFormatted(text string, width int) {
+func textPrintFormatted(text string, width int, words []SentimentAnalysisResult) {
 	table := uitable.New()
 	table.Wrap = true
-	table.MaxColWidth = uint(width - 5)
-	sentences := SplitSentences(text)
-	for _, sentence := range sentences {
-		table.AddRow(sentence)
+	table.MaxColWidth = uint(width - 10)
+	sentences := SplitSentences(text, true)
+	timestamps := GetSentenceTimestamps(sentences, words)
+	for index, sentence := range sentences {
+		table.AddRow(timestamps[index], sentence)
 	}
 	fmt.Println(table)
 	fmt.Println()
@@ -388,11 +389,10 @@ func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) 
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 21)
 	for _, utterance := range utterances {
-		duration := time.Duration(*utterance.Start) * time.Millisecond
-		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
+		start := TransformMsToTimestamp(*utterance.Start)
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
-		sentences := SplitSentences(utterance.Text)
+		sentences := SplitSentences(utterance.Text, false)
 		for _, sentence := range sentences {
 			table.AddRow(start, speaker, sentence)
 			start = ""
@@ -409,15 +409,11 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 	table.MaxColWidth = uint(width - 25)
 
 	for _, utterance := range utterances {
-		duration := time.Duration(*utterance.Start) * time.Millisecond
-		start := fmt.Sprintf("%02d:%02d", int(duration.Minutes()), int(duration.Seconds())%60)
-		speaker := fmt.Sprintf("(Speaker %s)", utterance.Speaker)
-
-		sentences := SplitSentences(utterance.Text)
-		for _, sentence := range sentences {
-			table.AddRow(start, speaker, sentence)
-			start = ""
-			speaker = ""
+		sentences := SplitSentences(utterance.Text, false)
+		timestamps := GetSentenceTimestampsAndSpeaker(sentences, utterance.Words)
+		for index, sentence := range sentences {
+			info := timestamps[index]
+			table.AddRow(info[0], info[1], sentence)
 		}
 
 	}
@@ -526,9 +522,9 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 	table.MaxColWidth = uint(width - 17)
 	table.Separator = " |\t"
 	for _, chapter := range chapters {
-		start := time.Duration(*chapter.Start) * time.Millisecond
-		end := time.Duration(*chapter.End) * time.Millisecond
-		table.AddRow("| timestamp", fmt.Sprintf("%02d:%02d-%02d:%02d", int(start.Minutes()), int(start.Seconds())%60, int(end.Minutes()), int(end.Seconds())%60))
+		start := TransformMsToTimestamp(*chapter.Start)
+		end := TransformMsToTimestamp(*chapter.End)
+		table.AddRow("| timestamp", fmt.Sprintf("%s-%s", start, end))
 		table.AddRow("| Gist", chapter.Gist)
 		table.AddRow("| Headline", chapter.Headline)
 		table.AddRow("| Summary", chapter.Summary)
