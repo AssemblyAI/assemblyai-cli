@@ -380,7 +380,7 @@ func textPrintFormatted(text string, width int, words []SentimentAnalysisResult)
 	for index, sentence := range sentences {
 		if sentence != "" {
 			stamp := ""
-			if len(timestamps) >= index {
+			if len(timestamps) > index {
 				stamp = timestamps[index]
 			}
 			table.AddRow(stamp, sentence)
@@ -420,7 +420,7 @@ func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int
 		for index, sentence := range sentences {
 			if sentence != "" {
 				info := []string{"", ""}
-				if len(timestamps) >= index {
+				if len(timestamps) > index {
 					info = timestamps[index]
 				}
 				table.AddRow(info[0], info[1], sentence)
