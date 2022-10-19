@@ -245,10 +245,24 @@ func GetSentenceTimestamps(sentences []string, words []SentimentAnalysisResult) 
 			sentenceWords := strings.Split(sentence, " ")
 			for i := lastIndex; i < len(words); i++ {
 				if strings.Contains(sentence, words[i].Text) {
-					if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] && words[i+2].Text == sentenceWords[2] {
-						timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start))
-						lastIndex = i
-						break
+					if len(words) >= i+2 {
+						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] && words[i+2].Text == sentenceWords[2] {
+							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start))
+							lastIndex = i
+							break
+						}
+					} else if len(words) >= i+1 {
+						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
+							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start))
+							lastIndex = i
+							break
+						}
+					} else {
+						if words[i].Text == sentenceWords[0] {
+							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start))
+							lastIndex = i
+							break
+						}
 					}
 				}
 			}
@@ -273,10 +287,18 @@ func GetSentenceTimestampsAndSpeaker(sentences []string, words []SentimentAnalys
 				sentenceWords := strings.Split(sentence, " ")
 				for i := lastIndex; i < len(words); i++ {
 					if strings.Contains(sentence, words[i].Text) {
-						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
-							timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
-							lastIndex = i
-							break
+						if len(words) >= i+1 {
+							if words[i].Text == sentenceWords[0] {
+								timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
+								lastIndex = i
+								break
+							}
+						} else {
+							if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
+								timestamps = append(timestamps, []string{TransformMsToTimestamp(*words[i].Start), fmt.Sprintf("(Speaker %s)", words[i].Speaker)})
+								lastIndex = i
+								break
+							}
 						}
 					}
 				}
