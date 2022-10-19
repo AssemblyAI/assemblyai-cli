@@ -125,7 +125,7 @@ func setConfigFileValue(key string, value string) {
 	configFolder := filepath.Join(home, configFolderPath)
 	configFile := filepath.Join(configFolder, configFileName)
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
-		fmt.Println("Config file does not exist. Please run `assemblyai config` first.")
+		fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
 		return
 	}
 	viper.SetConfigName("config") // name of config file (without extension)
