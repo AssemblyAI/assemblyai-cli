@@ -32,6 +32,10 @@ tar -xzf "$TAR_FILE" -C "$BINARY_PATH"
 chmod +x "$BINARY_PATH"
 echo "$BINARY_PATH" >> "$HOME/.assemblyai"
 
+if [ ! -f "$HOME/.bashrc" ] && [ ! -f "$HOME/.zshrc" ]; then
+	touch "$HOME/.bashrc"
+fi
+
 if [ -f "$HOME/.zshrc" ]; then
 	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.zshrc"
 fi
