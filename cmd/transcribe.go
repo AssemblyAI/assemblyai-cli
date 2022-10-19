@@ -157,7 +157,7 @@ func transcribe(params TranscribeParams, flags TranscribeFlags) {
 			}
 			youtubeVideoURL := YoutubeDownload(youtubeId)
 			if youtubeVideoURL == "" {
-				fmt.Println(" Please try again with a different one.")
+				fmt.Println("Please try again with a different one.")
 				return
 			}
 			params.AudioURL = youtubeVideoURL
@@ -259,7 +259,7 @@ func UploadFile(path string) string {
 	fileInfo, _ := file.Stat()
 	bar := pb.New(int(fileInfo.Size()))
 	bar.SetUnits(pb.U_BYTES_DEC)
-	bar.Prefix("  Uploading file to our servers: ")
+	bar.Prefix("Uploading file to our servers: ")
 	bar.ShowBar = false
 	bar.ShowTimeLeft = false
 	bar.Start()
@@ -277,7 +277,7 @@ func UploadFile(path string) string {
 }
 
 func PollTranscription(id string, flags TranscribeFlags) {
-	fmt.Println("  Transcribing file with id " + id)
+	fmt.Println("Transcribing file with id " + id)
 
 	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 
@@ -412,7 +412,7 @@ func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) 
 func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int) {
 	table := uitable.New()
 	table.Wrap = true
-	table.MaxColWidth = uint(width - 25)
+	table.MaxColWidth = uint(width - 27)
 
 	for _, utterance := range utterances {
 		sentences := SplitSentences(utterance.Text, false)
@@ -529,7 +529,7 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 
 	table := uitable.New()
 	table.Wrap = true
-	table.MaxColWidth = uint(width - 17)
+	table.MaxColWidth = uint(width - 19)
 	table.Separator = " |\t"
 	for _, chapter := range chapters {
 		start := TransformMsToTimestamp(*chapter.Start)
@@ -552,7 +552,7 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 
 	table := uitable.New()
 	table.Wrap = true
-	table.MaxColWidth = uint(width - 20)
+	table.MaxColWidth = uint(width - 25)
 	table.Separator = " |\t"
 	table.AddRow("| type", "text")
 	entityMap := make(map[string][]string)
