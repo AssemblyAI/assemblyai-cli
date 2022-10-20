@@ -5,7 +5,6 @@ package cmd
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -20,7 +19,6 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/posthog/posthog-go"
 	"golang.org/x/term"
-	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
 var AAIURL = "https://api.assemblyai.com/v2"
@@ -147,23 +145,6 @@ func BeutifyJSON(data []byte) []byte {
 		return data
 	}
 	return prettyJSON.Bytes()
-}
-
-func showProgress(total int, ctx context.Context, bar *pb.ProgressBar) {
-	for {
-		bar.Prefix("Transcribing file: ")
-		bar.ShowBar = false
-		bar.ShowTimeLeft = false
-		bar.ShowCounters = false
-		bar.ShowFinalTime = true
-		for i := 0; i < total-1; i++ {
-			if i*total/300 < total {
-				bar.Set(i * total / 300)
-			}
-			time.Sleep(100 * time.Millisecond)
-		}
-		bar.Finish()
-	}
 }
 
 func SplitSentences(wholeText string, isLineBreeakEnabled bool) []string {
