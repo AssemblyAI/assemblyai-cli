@@ -83,7 +83,7 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 
 > **-p, --poll**  
 > default: true  
-> example: `-pl` or `--poll`  
+> example: `-p` or `--poll`  
 > The CLI will poll the transcription every 3 seconds until it's complete.
 
 > **-s, --auto_chapters**  
