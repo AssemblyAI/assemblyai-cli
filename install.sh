@@ -15,14 +15,28 @@ test -z "$VERSION" && {
 	exit 1
 }
 
+OS=$(uname | tr '[:upper:]' '[:lower:]')
+ARCH=$(uname -m)
+case $ARCH in
+	armv6*) ARCH="armv6" ;;
+	armv7*) ARCH="armv7" ;;
+	aarch64) ARCH="arm64" ;;
+	x86) ARCH="386" ;;
+	x86_64) ARCH="amd64" ;;
+	i686) ARCH="386" ;;
+	i386) ARCH="386" ;;
+	arm64) ARCH="arm64" ;;
+	amd64) ARCH="amd64" ;;
+esac
+
 test -z "$TMPDIR" && TMPDIR="$(mktemp -d)"
-export TAR_FILE="$TMPDIR/${FILE_BASENAME}_$(uname -s)_$(uname -m).tar.gz"
+export TAR_FILE="$TMPDIR/${FILE_BASENAME}_${OS}_${ARCH}.tar.gz"
 
 (
 	cd "$TMPDIR"
 	echo "Downloading AssemblyAI CLI $VERSION..."
 	curl -sfLo "$TAR_FILE" \
-		"$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION:1}_$(uname -s)_$(uname -m).tar.gz"
+		"$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION:1}_${OS}_${ARCH}.tar.gz"
 )
 
 BINARY_PATH="$HOME/.assemblyai-cli"
@@ -47,7 +61,7 @@ if [ -f "$HOME/.bashrc" ]; then
 	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.bashrc"
 fi
 
-"${BINARY_PATH}/${FILE_BASENAME}" welcome -i -o="$(uname -s)" -m="curl" -v="$VERSION" -a="$(uname -m)"
+"${BINARY_PATH}/${FILE_BASENAME}" welcome -i -o="$OS" -m="curl" -v="$VERSION" -a="$ARCH"
 
 if [ -f "$HOME/.bashrc" ]; then
 	source "$HOME/.bashrc"
