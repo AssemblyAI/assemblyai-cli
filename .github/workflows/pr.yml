@@ -12,8 +12,9 @@ jobs:
       - name: Install CLI
         shell: pwsh
         run: |
+          Write-Host "${GITHUB_REF##*/}"
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-          iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.ps1)"
+          iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${GITHUB_REF##*/}/install.ps1)"
           New-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai.exe
           assemblyai -v
 
@@ -24,5 +25,17 @@ jobs:
       - name: Install CLI
         shell: bash
         run: |
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.sh)"
+          echo "${GITHUB_REF##*/}"
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${GITHUB_REF##*/}/install.sh)"
+          assemblyai -v
+  
+  macos-test:
+    name: macos test
+    runs-on: macos-latest
+    steps:
+      - name: Install CLI
+        shell: bash
+        run: |
+          echo "${GITHUB_REF##*/}"
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${GITHUB_REF##*/}/install.sh)"
           assemblyai -v
