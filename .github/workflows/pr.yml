@@ -9,18 +9,16 @@ jobs:
     name: powershell test
     runs-on: windows-latest
     steps:
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Install CLI
         continue-on-error: true
         shell: pwsh
         run: |
-          Write-Host "${{ steps.extract_branch.outputs.branch }}"
+          Write-Host "${{ github.head_ref }}"
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-          iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ steps.extract_branch.outputs.branch }}/install.ps1)"
+          iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ github.head_ref }}/install.ps1)"
           New-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai.exe
           assemblyai -v
 
@@ -28,32 +26,28 @@ jobs:
     name: bash test
     runs-on: ubuntu-latest
     steps:
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Install CLI
         continue-on-error: true
         shell: bash
         run: |
-          echo "${{ steps.extract_branch.outputs.branch }}"
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ steps.extract_branch.outputs.branch }}/install.sh)"
+          echo "${{ github.head_ref }}"
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ github.head_ref }}/install.sh)"
           assemblyai -v
   
   macos-test:
     name: macos test
     runs-on: macos-latest
     steps:
-      - name: Extract branch name
-        shell: bash
-        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
-        id: extract_branch
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Install CLI
         continue-on-error: true
         shell: bash
         run: |
-          echo "${{ steps.extract_branch.outputs.branch }}"
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ steps.extract_branch.outputs.branch }}/install.sh)"
+          echo "${{ github.head_ref }}"
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ github.head_ref }}/install.sh)"
           assemblyai -v
