@@ -1,0 +1,28 @@
+name: Test PowerShell
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  powershell-test:
+    name: powershell test
+    runs-on: windows-latest
+    steps:
+      - name: Install CLI
+        shell: pwsh
+        run: |
+          Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
+          iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.ps1)"
+          New-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai.exe
+          assemblyai -v
+
+  bash-test:
+    name: bash test
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install CLI
+        shell: bash
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.sh)"
+          assemblyai -v
