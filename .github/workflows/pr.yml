@@ -15,6 +15,7 @@ jobs:
         id: extract_branch
 
       - name: Install CLI
+        continue-on-error: true
         shell: pwsh
         run: |
           Write-Host "${{ steps.extract_branch.outputs.branch }}"
@@ -33,6 +34,7 @@ jobs:
         id: extract_branch
 
       - name: Install CLI
+        continue-on-error: true
         shell: bash
         run: |
           echo "${{ steps.extract_branch.outputs.branch }}"
@@ -49,6 +51,7 @@ jobs:
         id: extract_branch
 
       - name: Install CLI
+        continue-on-error: true
         shell: bash
         run: |
           echo "${{ steps.extract_branch.outputs.branch }}"
