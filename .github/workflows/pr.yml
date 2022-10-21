@@ -9,12 +9,17 @@ jobs:
     name: powershell test
     runs-on: windows-latest
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
       - name: Install CLI
         shell: pwsh
         run: |
-          Write-Host "${GITHUB_REF##*/}"
+          Write-Host "${{ steps.extract_branch.outputs.branch }}"
           Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-          iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${GITHUB_REF##*/}/install.ps1)"
+          iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ steps.extract_branch.outputs.branch }}/install.ps1)"
           New-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai.exe
           assemblyai -v
 
@@ -22,20 +27,30 @@ jobs:
     name: bash test
     runs-on: ubuntu-latest
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
       - name: Install CLI
         shell: bash
         run: |
-          echo "${GITHUB_REF##*/}"
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${GITHUB_REF##*/}/install.sh)"
+          echo "${{ steps.extract_branch.outputs.branch }}"
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ steps.extract_branch.outputs.branch }}/install.sh)"
           assemblyai -v
   
   macos-test:
     name: macos test
     runs-on: macos-latest
     steps:
+      - name: Extract branch name
+        shell: bash
+        run: echo "##[set-output name=branch;]$(echo ${GITHUB_REF#refs/heads/})"
+        id: extract_branch
+
       - name: Install CLI
         shell: bash
         run: |
-          echo "${GITHUB_REF##*/}"
-          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${GITHUB_REF##*/}/install.sh)"
+          echo "${{ steps.extract_branch.outputs.branch }}"
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/${{ steps.extract_branch.outputs.branch }}/install.sh)"
           assemblyai -v
