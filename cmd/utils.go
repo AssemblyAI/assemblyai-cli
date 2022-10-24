@@ -215,6 +215,7 @@ var splitExceptions = [][]string{
 	{" C.", " C{{}}"},
 	{" R.", " R{{}}"},
 	{" P.", " P{{}}"},
+	{".com", "{{}}com"},
 }
 
 func TransformMsToTimestamp(ms int64) string {

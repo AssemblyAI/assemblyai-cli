@@ -313,3 +313,11 @@ var PIIRedactionPolicyMap = map[string]string{
 	"religion":                  "Religion",
 	"us_social_security_number": "US Social Security Number",
 }
+
+var SummarizationTypeMapReverse = map[string]string{
+	"paragraph":       "Paragraph",
+	"headline":        "Headline",
+	"gist":            "Gist",
+	"bullets":         "Bullets",
+	"bullets_verbose": "Bullets Verbose",
+}

@@ -59,6 +59,11 @@ var transcribeCmd = &cobra.Command{
 		params.Summarization, _ = cmd.Flags().GetBool("summarization")
 		if params.Summarization {
 			params.SummaryType, _ = cmd.Flags().GetString("summary_type")
+			if _, ok := SummarizationTypeMapReverse[params.SummaryType]; !ok {
+				fmt.Println("Invalid summary type. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization")
+				return
+			}
+
 		}
 
 		if params.RedactPii {
@@ -130,7 +135,7 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
 	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
 	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
-	transcribeCmd.PersistentFlags().StringP("summary_type", "y", "bullet", "Type of summary generated.")
+	transcribeCmd.PersistentFlags().StringP("summary_type", "y", "bullets", "Type of summary generated.")
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_name", "b", "", "Containing the header's name which will be inserted into the webhook request")
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_value", "o", "", "The value of the header that will be inserted into the webhook request.")
 	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
@@ -595,20 +600,7 @@ func summaryPrintFormatted(summary interface{}, summaryType *string) {
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 
-	if summaryType == nil || *summaryType == "bullet" || *summaryType == "bullet_verbose" {
-		for _, sentence := range summary.([]interface{}) {
-			convSentence := sentence.(map[string]interface{})
-			start := TransformMsToTimestamp(int64(convSentence["start"].(float64)))
-			end := TransformMsToTimestamp(int64(convSentence["end"].(float64)))
-			table.AddRow("| timestamp", fmt.Sprintf("%s-%s", start, end))
-			table.AddRow("| Gist", convSentence["gist"])
-			table.AddRow("| Headline", convSentence["headline"])
-			table.AddRow("| Summary", convSentence["summary"])
-			table.AddRow("", "")
-		}
-	} else if *summaryType == "gist" || *summaryType == "headline" || *summaryType == "paragraph" {
-		table.AddRow(summary)
-	}
+	table.AddRow(summary)
 
 	fmt.Println(table)
 	fmt.Println()
