@@ -62,6 +62,9 @@ type TranscriptResponse struct {
 	SpeakerLabels            bool                      `json:"speaker_labels,omitempty"`
 	SpeedBoost               *bool                     `json:"speed_boost,omitempty"`
 	Status                   *string                   `json:"status,omitempty"`
+	Summarization            *bool                     `json:"summarization,omitempty"`
+	Summary                  interface{}               `json:"summary,omitempty"`
+	SummaryType              *string                   `json:"summary_type,omitempty"`
 	Text                     *string                   `json:"text,omitempty"`
 	Throttled                interface{}               `json:"throttled"`
 	Utterances               []SentimentAnalysisResult `json:"utterances,omitempty"`
@@ -71,10 +74,14 @@ type TranscriptResponse struct {
 	WebhookURL               interface{}               `json:"webhook_url"`
 	WordBoost                []interface{}             `json:"word_boost,omitempty"`
 	Words                    []SentimentAnalysisResult `json:"words,omitempty"`
+}
 
-	Summary       *string `json:"summary,omitempty"`
-	Summarization *bool   `json:"summarization,omitempty"`
-	SummaryType   *string `json:"summary_type,omitempty"`
+type Summarization struct {
+	Summary  string  `json:"summary,omitempty"`
+	Headline string  `json:"headline,omitempty"`
+	Gist     string  `json:"gist,omitempty"`
+	Start    float64 `json:"start,omitempty"`
+	End      float64 `json:"end,omitempty"`
 }
 
 type AutoHighlightsResult struct {
@@ -199,6 +206,8 @@ type TranscribeParams struct {
 	WebhookURL             string   `json:"webhook_url,omitempty"`
 	WebhookAuthHeaderName  string   `json:"webhook_auth_header_name,omitempty"`
 	WebhookAuthHeaderValue string   `json:"webhook_auth_header_value,omitempty"`
+	Summarization          bool     `json:"summarization,omitempty"`
+	SummaryType            string   `json:"summary_type,omitempty"`
 }
 
 type RedactPiiPolicy string
