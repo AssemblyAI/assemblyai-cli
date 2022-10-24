@@ -379,7 +379,7 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 		fmt.Printf("\033[1m%s\033[0m\n", "Entity Detection")
 		entityDetectionPrintFormatted(transcript.Entities)
 	}
-	if *transcript.Summarization == true {
+	if transcript.Summarization != nil && *transcript.Summarization == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Summary")
 		summaryPrintFormatted(transcript.Summary, transcript.SummaryType)
 	}
