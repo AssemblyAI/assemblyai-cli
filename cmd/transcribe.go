@@ -386,7 +386,7 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	}
 	if transcript.Summarization != nil && *transcript.Summarization == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Summary")
-		summaryPrintFormatted(transcript.Summary, transcript.SummaryType)
+		summaryPrintFormatted(transcript.Summary)
 	}
 }
 
@@ -594,13 +594,18 @@ func entityDetectionPrintFormatted(entities []Entity) {
 	fmt.Println()
 }
 
-func summaryPrintFormatted(summary interface{}, summaryType *string) {
+func summaryPrintFormatted(summary *string) {
+	if summary == nil {
+		fmt.Println("Could not retrieve summary")
+		return
+	}
+
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 
-	table.AddRow(summary)
+	table.AddRow(*summary)
 
 	fmt.Println(table)
 	fmt.Println()
