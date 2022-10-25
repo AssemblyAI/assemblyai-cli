@@ -23,6 +23,8 @@ import (
 	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
+var width int
+
 var transcribeCmd = &cobra.Command{
 	Use:   "transcribe <url | path | youtube URL>",
 	Short: "Transcribe and understand audio with a single AI-powered API",
@@ -41,17 +43,29 @@ var transcribeCmd = &cobra.Command{
 		}
 		params.AudioURL = args[0]
 
-		flags.Poll, _ = cmd.Flags().GetBool("poll")
 		flags.Json, _ = cmd.Flags().GetBool("json")
+		flags.Poll, _ = cmd.Flags().GetBool("poll")
 		params.AutoChapters, _ = cmd.Flags().GetBool("auto_chapters")
 		params.AutoHighlights, _ = cmd.Flags().GetBool("auto_highlights")
 		params.ContentModeration, _ = cmd.Flags().GetBool("content_moderation")
+		params.DualChannel, _ = cmd.Flags().GetBool("dual_channel")
 		params.EntityDetection, _ = cmd.Flags().GetBool("entity_detection")
 		params.FormatText, _ = cmd.Flags().GetBool("format_text")
 		params.Punctuate, _ = cmd.Flags().GetBool("punctuate")
-		params.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
-		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
 		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
+		params.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
+		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
+		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
+		params.Summarization, _ = cmd.Flags().GetBool("summarization")
+		if params.Summarization {
+			params.SummaryType, _ = cmd.Flags().GetString("summary_type")
+			if _, ok := SummarizationTypeMapReverse[params.SummaryType]; !ok {
+				fmt.Println("Invalid summary type. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization")
+				return
+			}
+
+		}
+
 		if params.RedactPii {
 			policies, _ := cmd.Flags().GetString("redact_pii_policies")
 			policiesArray := strings.Split(policies, ",")
@@ -77,11 +91,8 @@ var transcribeCmd = &cobra.Command{
 				params.WebhookAuthHeaderValue = webhookHeaderValue
 			}
 		}
-		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
-		params.DualChannel, _ = cmd.Flags().GetBool("dual_channel")
 		languageDetection, _ := cmd.Flags().GetBool("language_detection")
 		languageCode, _ := cmd.Flags().GetString("language_code")
-
 		if (languageCode != "" || languageDetection) && params.SpeakerLabels {
 			if cmd.Flags().Lookup("speaker_labels").Changed {
 				fmt.Println("Speaker labels are not supported for languages other than English.")
@@ -107,25 +118,27 @@ var transcribeCmd = &cobra.Command{
 }
 
 func init() {
-	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
 	transcribeCmd.PersistentFlags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
 	transcribeCmd.PersistentFlags().BoolP("auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
 	transcribeCmd.PersistentFlags().BoolP("content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
 	transcribeCmd.PersistentFlags().BoolP("dual_channel", "d", false, "Enable dual channel")
 	transcribeCmd.PersistentFlags().BoolP("entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
 	transcribeCmd.PersistentFlags().BoolP("format_text", "f", true, "Enable text formatting")
-	transcribeCmd.PersistentFlags().BoolP("language_detection", "n", false, "Identify the dominant language that’s spoken in an audio file.")
-	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
 	transcribeCmd.PersistentFlags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
+	transcribeCmd.PersistentFlags().BoolP("language_detection", "n", false, "Identify the dominant language that’s spoken in an audio file.")
 	transcribeCmd.PersistentFlags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
 	transcribeCmd.PersistentFlags().BoolP("punctuate", "u", true, "Enable automatic punctuation.")
 	transcribeCmd.PersistentFlags().BoolP("redact_pii", "r", false, "Remove personally identifiable information from the transcription.")
 	transcribeCmd.PersistentFlags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
 	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
+	transcribeCmd.PersistentFlags().BoolP("summarization", "m", false, "Generate a single abstractive summary of the entire audio.")
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
-	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
+	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
+	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
+	transcribeCmd.PersistentFlags().StringP("summary_type", "y", "bullets", "Type of summary generated.")
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_name", "b", "", "Containing the header's name which will be inserted into the webhook request")
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_value", "o", "", "The value of the header that will be inserted into the webhook request.")
+	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
 	rootCmd.AddCommand(transcribeCmd)
 }
 
@@ -331,19 +344,21 @@ func PollTranscription(id string, flags TranscribeFlags) {
 }
 
 func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
-	width, _, err := term.GetSize(0)
+	getWidth, _, err := term.GetSize(0)
 	if err != nil {
 		width = 512
+	} else {
+		width = getWidth
 	}
 	fmt.Printf("\033[1m%s\033[0m\n", "Transcript")
 	if transcript.SpeakerLabels == true {
-		speakerLabelsPrintFormatted(transcript.Utterances, width)
+		speakerLabelsPrintFormatted(transcript.Utterances)
 	} else {
-		textPrintFormatted(*transcript.Text, width, transcript.Words)
+		textPrintFormatted(*transcript.Text, transcript.Words)
 	}
 	if transcript.DualChannel != nil && *transcript.DualChannel == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "\nDual Channel")
-		dualChannelPrintFormatted(transcript.Utterances, width)
+		dualChannelPrintFormatted(transcript.Utterances)
 	}
 	if *transcript.AutoHighlights == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Highlights")
@@ -351,27 +366,31 @@ func getFormattedOutput(transcript TranscriptResponse, flags TranscribeFlags) {
 	}
 	if *transcript.ContentSafety == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Content Moderation")
-		contentSafetyPrintFormatted(*transcript.ContentSafetyLabels, width)
+		contentSafetyPrintFormatted(*transcript.ContentSafetyLabels)
 	}
 	if *transcript.IabCategories == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Topic Detection")
-		topicDetectionPrintFormatted(*transcript.IabCategoriesResult, width)
+		topicDetectionPrintFormatted(*transcript.IabCategoriesResult)
 	}
 	if *transcript.SentimentAnalysis == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Sentiment Analysis")
-		sentimentAnalysisPrintFormatted(transcript.SentimentAnalysisResults, width)
+		sentimentAnalysisPrintFormatted(transcript.SentimentAnalysisResults)
 	}
 	if *transcript.AutoChapters == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Chapters")
-		chaptersPrintFormatted(transcript.Chapters, width)
+		chaptersPrintFormatted(transcript.Chapters)
 	}
 	if *transcript.EntityDetection == true {
 		fmt.Printf("\033[1m%s\033[0m\n", "Entity Detection")
-		entityDetectionPrintFormatted(transcript.Entities, width)
+		entityDetectionPrintFormatted(transcript.Entities)
+	}
+	if transcript.Summarization != nil && *transcript.Summarization == true {
+		fmt.Printf("\033[1m%s\033[0m\n", "Summary")
+		summaryPrintFormatted(transcript.Summary)
 	}
 }
 
-func textPrintFormatted(text string, width int, words []SentimentAnalysisResult) {
+func textPrintFormatted(text string, words []SentimentAnalysisResult) {
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 10)
@@ -390,7 +409,7 @@ func textPrintFormatted(text string, width int, words []SentimentAnalysisResult)
 	fmt.Println()
 }
 
-func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) {
+func dualChannelPrintFormatted(utterances []SentimentAnalysisResult) {
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 21)
@@ -409,7 +428,7 @@ func dualChannelPrintFormatted(utterances []SentimentAnalysisResult, width int) 
 	fmt.Println()
 }
 
-func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult, width int) {
+func speakerLabelsPrintFormatted(utterances []SentimentAnalysisResult) {
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 27)
@@ -451,7 +470,7 @@ func highlightsPrintFormatted(highlights AutoHighlightsResult) {
 	fmt.Println()
 }
 
-func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
+func contentSafetyPrintFormatted(labels ContentSafetyLabels) {
 	if *labels.Status != "success" {
 		fmt.Println("Could not retrieve content safety labels")
 		return
@@ -472,7 +491,7 @@ func contentSafetyPrintFormatted(labels ContentSafetyLabels, width int) {
 	fmt.Println()
 }
 
-func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
+func topicDetectionPrintFormatted(categories IabCategoriesResult) {
 	if *categories.Status != "success" {
 		fmt.Println("Could not retrieve topic detection")
 		return
@@ -480,7 +499,7 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 
 	table := uitable.New()
 	table.Wrap = true
-	table.MaxColWidth = uint((width / 2) - 5)
+	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 	table.AddRow("| rank", "topic")
 	var ArrayCategoriesSorted []ArrayCategories
@@ -502,7 +521,7 @@ func topicDetectionPrintFormatted(categories IabCategoriesResult, width int) {
 	fmt.Println()
 }
 
-func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width int) {
+func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult) {
 	if len(sentiments) == 0 {
 		fmt.Println("Could not retrieve sentiment analysis")
 		return
@@ -521,7 +540,7 @@ func sentimentAnalysisPrintFormatted(sentiments []SentimentAnalysisResult, width
 	fmt.Println()
 }
 
-func chaptersPrintFormatted(chapters []Chapter, width int) {
+func chaptersPrintFormatted(chapters []Chapter) {
 	if len(chapters) == 0 {
 		fmt.Println("Could not retrieve chapters")
 		return
@@ -544,7 +563,7 @@ func chaptersPrintFormatted(chapters []Chapter, width int) {
 	fmt.Println()
 }
 
-func entityDetectionPrintFormatted(entities []Entity, width int) {
+func entityDetectionPrintFormatted(entities []Entity) {
 	if len(entities) == 0 {
 		fmt.Println("Could not retrieve entity detection")
 		return
@@ -571,6 +590,23 @@ func entityDetectionPrintFormatted(entities []Entity, width int) {
 	for entityType, entityTexts := range entityMap {
 		table.AddRow("| "+entityType, strings.Join(entityTexts, ", "))
 	}
+	fmt.Println(table)
+	fmt.Println()
+}
+
+func summaryPrintFormatted(summary *string) {
+	if summary == nil {
+		fmt.Println("Could not retrieve summary")
+		return
+	}
+
+	table := uitable.New()
+	table.Wrap = true
+	table.MaxColWidth = uint(width - 20)
+	table.Separator = " |\t"
+
+	table.AddRow(*summary)
+
 	fmt.Println(table)
 	fmt.Println()
 }
