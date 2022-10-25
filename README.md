@@ -166,8 +166,19 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 
 > **-g, --language_code**  
 > example: `-g es` or `--language_code es`  
-> Manually secify the language of the speech in your audio file.
+> Manually specify the language of the speech in your audio file.
 > Click [here](https://www.assemblyai.com/docs#supported-languages) to view all the supported languages
+
+> **-m, --summarization**  
+> default: false  
+> example: `-m` or `--summarization`  
+> Generate a single abstractive summary of the entire audio.
+
+> **-y, --summary_type**
+> default: bullets  
+> example: `-y paragraph` or `--summary_type paragraph`  
+> Type of summary generated.
+> Click [here](https://www.assemblyai.com/docs/audio-intelligence#summarization) to view all the supported types
 
 </details>
 
