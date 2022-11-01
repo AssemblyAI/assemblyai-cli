@@ -110,7 +110,7 @@ func CallSpinner(message string) *spinner.Spinner {
 func PrintError(err error) {
 	if err != nil {
 		// fmt.Println(err)
-		fmt.Println("Something just went wrong. Please try again.")
+		fmt.Println("Something went wrong. Please try again.")
 		os.Exit(1)
 	}
 }
