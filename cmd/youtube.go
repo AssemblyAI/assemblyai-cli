@@ -94,6 +94,20 @@ func YoutubeDownload(id string) string {
 			}
 		}
 	}
+
+	info, err := os.Stat(os.TempDir())
+	if err != nil || !info.IsDir() || info.Mode().Perm()&(1<<uint(7)) == 0 {
+		Filename = "./tmp-video.mp4"
+		local, err := os.Stat("./")
+		if err != nil || !local.IsDir() || local.Mode().Perm()&(1<<uint(7)) == 0 {
+			err = os.Chmod("./", 0700)
+			if err != nil {
+				fmt.Println("Unable to create temporary file")
+				return ""
+			}
+		}
+	}
+
 	DownloadVideo(videoUrl)
 	uploadedURL := UploadFile(Filename)
 	if uploadedURL == "" {
