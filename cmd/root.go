@@ -26,10 +26,6 @@ assemblyai config [token]`,
 	Run: func(cmd *cobra.Command, args []string) {
 		versionFlag, _ := cmd.Flags().GetBool("version")
 		if versionFlag {
-			if VERSION == "" {
-				godotenv.Load()
-				VERSION = os.Getenv("VERSION")
-			}
 			fmt.Printf("AssemblyAI CLI %s\n", VERSION)
 		} else {
 			cmd.Help()
@@ -38,6 +34,11 @@ assemblyai config [token]`,
 }
 
 func Execute() {
+	if VERSION == "" {
+		godotenv.Load()
+		VERSION = os.Getenv("VERSION")
+	}
+	U.CheckForUpdates(VERSION)
 	if err := rootCmd.Execute(); err != nil {
 		printErrorProps := S.PrintErrorProps{
 			Error:   err,

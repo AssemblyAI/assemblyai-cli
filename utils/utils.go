@@ -17,6 +17,7 @@ import (
 
 	S "github.com/AssemblyAI/assemblyai-cli/schemas"
 	"github.com/briandowns/spinner"
+	"github.com/fatih/color"
 	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -54,6 +55,10 @@ func TelemetryCaptureEvent(event string, properties *S.PostHogProperties) {
 					Set("Arch", properties.Arch).
 					Set("Version", properties.Version).
 					Set("Method", properties.Method)
+			} else if properties.LatestVersion != "" {
+				PhProperties = posthog.NewProperties().
+					Set("latest_version", properties.LatestVersion).
+					Set("current_version", properties.Version)
 			} else {
 				PhProperties = posthog.NewProperties().
 					Set("poll", properties.Poll).
@@ -345,5 +350,70 @@ func InitSentry() {
 			log.Fatalf("sentry.Init: %s", err)
 		}
 		defer sentry.Flush(5 * time.Second)
+	}
+}
+
+func CheckForUpdates(currentVersion string) {
+	getWidth, _, err := term.GetSize(0)
+	if err != nil {
+		getWidth = 512
+	}
+	resp, err := http.Get("https://api.github.com/repos/assemblyai/assemblyai-cli/releases/latest")
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	var release S.Release
+	err = json.Unmarshal(body, &release)
+	if err != nil {
+		return
+	}
+	if *release.TagName != currentVersion {
+		underlinedBlue := color.New(color.FgHiBlue).Add(color.Underline).SprintFunc()
+		blue := color.New(color.FgHiBlue).SprintFunc()
+		black := color.New(color.FgHiBlack).SprintFunc()
+		yellow := color.New(color.FgYellow).SprintFunc()
+
+		message := fmt.Sprintf("A new version of the CLI (%s) is available!", *release.TagName)
+		instructions := "Run the installation scripts to upgrade it: https://github.com/AssemblyAI/assemblyai-cli#installation"
+
+		messagePadding := (getWidth - len(message) - 2) / 2
+		instructionsPadding := (getWidth - len(instructions) - 2) / 2
+		if messagePadding < 0 {
+			messagePadding = 0
+		}
+		if instructionsPadding < 0 {
+			instructionsPadding = 0
+		}
+		fmt.Println(strings.Repeat(underlinedBlue(" "), getWidth))
+		fmt.Printf("%s%s%s", blue("|"), strings.Repeat(" ", getWidth-2), blue("|"))
+		fmt.Println()
+		fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", messagePadding), yellow(message), strings.Repeat(" ", messagePadding), blue("|"))
+		fmt.Println()
+		if len(instructions) < getWidth-2 {
+			fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", instructionsPadding), black(instructions), strings.Repeat(" ", instructionsPadding), blue("|"))
+			fmt.Println()
+		} else {
+			instructions1 := "Run the installation scripts to upgrade it:"
+			instructions2 := "https://github.com/AssemblyAI/assemblyai-cli#installation"
+			instructions1Padding := (getWidth - len(instructions1) - 2) / 2
+			instructions2Padding := (getWidth - len(instructions2) - 2) / 2
+			fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", instructions1Padding), black(instructions1), strings.Repeat(" ", instructions1Padding), blue("|"))
+			fmt.Println()
+			fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", instructions2Padding), black(instructions2), strings.Repeat(" ", instructions2Padding), blue("|"))
+			fmt.Println()
+		}
+		fmt.Printf("%s%s%s", blue("|"), strings.Repeat(underlinedBlue(" "), getWidth-2), blue("|"))
+		fmt.Println()
+
+		var properties *S.PostHogProperties = &S.PostHogProperties{
+			Version:       currentVersion,
+			LatestVersion: *release.TagName,
+		}
+		TelemetryCaptureEvent("CLI update available", properties)
 	}
 }
