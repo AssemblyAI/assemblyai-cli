@@ -7,6 +7,8 @@ import (
 	"fmt"
 	"os"
 
+	S "github.com/AssemblyAI/assemblyai-cli/schemas"
+	U "github.com/AssemblyAI/assemblyai-cli/utils"
 	"github.com/joho/godotenv"
 	"github.com/spf13/cobra"
 )
@@ -37,7 +39,11 @@ assemblyai config [token]`,
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		printErrorProps := S.PrintErrorProps{
+			Error:   err,
+			Message: err.Error(),
+		}
+		U.PrintError(printErrorProps)
 		os.Exit(1)
 	}
 }

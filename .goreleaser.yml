@@ -15,7 +15,8 @@ builds:
     flags:
       - -mod=vendor
     ldflags:
-      - -X github.com/AssemblyAI/assemblyai-cli/cmd.PH_TOKEN=phc_G3bBjrSrhrQ9OsVnLBFGi1OyMxZ7JjX8kkGYo5c2a85
+      - -X github.com/AssemblyAI/assemblyai-cli/utils.PH_TOKEN={{ .Env.POSTHOG_API_TOKEN }}
+      - -X github.com/AssemblyAI/assemblyai-cli/utils.SENTRY_DNS={{ .Env.SENTRY_DNS }}
       - -X github.com/AssemblyAI/assemblyai-cli/cmd.VERSION={{ .Tag }}
 release:
   prerelease: auto

@@ -4,8 +4,10 @@ Copyright © 2022 AssemblyAI support@assemblyai.com
 package cmd
 
 import (
-	"fmt"
+	"errors"
 
+	S "github.com/AssemblyAI/assemblyai-cli/schemas"
+	U "github.com/AssemblyAI/assemblyai-cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -16,23 +18,31 @@ var getCmd = &cobra.Command{
 	Long:  `After submitting a file for transcription, you can fetch it by passing its ID.`,
 	Args:  cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var flags TranscribeFlags
+		var flags S.TranscribeFlags
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
-			fmt.Println("You must provide a transcription ID.")
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("No transcription ID provided."),
+				Message: "You must provide a transcription ID.",
+			}
+			U.PrintError(printErrorProps)
 			return
 		}
 		id := args[0]
 		flags.Poll, _ = cmd.Flags().GetBool("poll")
 		flags.Json, _ = cmd.Flags().GetBool("json")
 
-		Token = GetStoredToken()
-		if Token == "" {
-			fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
+		U.Token = U.GetStoredToken()
+		if U.Token == "" {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("No token found."),
+				Message: "Please start by running \033[1m\033[34massemblyai config [token]\033[0m",
+			}
+			U.PrintError(printErrorProps)
 			return
 		}
 
-		PollTranscription(id, flags)
+		U.PollTranscription(id, flags)
 	},
 }
 

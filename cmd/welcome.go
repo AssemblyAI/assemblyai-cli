@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"runtime"
 
+	S "github.com/AssemblyAI/assemblyai-cli/schemas"
+	U "github.com/AssemblyAI/assemblyai-cli/utils"
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
@@ -19,21 +21,21 @@ var welcomeCmd = &cobra.Command{
 
 		i, _ := cmd.Flags().GetBool("i")
 		if i {
-			isUpgrading := ConfigFolderExist()
-			createConfigFile()
+			isUpgrading := U.ConfigFolderExist()
+			U.CreateConfigFile()
 
 			if !isUpgrading {
-				setConfigFileValue("features.telemetry", "true")
+				U.SetConfigFileValue("features.telemetry", "true")
 				fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
 			}
 
-			distinctId := getConfigFileValue("config.distinct_id")
+			distinctId := U.GetConfigFileValue("config.distinct_id")
 			if isUpgrading == false && distinctId == "" {
-				setConfigFileValue("config.distinct_id", uuid.New().String())
-				setConfigFileValue("config.new", "true")
+				U.SetConfigFileValue("config.distinct_id", uuid.New().String())
+				U.SetConfigFileValue("config.new", "true")
 			}
-			
-			var properties *PostHogProperties = new(PostHogProperties)
+
+			var properties *S.PostHogProperties = new(S.PostHogProperties)
 			properties.I = i
 			properties.OS, _ = cmd.Flags().GetString("os")
 			properties.Arch, _ = cmd.Flags().GetString("arch")
@@ -48,7 +50,7 @@ var welcomeCmd = &cobra.Command{
 				properties.Arch = runtime.GOARCH
 			}
 
-			TelemetryCaptureEvent("CLI installed", properties)
+			U.TelemetryCaptureEvent("CLI installed", properties)
 		}
 
 	},

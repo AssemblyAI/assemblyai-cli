@@ -37,5 +37,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.BUILD_TOKEN }}
           POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
+          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
           VERSION: ${{ env.GITHUB_REF_NAME }}
 
