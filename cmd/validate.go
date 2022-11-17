@@ -6,6 +6,7 @@ package cmd
 import (
 	"fmt"
 
+	U "github.com/AssemblyAI/assemblyai-cli/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -14,11 +15,11 @@ var validateCmd = &cobra.Command{
 	Hidden: true,
 	Use:    "validate",
 	Short:  "Validate your token",
-	Long: `Seamlessly validate your AssemblyAI token.`,
+	Long:   `Seamlessly validate your AssemblyAI token.`,
 	Run: func(cmd *cobra.Command, args []string) {
-		Token = GetStoredToken()
-		if Token != "" {
-			fmt.Printf("Your Token is %s\n", Token)
+		U.Token = U.GetStoredToken()
+		if U.Token != "" {
+			fmt.Printf("Your Token is %s\n", U.Token)
 			return
 		} else {
 			fmt.Println("Please start by running \033[1m\033[34massemblyai config [token]\033[0m")
