@@ -3,3 +3,4 @@ testfile.*
 !.github/*
 brew/*
 tmp-*
+vendor
