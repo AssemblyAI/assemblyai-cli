@@ -557,7 +557,6 @@ type ArrayCategories struct {
 	Category string  `json:"category"`
 }
 
-// ValidateCustomSpelling validates the custom spelling
 func ValidateCustomSpelling(customSpelling []S.CustomSpelling) error {
 	for _, spelling := range customSpelling {
 		if len(spelling.From) == 0 {
