@@ -556,3 +556,16 @@ type ArrayCategories struct {
 	Score    float64 `json:"score"`
 	Category string  `json:"category"`
 }
+
+// ValidateCustomSpelling validates the custom spelling
+func ValidateCustomSpelling(customSpelling []S.CustomSpelling) error {
+	for _, spelling := range customSpelling {
+		if len(spelling.From) == 0 {
+			return fmt.Errorf("from cannot be empty")
+		}
+		if spelling.To == "" {
+			return fmt.Errorf("to cannot be empty")
+		}
+	}
+	return nil
+}

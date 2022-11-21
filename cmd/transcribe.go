@@ -4,8 +4,11 @@ Copyright © 2022 AssemblyAI support@assemblyai.com
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 
 	S "github.com/AssemblyAI/assemblyai-cli/schemas"
@@ -135,6 +138,66 @@ var transcribeCmd = &cobra.Command{
 			params.LanguageDetection = false
 		}
 
+		customSpelling, _ := cmd.Flags().GetString("custom_spelling")
+		if customSpelling != "" {
+			parsedCustomSpelling := []S.CustomSpelling{}
+
+			_, err := os.Stat(customSpelling)
+
+			if !os.IsNotExist(err) {
+				file, err := os.Open(customSpelling)
+				if err != nil {
+					printErrorProps := S.PrintErrorProps{
+						Error:   err,
+						Message: "Error opening custom spelling file",
+					}
+					U.PrintError(printErrorProps)
+					return
+				}
+				defer file.Close()
+				byteCustomSpelling, err := ioutil.ReadAll(file)
+				if err != nil {
+					printErrorProps := S.PrintErrorProps{
+						Error:   err,
+						Message: "Error reading custom spelling file",
+					}
+					U.PrintError(printErrorProps)
+					return
+				}
+
+				err = json.Unmarshal(byteCustomSpelling, &parsedCustomSpelling)
+				if err != nil {
+					printErrorProps := S.PrintErrorProps{
+						Error:   err,
+						Message: "Error parsing custom spelling file",
+					}
+					U.PrintError(printErrorProps)
+					return
+				}
+			} else {
+				err = json.Unmarshal([]byte(customSpelling), &parsedCustomSpelling)
+				if err != nil {
+					printErrorProps := S.PrintErrorProps{
+						Error:   err,
+						Message: "Invalid custom spelling. Please provide a valid custom spelling JSON.",
+					}
+					U.PrintError(printErrorProps)
+					return
+				}
+			}
+
+			err = U.ValidateCustomSpelling(parsedCustomSpelling)
+			if err != nil {
+				printErrorProps := S.PrintErrorProps{
+					Error:   err,
+					Message: "Error validating custom spelling file",
+				}
+				U.PrintError(printErrorProps)
+				return
+			}
+			params.CustomSpelling = parsedCustomSpelling
+		}
+
 		U.Transcribe(params, flags)
 	},
 }
@@ -157,6 +220,7 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("summarization", "m", false, "Generate a single abstractive summary of the entire audio.")
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
 	transcribeCmd.PersistentFlags().StringP("boost_param", "z", "", "Control how much weight should be applied to your boosted keywords/phrases. This value can be either low, default, or high.")
+	transcribeCmd.PersistentFlags().StringP("custom_spelling", "", "", "Specify how words are spelled or formatted in the transcript text.")
 	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
 	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
 	transcribeCmd.PersistentFlags().StringP("summary_type", "y", "bullets", "Type of summary generated.")
