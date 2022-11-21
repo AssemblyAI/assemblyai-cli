@@ -137,7 +137,7 @@ func Transcribe(params S.TranscribeParams, flags S.TranscribeFlags) {
 			fmt.Println(string(print))
 			return
 		}
-		fmt.Printf("Your transcription was created (id %s)\n", *id)
+		fmt.Fprintf(os.Stdin, "Your transcription was created (id %s)\n", *id)
 		return
 	}
 
@@ -203,6 +203,7 @@ func UploadFile(path string) string {
 
 	fileInfo, _ := file.Stat()
 	bar := pb.New(int(fileInfo.Size()))
+	bar.Output = os.Stdin
 	bar.SetUnits(pb.U_BYTES_DEC)
 	bar.Prefix("Uploading file to our servers: ")
 	bar.ShowBar = false
@@ -222,7 +223,7 @@ func UploadFile(path string) string {
 }
 
 func PollTranscription(id string, flags S.TranscribeFlags) {
-	fmt.Println("Transcribing file with id " + id)
+	fmt.Fprintln(os.Stdin, "Transcribing file with id "+id)
 
 	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 
@@ -290,42 +291,42 @@ func getFormattedOutput(transcript S.TranscriptResponse, flags S.TranscribeFlags
 	} else {
 		width = getWidth
 	}
-	fmt.Printf("\033[1m%s\033[0m\n", "Transcript")
+	fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Transcript")
 	if transcript.SpeakerLabels == true {
 		speakerLabelsPrintFormatted(transcript.Utterances)
 	} else {
 		textPrintFormatted(*transcript.Text, transcript.Words)
 	}
 	if transcript.DualChannel != nil && *transcript.DualChannel == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "\nDual Channel")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "\nDual Channel")
 		dualChannelPrintFormatted(transcript.Utterances)
 	}
 	if *transcript.AutoHighlights == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "Highlights")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Highlights")
 		highlightsPrintFormatted(*transcript.AutoHighlightsResult)
 	}
 	if *transcript.ContentSafety == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "Content Moderation")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Content Moderation")
 		contentSafetyPrintFormatted(*transcript.ContentSafetyLabels)
 	}
 	if *transcript.IabCategories == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "Topic Detection")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Topic Detection")
 		topicDetectionPrintFormatted(*transcript.IabCategoriesResult)
 	}
 	if *transcript.SentimentAnalysis == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "Sentiment Analysis")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Sentiment Analysis")
 		sentimentAnalysisPrintFormatted(transcript.SentimentAnalysisResults)
 	}
 	if *transcript.AutoChapters == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "Chapters")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Chapters")
 		chaptersPrintFormatted(transcript.Chapters)
 	}
 	if *transcript.EntityDetection == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "Entity Detection")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Entity Detection")
 		entityDetectionPrintFormatted(transcript.Entities)
 	}
 	if transcript.Summarization != nil && *transcript.Summarization == true {
-		fmt.Printf("\033[1m%s\033[0m\n", "Summary")
+		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Summary")
 		summaryPrintFormatted(transcript.Summary)
 	}
 }
