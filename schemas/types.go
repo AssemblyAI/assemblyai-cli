@@ -199,6 +199,7 @@ type TranscribeParams struct {
 	SentimentAnalysis      bool             `json:"sentiment_analysis"`
 	SpeakerLabels          bool             `json:"speaker_labels"`
 	Summarization          bool             `json:"summarization,omitempty"`
+	SummaryModel           string           `json:"summary_model,omitempty"`
 	SummaryType            string           `json:"summary_type,omitempty"`
 	TopicDetection         bool             `json:"iab_categories"`
 	WebhookAuthHeaderName  string           `json:"webhook_auth_header_name,omitempty"`
@@ -323,6 +324,12 @@ var SummarizationTypeMapReverse = map[string]string{
 	"gist":            "Gist",
 	"bullets":         "Bullets",
 	"bullets_verbose": "Bullets Verbose",
+}
+
+var SummarizationModelMapReverse = map[string]string{
+	"conversational": "Conversational",
+	"catchy":         "Catchy",
+	"informative":    "Informative",
 }
 
 type PrintErrorProps struct {

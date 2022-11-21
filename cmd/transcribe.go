@@ -76,7 +76,15 @@ var transcribeCmd = &cobra.Command{
 				U.PrintError(printErrorProps)
 				return
 			}
-
+			params.SummaryModel, _ = cmd.Flags().GetString("summary_model")
+			if _, ok := S.SummarizationModelMapReverse[params.SummaryModel]; !ok {
+				printErrorProps := S.PrintErrorProps{
+					Error:   errors.New("Invalid summary model"),
+					Message: "Invalid summary model. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
+				}
+				U.PrintError(printErrorProps)
+				return
+			}
 		}
 
 		if params.RedactPii {
@@ -203,7 +211,6 @@ var transcribeCmd = &cobra.Command{
 }
 
 func init() {
-	// word_boost, boost_param
 	transcribeCmd.PersistentFlags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
 	transcribeCmd.PersistentFlags().BoolP("auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
 	transcribeCmd.PersistentFlags().BoolP("content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
@@ -228,6 +235,7 @@ func init() {
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_value", "o", "", "The value of the header that will be inserted into the webhook request.")
 	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
 	transcribeCmd.PersistentFlags().StringP("word_boost", "k", "", "The value of this flag MUST be used surrounded by quotes. Any term included will have its likelihood of being transcribed boosted.")
+	transcribeCmd.PersistentFlags().StringP("summary_model", "q", "informative", "The model used to generate the summary.")
 
 	rootCmd.AddCommand(transcribeCmd)
 }
