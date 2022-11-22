@@ -32,11 +32,12 @@ If you don't have Homebrew installed, or are running Linux:
 ### Windows
 
 The CLI is available on Windows:
+On PowerShell as administrator
 
-```bash
+```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
 iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.ps1)"
-New-Alias -Name assemblyai -Value C:\\'./Program Files\'/AssemblyAI/assemblyai.exe
+New-Alias -Name assemblyai -Value $Env:Programfiles/AssemblyAI/assemblyai.exe
 ```
 
 ## Getting started
