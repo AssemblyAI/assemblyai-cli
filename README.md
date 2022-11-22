@@ -37,7 +37,7 @@ Via Scoop:
 
 ```powershell
 scoop bucket add assemblyai https://github.com/assemblyai/scoop-assemblyai.git
-scoop install assemblyai/assemblyai
+scoop install assemblyai
 ````
 
 Or via PowerShell as an administrator:
