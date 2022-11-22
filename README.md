@@ -31,7 +31,7 @@ If you don't have Homebrew installed, or are running Linux:
 
 ### Windows
 
-The CLI is available on Windows either via Scool or by script:
+The CLI is available on Windows either via Scool or by script. 
 
 Via Scoop:
 
@@ -40,7 +40,7 @@ scoop bucket add assemblyai https://github.com/assemblyai/scoop-assemblyai.git
 scoop install assemblyai/assemblyai
 ````
 
-Via PowerShell as an administrator
+Or via PowerShell as an administrator:
 
 ```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
