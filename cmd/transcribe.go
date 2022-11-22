@@ -76,14 +76,26 @@ var transcribeCmd = &cobra.Command{
 				U.PrintError(printErrorProps)
 				return
 			}
-			params.SummaryModel, _ = cmd.Flags().GetString("summary_model")
-			if _, ok := S.SummarizationModelMapReverse[params.SummaryModel]; !ok {
-				printErrorProps := S.PrintErrorProps{
-					Error:   errors.New("Invalid summary model"),
-					Message: "Invalid summary model. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
+			summaryModel, _ := cmd.Flags().GetString("summary_model")
+			if summaryModel != "" {
+				if _, ok := S.SummarizationModelMap[summaryModel]; !ok {
+					printErrorProps := S.PrintErrorProps{
+						Error:   errors.New("Invalid summary model"),
+						Message: "Invalid summary model. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
+					}
+					U.PrintError(printErrorProps)
+					return
 				}
-				U.PrintError(printErrorProps)
-				return
+
+				if !U.Contains(S.SummarizationModelMap[summaryModel], params.SummaryType) {
+					printErrorProps := S.PrintErrorProps{
+						Error:   errors.New("Invalid summary model"),
+						Message: "Cant use summary model " + summaryModel + " with summary type " + params.SummaryType + ". To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
+					}
+					U.PrintError(printErrorProps)
+					return
+				}
+				params.SummaryModel = summaryModel
 			}
 		}
 

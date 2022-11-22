@@ -326,10 +326,10 @@ var SummarizationTypeMapReverse = map[string]string{
 	"bullets_verbose": "Bullets Verbose",
 }
 
-var SummarizationModelMapReverse = map[string]string{
-	"conversational": "Conversational",
-	"catchy":         "Catchy",
-	"informative":    "Informative",
+var SummarizationModelMap = map[string][]string{
+	"conversational": {"headline", "paragraph", "bullets", "bullets_verbose"},
+	"catchy":         {"gist", "headline"},
+	"informative":    {"headline", "paragraph", "bullets", "bullets_verbose"},
 }
 
 type PrintErrorProps struct {
