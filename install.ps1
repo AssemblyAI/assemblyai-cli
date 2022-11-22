@@ -36,4 +36,4 @@ if (!(Test-Path $INSTALL_DIR)) {
 $TARGET = $INSTALL_DIR + "/" + $FILE_BASENAME + ".exe"
 Copy-Item $BINARY $TARGET -Force
 
-Start-Process -FilePath $TARGET -ArgumentList "welcome -i -o=windows -m=curl -v=$VERSION" -Wait -NoNewWindow
+Start-Process -FilePath $TARGET -ArgumentList "welcome -i -o=windows -m=curl -v=$VERSION -a=$ARCH" -Wait -NoNewWindow
