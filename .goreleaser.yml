@@ -44,9 +44,14 @@ brews:
     commit_author:
       name: assemblyai
       email: support@assemblyai.compost_install
-    # post_install: |
-    #   etc.install puts "Welcome to AssemblyAI CLI"
-    #   system "assemblyai", "welcome", "-i", "-v={{ .Tag }}", "-m=brew"
+
+scoop:
+  bucket:
+    owner: assemblyai
+    name: scoop-assemblyai
+  homepage: "https://www.assemblyai.com/"
+  description: "A quick and easy way to test assemblyAI's transcription features on your terminal"
+  license: "Apache 2.0"
 
 checksum:
   name_template: 'checksums.txt'

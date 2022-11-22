@@ -31,12 +31,20 @@ If you don't have Homebrew installed, or are running Linux:
 
 ### Windows
 
-The CLI is available on Windows:
-On PowerShell as administrator
+The CLI is available on Windows either via Scool or by script:
+
+Via Scoop:
+
+```powershell
+scoop bucket add assemblyai https://github.com/assemblyai/assemblyai-cli.git
+scoop install assemblyai/assemblyai-cli
+````
+
+Via PowerShell as an administrator
 
 ```powershell
 Set-ExecutionPolicy RemoteSigned -Scope CurrentUser
-iex "$(curl https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.ps1)"
+irm https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.ps1 | iex
 New-Alias -Name assemblyai -Value $Env:Programfiles/AssemblyAI/assemblyai.exe
 ```
 
