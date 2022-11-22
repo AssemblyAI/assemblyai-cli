@@ -36,8 +36,8 @@ The CLI is available on Windows either via Scool or by script:
 Via Scoop:
 
 ```powershell
-scoop bucket add assemblyai https://github.com/assemblyai/assemblyai-cli.git
-scoop install assemblyai/assemblyai-cli
+scoop bucket add assemblyai https://github.com/assemblyai/scoop-assemblyai.git
+scoop install assemblyai/assemblyai
 ````
 
 Via PowerShell as an administrator
