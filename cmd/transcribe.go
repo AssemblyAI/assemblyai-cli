@@ -67,6 +67,9 @@ var transcribeCmd = &cobra.Command{
 			params.BoostParam = &boostParam
 		}
 		if params.Summarization {
+			params.Punctuate = true
+			params.FormatText = true
+
 			params.SummaryType, _ = cmd.Flags().GetString("summary_type")
 			if _, ok := S.SummarizationTypeMapReverse[params.SummaryType]; !ok {
 				printErrorProps := S.PrintErrorProps{
@@ -86,11 +89,18 @@ var transcribeCmd = &cobra.Command{
 					U.PrintError(printErrorProps)
 					return
 				}
-
 				if !U.Contains(S.SummarizationModelMap[summaryModel], params.SummaryType) {
 					printErrorProps := S.PrintErrorProps{
 						Error:   errors.New("Invalid summary model"),
 						Message: "Cant use summary model " + summaryModel + " with summary type " + params.SummaryType + ". To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
+					}
+					U.PrintError(printErrorProps)
+					return
+				}
+				if summaryModel == "conversational" && !params.SpeakerLabels {
+					printErrorProps := S.PrintErrorProps{
+						Error:   errors.New("Speaker labels required for conversational summary model"),
+						Message: "Speaker labels are required for conversational summarization. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
 					}
 					U.PrintError(printErrorProps)
 					return
