@@ -17,7 +17,6 @@ import (
 
 	S "github.com/AssemblyAI/assemblyai-cli/schemas"
 	"github.com/briandowns/spinner"
-	"github.com/fatih/color"
 	"github.com/getsentry/sentry-go"
 	"github.com/google/uuid"
 	"github.com/joho/godotenv"
@@ -354,9 +353,9 @@ func InitSentry() {
 }
 
 func CheckForUpdates(currentVersion string) {
-	getWidth, _, err := term.GetSize(0)
+	terminalWidth, _, err := term.GetSize(0)
 	if err != nil {
-		getWidth = 512
+		terminalWidth = 0
 	}
 	resp, err := http.Get("https://api.github.com/repos/assemblyai/assemblyai-cli/releases/latest")
 	if err != nil {
@@ -373,42 +372,30 @@ func CheckForUpdates(currentVersion string) {
 		return
 	}
 	if *release.TagName != currentVersion {
-		underlinedBlue := color.New(color.FgHiBlue).Add(color.Underline).SprintFunc()
-		blue := color.New(color.FgHiBlue).SprintFunc()
-		black := color.New(color.FgHiBlack).SprintFunc()
-		yellow := color.New(color.FgYellow).SprintFunc()
 
-		message := fmt.Sprintf("A new version of the CLI (%s) is available!", *release.TagName)
-		instructions := "Run the installation scripts to upgrade it: https://github.com/AssemblyAI/assemblyai-cli#installation"
+		firstLine := "New version available!"
+		secondLine := "AssemblyAI CLI " + *release.TagName
+		thirdLine := "https://github.com/AssemblyAI/assemblyai-cli#installation"
+		boxWidth := len(thirdLine) + 6
+		firstLinePadding := (boxWidth - len(firstLine)) / 2
+		firstLinePaddingExtra := (boxWidth - len(firstLine)) % 2
+		secondLinePadding := (boxWidth - len(secondLine)) / 2
+		secondLinePaddingExtra := (boxWidth - len(secondLine)) % 2
+		thirdLinePadding := 3
+		padding := 0
+		paddingExtra := 0
 
-		messagePadding := (getWidth - len(message) - 2) / 2
-		instructionsPadding := (getWidth - len(instructions) - 2) / 2
-		if messagePadding < 0 {
-			messagePadding = 0
+		if terminalWidth > boxWidth {
+			padding = (terminalWidth - boxWidth) / 2
+			paddingExtra = (terminalWidth - boxWidth) % 2
 		}
-		if instructionsPadding < 0 {
-			instructionsPadding = 0
-		}
-		fmt.Println(strings.Repeat(underlinedBlue(" "), getWidth))
-		fmt.Printf("%s%s%s", blue("|"), strings.Repeat(" ", getWidth-2), blue("|"))
-		fmt.Println()
-		fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", messagePadding), yellow(message), strings.Repeat(" ", messagePadding), blue("|"))
-		fmt.Println()
-		if len(instructions) < getWidth-2 {
-			fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", instructionsPadding), black(instructions), strings.Repeat(" ", instructionsPadding), blue("|"))
-			fmt.Println()
-		} else {
-			instructions1 := "Run the installation scripts to upgrade it:"
-			instructions2 := "https://github.com/AssemblyAI/assemblyai-cli#installation"
-			instructions1Padding := (getWidth - len(instructions1) - 2) / 2
-			instructions2Padding := (getWidth - len(instructions2) - 2) / 2
-			fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", instructions1Padding), black(instructions1), strings.Repeat(" ", instructions1Padding), blue("|"))
-			fmt.Println()
-			fmt.Printf("%s%s%s%s%s", blue("|"), strings.Repeat(" ", instructions2Padding), black(instructions2), strings.Repeat(" ", instructions2Padding), blue("|"))
-			fmt.Println()
-		}
-		fmt.Printf("%s%s%s", blue("|"), strings.Repeat(underlinedBlue(" "), getWidth-2), blue("|"))
-		fmt.Println()
+
+		fmt.Fprintf(os.Stdin, "%s%s %s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), strings.Repeat("_", boxWidth))
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", boxWidth), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", firstLinePadding), firstLine, strings.Repeat(" ", firstLinePadding), strings.Repeat(" ", firstLinePaddingExtra), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", secondLinePadding), secondLine, strings.Repeat(" ", secondLinePadding), strings.Repeat(" ", secondLinePaddingExtra), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", thirdLinePadding), thirdLine, strings.Repeat(" ", thirdLinePadding), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat("_", boxWidth), "|")
 
 		var properties *S.PostHogProperties = &S.PostHogProperties{
 			Version:       currentVersion,
