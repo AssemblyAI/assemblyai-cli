@@ -53,7 +53,7 @@ func YoutubeDownload(id string) string {
 	}
 
 	requestBody := bytes.NewReader(paramsJSON)
-	fmt.Println("Transcribing Youtube video...")
+	fmt.Fprintln(os.Stdin, "Transcribing Youtube video...")
 	video := QueryYoutube(requestBody)
 	if *video.PlayabilityStatus.Status != "OK" || video.StreamingData.Formats == nil {
 		printErrorProps := S.PrintErrorProps{
@@ -210,6 +210,7 @@ func DownloadVideo(url string) {
 	if fileLength > chunkSize {
 		bar := pb.New(fileLength)
 		bar.Prefix("Downloading video: ")
+		bar.Output = os.Stdin
 		bar.SetUnits(pb.U_BYTES_DEC)
 		bar.ShowBar = false
 		bar.ShowTimeLeft = false
@@ -278,6 +279,7 @@ func (pWc *writeCounter) Write(b []byte) (n int, err error) {
 func displayDownloadProgress() {
 	bar := pb.New(fileLength)
 	bar.Prefix("Downloading video: ")
+	bar.Output = os.Stdin
 	bar.SetUnits(pb.U_BYTES_DEC)
 	bar.ShowBar = false
 	bar.ShowTimeLeft = false
