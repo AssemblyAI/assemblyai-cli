@@ -27,6 +27,8 @@ jobs:
         with:
           go-version: '1.19'
           check-latest: true
+          
+      - run: go mod vendor
 
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
