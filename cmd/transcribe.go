@@ -190,7 +190,7 @@ var transcribeCmd = &cobra.Command{
 			if err != nil {
 				printErrorProps := S.PrintErrorProps{
 					Error:   err,
-					Message: "Error validating custom spelling file",
+					Message: "Invalid custom spelling. Please provide a valid custom spelling JSON.",
 				}
 				U.PrintError(printErrorProps)
 				return
