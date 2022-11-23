@@ -189,6 +189,14 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > Type of summary generated.
 > Click [here](https://www.assemblyai.com/docs/audio-intelligence#summarization) to view all the supported types
 
+> **-k, --word_boost**
+> example: `-k "sally mcmanus,the IQEZ iPhone app"` or `--word_boost "sally mcmanus,the IQEZ iPhone app"`  
+> Any term included will have its likelihood of being transcribed boosted.
+
+> **-z, --boost_param**
+> example: `-z high` or `--word_boost high`  
+> Control how much weight should be applied to your boosted keywords/phrases. This value can be either low, default, or high.
+
 </details>
 
 ### Get

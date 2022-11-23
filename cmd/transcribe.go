@@ -49,6 +49,20 @@ var transcribeCmd = &cobra.Command{
 		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
 		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
 		params.Summarization, _ = cmd.Flags().GetBool("summarization")
+		wordBoost, _ := cmd.Flags().GetString("word_boost")
+		if wordBoost != "" {
+			params.WordBoost = strings.Split(wordBoost, ",")
+			boostParam, _ := cmd.Flags().GetString("boost_param")
+			if boostParam != "" && boostParam != "low" && boostParam != "default" && boostParam != "high" {
+				printErrorProps := S.PrintErrorProps{
+					Error:   errors.New("Invalid boost_param"),
+					Message: "Please provide a valid boost_param. Valid values are low, default, or high.",
+				}
+				U.PrintError(printErrorProps)
+				return
+			}
+			params.BoostParam = &boostParam
+		}
 		if params.Summarization {
 			params.SummaryType, _ = cmd.Flags().GetString("summary_type")
 			if _, ok := S.SummarizationTypeMapReverse[params.SummaryType]; !ok {
@@ -126,6 +140,7 @@ var transcribeCmd = &cobra.Command{
 }
 
 func init() {
+	// word_boost, boost_param
 	transcribeCmd.PersistentFlags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
 	transcribeCmd.PersistentFlags().BoolP("auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
 	transcribeCmd.PersistentFlags().BoolP("content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
@@ -141,11 +156,14 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
 	transcribeCmd.PersistentFlags().BoolP("summarization", "m", false, "Generate a single abstractive summary of the entire audio.")
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
+	transcribeCmd.PersistentFlags().StringP("boost_param", "z", "", "Control how much weight should be applied to your boosted keywords/phrases. This value can be either low, default, or high.")
 	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
 	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
 	transcribeCmd.PersistentFlags().StringP("summary_type", "y", "bullets", "Type of summary generated.")
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_name", "b", "", "Containing the header's name which will be inserted into the webhook request")
 	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_value", "o", "", "The value of the header that will be inserted into the webhook request.")
 	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
+	transcribeCmd.PersistentFlags().StringP("word_boost", "k", "", "The value of this flag MUST be used surrounded by quotes. Any term included will have its likelihood of being transcribed boosted.")
+
 	rootCmd.AddCommand(transcribeCmd)
 }
