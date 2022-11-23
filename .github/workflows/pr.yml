@@ -1,0 +1,45 @@
+name: PR workflow
+
+on:
+  pull_request:
+    branches: [main]
+      
+permissions:
+  contents: write
+
+env:
+  BEFORE_SHA: ${{ github.event.before }}
+  CI: true
+  POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
+
+jobs:
+  build:
+    if: github.event.commits[0].author.name != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.BUILD_TOKEN }}
+
+      - uses: actions/setup-go@v3
+        with:
+          go-version: '1.19'
+          check-latest: true
+      
+      - run: go mod vendor
+
+      - name: install GoReleaser
+        uses: goreleaser/goreleaser-action@v3
+        with:
+          install-only: true
+      
+      - name: goreleaser
+        run: goreleaser release --skip-publish --skip-validate
+        env:
+          version: ${{ env.GITHUB_REF_NAME }}
+          GITHUB_TOKEN: ${{ secrets.BUILD_TOKEN }}
+          POSTHOG_API_TOKEN: ${{ secrets.POSTHOG_API_TOKEN }}
+          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
+          VERSION: ${{ env.GITHUB_REF_NAME }}
+
