@@ -182,28 +182,34 @@ type TranscribeFlags struct {
 }
 
 type TranscribeParams struct {
-	AudioURL               string   `json:"audio_url"`
-	AutoChapters           bool     `json:"auto_chapters"`
-	AutoHighlights         bool     `json:"auto_highlights"`
-	BoostParam             *string  `json:"boost_param,omitempty"`
-	ContentModeration      bool     `json:"content_safety"`
-	DualChannel            bool     `json:"dual_channel"`
-	EntityDetection        bool     `json:"entity_detection"`
-	FormatText             bool     `json:"format_text"`
-	LanguageCode           *string  `json:"language_code,omitempty"`
-	LanguageDetection      bool     `json:"language_detection"`
-	Punctuate              bool     `json:"punctuate"`
-	RedactPii              bool     `json:"redact_pii"`
-	RedactPiiPolicies      []string `json:"redact_pii_policies"`
-	SentimentAnalysis      bool     `json:"sentiment_analysis"`
-	SpeakerLabels          bool     `json:"speaker_labels"`
-	Summarization          bool     `json:"summarization,omitempty"`
-	SummaryType            string   `json:"summary_type,omitempty"`
-	TopicDetection         bool     `json:"iab_categories"`
-	WebhookAuthHeaderName  string   `json:"webhook_auth_header_name,omitempty"`
-	WebhookAuthHeaderValue string   `json:"webhook_auth_header_value,omitempty"`
-	WebhookURL             string   `json:"webhook_url,omitempty"`
-	WordBoost              []string `json:"word_boost,omitempty"`
+	AudioURL               string           `json:"audio_url"`
+	AutoChapters           bool             `json:"auto_chapters"`
+	AutoHighlights         bool             `json:"auto_highlights"`
+	BoostParam             *string          `json:"boost_param,omitempty"`
+	ContentModeration      bool             `json:"content_safety"`
+	CustomSpelling         []CustomSpelling `json:"custom_spelling,omitempty"`
+	DualChannel            bool             `json:"dual_channel"`
+	EntityDetection        bool             `json:"entity_detection"`
+	FormatText             bool             `json:"format_text"`
+	LanguageCode           *string          `json:"language_code,omitempty"`
+	LanguageDetection      bool             `json:"language_detection"`
+	Punctuate              bool             `json:"punctuate"`
+	RedactPii              bool             `json:"redact_pii"`
+	RedactPiiPolicies      []string         `json:"redact_pii_policies"`
+	SentimentAnalysis      bool             `json:"sentiment_analysis"`
+	SpeakerLabels          bool             `json:"speaker_labels"`
+	Summarization          bool             `json:"summarization,omitempty"`
+	SummaryType            string           `json:"summary_type,omitempty"`
+	TopicDetection         bool             `json:"iab_categories"`
+	WebhookAuthHeaderName  string           `json:"webhook_auth_header_name,omitempty"`
+	WebhookAuthHeaderValue string           `json:"webhook_auth_header_value,omitempty"`
+	WebhookURL             string           `json:"webhook_url,omitempty"`
+	WordBoost              []string         `json:"word_boost,omitempty"`
+}
+
+type CustomSpelling struct {
+	From []string `json:"from"`
+	To   string   `json:"to"`
 }
 
 type RedactPiiPolicy string

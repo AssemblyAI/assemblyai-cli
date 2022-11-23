@@ -196,6 +196,9 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > **-z, --boost_param**
 > example: `-z high` or `--word_boost high`  
 > Control how much weight should be applied to your boosted keywords/phrases. This value can be either low, default, or high.
+> **--custom_spelling**
+> example: `--custom_spelling "[{\"from\": [\"ariana\"], \"to\": \"Arianna\"}]"` or  `--custom_spelling ./custom_spelling.json`
+> Specify how words are spelled or formatted in the transcript text.
 
 </details>
 
