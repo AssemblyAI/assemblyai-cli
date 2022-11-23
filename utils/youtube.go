@@ -53,7 +53,7 @@ func YoutubeDownload(id string) string {
 	}
 
 	requestBody := bytes.NewReader(paramsJSON)
-	fmt.Fprintln(os.Stdin, "Transcribing Youtube video...")
+	fmt.Fprintln(os.Stdin, "Transcribing YouTube video...")
 	video := QueryYoutube(requestBody)
 	if *video.PlayabilityStatus.Status != "OK" || video.StreamingData.Formats == nil {
 		printErrorProps := S.PrintErrorProps{

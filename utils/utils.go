@@ -54,6 +54,10 @@ func TelemetryCaptureEvent(event string, properties *S.PostHogProperties) {
 					Set("Arch", properties.Arch).
 					Set("Version", properties.Version).
 					Set("Method", properties.Method)
+			} else if properties.LatestVersion != "" {
+				PhProperties = posthog.NewProperties().
+					Set("latest_version", properties.LatestVersion).
+					Set("current_version", properties.Version)
 			} else {
 				PhProperties = posthog.NewProperties().
 					Set("poll", properties.Poll).
@@ -345,5 +349,58 @@ func InitSentry() {
 			log.Fatalf("sentry.Init: %s", err)
 		}
 		defer sentry.Flush(5 * time.Second)
+	}
+}
+
+func CheckForUpdates(currentVersion string) {
+	terminalWidth, _, err := term.GetSize(0)
+	if err != nil {
+		terminalWidth = 0
+	}
+	resp, err := http.Get("https://api.github.com/repos/assemblyai/assemblyai-cli/releases/latest")
+	if err != nil {
+		return
+	}
+	defer resp.Body.Close()
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+	var release S.Release
+	err = json.Unmarshal(body, &release)
+	if err != nil {
+		return
+	}
+	if *release.TagName != currentVersion {
+
+		firstLine := "New version available!"
+		secondLine := "AssemblyAI CLI " + *release.TagName
+		thirdLine := "https://github.com/AssemblyAI/assemblyai-cli#installation"
+		boxWidth := len(thirdLine) + 6
+		firstLinePadding := (boxWidth - len(firstLine)) / 2
+		firstLinePaddingExtra := (boxWidth - len(firstLine)) % 2
+		secondLinePadding := (boxWidth - len(secondLine)) / 2
+		secondLinePaddingExtra := (boxWidth - len(secondLine)) % 2
+		thirdLinePadding := 3
+		padding := 0
+		paddingExtra := 0
+
+		if terminalWidth > boxWidth {
+			padding = (terminalWidth - boxWidth) / 2
+			paddingExtra = (terminalWidth - boxWidth) % 2
+		}
+
+		fmt.Fprintf(os.Stdin, "%s%s %s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), strings.Repeat("_", boxWidth))
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", boxWidth), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", firstLinePadding), firstLine, strings.Repeat(" ", firstLinePadding), strings.Repeat(" ", firstLinePaddingExtra), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", secondLinePadding), secondLine, strings.Repeat(" ", secondLinePadding), strings.Repeat(" ", secondLinePaddingExtra), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", thirdLinePadding), thirdLine, strings.Repeat(" ", thirdLinePadding), "|")
+		fmt.Fprintf(os.Stdin, "%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat("_", boxWidth), "|")
+
+		var properties *S.PostHogProperties = &S.PostHogProperties{
+			Version:       currentVersion,
+			LatestVersion: *release.TagName,
+		}
+		TelemetryCaptureEvent("CLI update available", properties)
 	}
 }
