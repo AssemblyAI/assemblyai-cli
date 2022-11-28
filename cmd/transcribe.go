@@ -9,12 +9,14 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strings"
 
 	S "github.com/AssemblyAI/assemblyai-cli/schemas"
 	U "github.com/AssemblyAI/assemblyai-cli/utils"
 	"github.com/spf13/cobra"
 )
+
+var flags S.TranscribeFlags
+var params S.TranscribeParams
 
 var transcribeCmd = &cobra.Command{
 	Use:   "transcribe <url | path | youtube URL>",
@@ -24,10 +26,6 @@ var transcribeCmd = &cobra.Command{
 	Powered by cutting-edge AI models.`,
 	Args: cobra.MinimumNArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
-		var params S.TranscribeParams
-		var flags S.TranscribeFlags
-
-		args = cmd.Flags().Args()
 		if len(args) == 0 {
 			printErrorProps := S.PrintErrorProps{
 				Error:   errors.New("Please provide a URL, path, or YouTube URL"),
@@ -38,39 +36,28 @@ var transcribeCmd = &cobra.Command{
 		}
 		params.AudioURL = args[0]
 
-		flags.Json, _ = cmd.Flags().GetBool("json")
-		flags.Poll, _ = cmd.Flags().GetBool("poll")
-		params.AutoChapters, _ = cmd.Flags().GetBool("auto_chapters")
-		params.AutoHighlights, _ = cmd.Flags().GetBool("auto_highlights")
-		params.ContentModeration, _ = cmd.Flags().GetBool("content_moderation")
-		params.DualChannel, _ = cmd.Flags().GetBool("dual_channel")
-		params.EntityDetection, _ = cmd.Flags().GetBool("entity_detection")
-		params.FormatText, _ = cmd.Flags().GetBool("format_text")
-		params.Punctuate, _ = cmd.Flags().GetBool("punctuate")
-		params.RedactPii, _ = cmd.Flags().GetBool("redact_pii")
-		params.SentimentAnalysis, _ = cmd.Flags().GetBool("sentiment_analysis")
-		params.SpeakerLabels, _ = cmd.Flags().GetBool("speaker_labels")
-		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
-		params.Summarization, _ = cmd.Flags().GetBool("summarization")
-		wordBoost, _ := cmd.Flags().GetString("word_boost")
-		if wordBoost != "" {
-			params.WordBoost = strings.Split(wordBoost, ",")
-			boostParam, _ := cmd.Flags().GetString("boost_param")
-			if boostParam != "" && boostParam != "low" && boostParam != "default" && boostParam != "high" {
-				printErrorProps := S.PrintErrorProps{
-					Error:   errors.New("Invalid boost_param"),
-					Message: "Please provide a valid boost_param. Valid values are low, default, or high.",
-				}
-				U.PrintError(printErrorProps)
-				return
+		if params.WordBoost == nil && params.BoostParam != "" {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("Please provide a valid word boost"),
+				Message: "To boost a word, please provide a valid list of words to boost. For example: --word_boost \"word1,word2,word3\"  --boost_param high",
 			}
-			params.BoostParam = &boostParam
+			U.PrintError(printErrorProps)
+			return
+		} else if params.BoostParam != "" && params.BoostParam != "low" && params.BoostParam != "default" && params.BoostParam != "high" {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("Invalid boost_param"),
+				Message: "Please provide a valid boost_param. Valid values are low, default, or high.",
+			}
+			U.PrintError(printErrorProps)
+			return
 		}
-		if params.Summarization {
+
+		if !params.Summarization {
+			params.SummaryType = ""
+			params.SummaryModel = ""
+		} else {
 			params.Punctuate = true
 			params.FormatText = true
-
-			params.SummaryType, _ = cmd.Flags().GetString("summary_type")
 			if _, ok := S.SummarizationTypeMapReverse[params.SummaryType]; !ok {
 				printErrorProps := S.PrintErrorProps{
 					Error:   errors.New("Invalid summary type"),
@@ -79,41 +66,35 @@ var transcribeCmd = &cobra.Command{
 				U.PrintError(printErrorProps)
 				return
 			}
-			summaryModel, _ := cmd.Flags().GetString("summary_model")
-			if summaryModel != "" {
-				if _, ok := S.SummarizationModelMap[summaryModel]; !ok {
-					printErrorProps := S.PrintErrorProps{
-						Error:   errors.New("Invalid summary model"),
-						Message: "Invalid summary model. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
-					}
-					U.PrintError(printErrorProps)
-					return
+			if _, ok := S.SummarizationModelMap[params.SummaryModel]; !ok {
+				printErrorProps := S.PrintErrorProps{
+					Error:   errors.New("Invalid summary model"),
+					Message: "Invalid summary model. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
 				}
-				if !U.Contains(S.SummarizationModelMap[summaryModel], params.SummaryType) {
-					printErrorProps := S.PrintErrorProps{
-						Error:   errors.New("Invalid summary model"),
-						Message: "Cant use summary model " + summaryModel + " with summary type " + params.SummaryType + ". To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
-					}
-					U.PrintError(printErrorProps)
-					return
+				U.PrintError(printErrorProps)
+				return
+			}
+			if !U.Contains(S.SummarizationModelMap[params.SummaryModel], params.SummaryType) {
+				printErrorProps := S.PrintErrorProps{
+					Error:   errors.New("Invalid summary model"),
+					Message: "Cant use summary model " + params.SummaryModel + " with summary type " + params.SummaryType + ". To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
 				}
-				if summaryModel == "conversational" && !params.SpeakerLabels {
-					printErrorProps := S.PrintErrorProps{
-						Error:   errors.New("Speaker labels required for conversational summary model"),
-						Message: "Speaker labels are required for conversational summarization. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
-					}
-					U.PrintError(printErrorProps)
-					return
+				U.PrintError(printErrorProps)
+				return
+			}
+			if params.SummaryModel == "conversational" && !params.SpeakerLabels {
+				printErrorProps := S.PrintErrorProps{
+					Error:   errors.New("Speaker labels required for conversational summary model"),
+					Message: "Speaker labels are required for conversational summarization. To know more about Summarization, head over to https://assemblyai.com/docs/audio-intelligence#summarization",
 				}
-				params.SummaryModel = summaryModel
+				U.PrintError(printErrorProps)
+				return
 			}
 		}
-
-		if params.RedactPii {
-			policies, _ := cmd.Flags().GetString("redact_pii_policies")
-			policiesArray := strings.Split(policies, ",")
-
-			for _, policy := range policiesArray {
+		if !params.RedactPii {
+			params.RedactPiiPolicies = nil
+		} else {
+			for _, policy := range params.RedactPiiPolicies {
 				if _, ok := S.PIIRedactionPolicyMap[policy]; !ok {
 					printErrorProps := S.PrintErrorProps{
 						Error:   errors.New("Invalid redaction policy"),
@@ -123,24 +104,17 @@ var transcribeCmd = &cobra.Command{
 					return
 				}
 			}
+		}
 
-			params.RedactPiiPolicies = policiesArray
-		}
-		webhook := cmd.Flags().Lookup("webhook_url").Value.String()
-		if webhook != "" {
-			params.WebhookURL = webhook
-			webhookHeaderName := cmd.Flags().Lookup("webhook_auth_header_name").Value.String()
-			webhookHeaderValue := cmd.Flags().Lookup("webhook_auth_header_value").Value.String()
-			if webhookHeaderName != "" {
-				params.WebhookAuthHeaderName = webhookHeaderName
+		if params.LanguageDetection && params.LanguageCode != "" {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("Language detection and language code cannot be used together"),
+				Message: "Language detection and language code cannot be used together.",
 			}
-			if webhookHeaderValue != "" {
-				params.WebhookAuthHeaderValue = webhookHeaderValue
-			}
+			U.PrintError(printErrorProps)
+			return
 		}
-		languageDetection, _ := cmd.Flags().GetBool("language_detection")
-		languageCode, _ := cmd.Flags().GetString("language_code")
-		if (languageCode != "" || languageDetection) && params.SpeakerLabels {
+		if (params.LanguageCode != "" || params.LanguageDetection) && params.SpeakerLabels {
 			if cmd.Flags().Lookup("speaker_labels").Changed {
 				printErrorProps := S.PrintErrorProps{
 					Error:   errors.New("Speaker labels are not supported for languages other than English"),
@@ -152,11 +126,8 @@ var transcribeCmd = &cobra.Command{
 				params.SpeakerLabels = false
 			}
 		}
-		if languageDetection && languageCode == "" {
-			params.LanguageDetection = true
-		}
-		if languageCode != "" {
-			if _, ok := S.LanguageMap[languageCode]; !ok {
+		if params.LanguageCode != "" {
+			if _, ok := S.LanguageMap[params.LanguageCode]; !ok {
 				printErrorProps := S.PrintErrorProps{
 					Error:   errors.New("Invalid language code"),
 					Message: "Invalid language code. See https://www.assemblyai.com/docs#supported-languages for supported languages.",
@@ -164,8 +135,6 @@ var transcribeCmd = &cobra.Command{
 				U.PrintError(printErrorProps)
 				return
 			}
-			params.LanguageCode = &languageCode
-			params.LanguageDetection = false
 		}
 
 		customSpelling, _ := cmd.Flags().GetString("custom_spelling")
@@ -228,36 +197,47 @@ var transcribeCmd = &cobra.Command{
 			params.CustomSpelling = parsedCustomSpelling
 		}
 
+		if flags.Csv != "" && !flags.Poll {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("CSV output is only supported with polling"),
+				Message: "CSV output is only supported with polling.",
+			}
+			U.PrintError(printErrorProps)
+			return
+		}
+
 		U.Transcribe(params, flags)
 	},
 }
 
 func init() {
-	transcribeCmd.PersistentFlags().BoolP("auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
-	transcribeCmd.PersistentFlags().BoolP("auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
-	transcribeCmd.PersistentFlags().BoolP("content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
-	transcribeCmd.PersistentFlags().BoolP("dual_channel", "d", false, "Enable dual channel")
-	transcribeCmd.PersistentFlags().BoolP("entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
-	transcribeCmd.PersistentFlags().BoolP("format_text", "f", true, "Enable text formatting")
-	transcribeCmd.PersistentFlags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
-	transcribeCmd.PersistentFlags().BoolP("language_detection", "n", false, "Identify the dominant language that’s spoken in an audio file.")
-	transcribeCmd.PersistentFlags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
-	transcribeCmd.PersistentFlags().BoolP("punctuate", "u", true, "Enable automatic punctuation.")
-	transcribeCmd.PersistentFlags().BoolP("redact_pii", "r", false, "Remove personally identifiable information from the transcription.")
-	transcribeCmd.PersistentFlags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
-	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
-	transcribeCmd.PersistentFlags().BoolP("summarization", "m", false, "Generate a single abstractive summary of the entire audio.")
-	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
-	transcribeCmd.PersistentFlags().StringP("boost_param", "z", "", "Control how much weight should be applied to your boosted keywords/phrases. This value can be either low, default, or high.")
-	transcribeCmd.PersistentFlags().StringP("custom_spelling", "", "", "Specify how words are spelled or formatted in the transcript text.")
-	transcribeCmd.PersistentFlags().StringP("language_code", "g", "", "Specify the language of the speech in your audio file.")
-	transcribeCmd.PersistentFlags().StringP("redact_pii_policies", "i", "drug,number_sequence,person_name", "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
-	transcribeCmd.PersistentFlags().StringP("summary_type", "y", "bullets", "Type of summary generated.")
-	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_name", "b", "", "Containing the header's name which will be inserted into the webhook request")
-	transcribeCmd.PersistentFlags().StringP("webhook_auth_header_value", "o", "", "The value of the header that will be inserted into the webhook request.")
-	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
-	transcribeCmd.PersistentFlags().StringP("word_boost", "k", "", "The value of this flag MUST be used surrounded by quotes. Any term included will have its likelihood of being transcribed boosted.")
-	transcribeCmd.PersistentFlags().StringP("summary_model", "q", "informative", "The model used to generate the summary.")
+	transcribeCmd.PersistentFlags().BoolVarP(&flags.Poll, "poll", "p", true, "The CLI will poll the transcription until it's complete.")
+	transcribeCmd.PersistentFlags().BoolVarP(&flags.Json, "json", "j", false, "If true, the CLI will output the JSON.")
+	transcribeCmd.PersistentFlags().StringVar(&flags.Csv, "csv", "", "Specify the filename to save the transcript result onto a .CSV file extension")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.AutoChapters, "auto_chapters", "s", false, "A \"summary over time\" for the audio file transcribed.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.AutoHighlights, "auto_highlights", "a", false, "Automatically detect important phrases and words in the text.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.ContentModeration, "content_moderation", "c", false, "Detect if sensitive content is spoken in the file.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.DualChannel, "dual_channel", "d", false, "Enable dual channel")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.EntityDetection, "entity_detection", "e", false, "Identify a wide range of entities that are spoken in the audio file.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.FormatText, "format_text", "f", true, "Enable text formatting")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.LanguageDetection, "language_detection", "n", false, "Identify the dominant language that’s spoken in an audio file.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.Punctuate, "punctuate", "u", true, "Enable automatic punctuation.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.RedactPii, "redact_pii", "r", false, "Remove personally identifiable information from the transcription.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.SentimentAnalysis, "sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.SpeakerLabels, "speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.Summarization, "summarization", "m", false, "Generate a single abstractive summary of the entire audio.")
+	transcribeCmd.PersistentFlags().BoolVarP(&params.TopicDetection, "topic_detection", "t", false, "Label the topics that are spoken in the file.")
+	transcribeCmd.PersistentFlags().StringSliceVarP(&params.RedactPiiPolicies, "redact_pii_policies", "i", []string{"drug", "number_sequence", "person_name"}, "The list of PII policies to redact, comma-separated without space in-between. Required if the redact_pii flag is true.")
+	transcribeCmd.PersistentFlags().StringSliceVarP(&params.WordBoost, "word_boost", "k", nil, "The value of this flag MUST be used surrounded by quotes. Any term included will have its likelihood of being transcribed boosted.")
+	transcribeCmd.PersistentFlags().StringVarP(&params.BoostParam, "boost_param", "z", "", "Control how much weight should be applied to your boosted keywords/phrases. This value can be either low, default, or high.")
+	transcribeCmd.PersistentFlags().StringVarP(&params.LanguageCode, "language_code", "g", "", "Specify the language of the speech in your audio file.")
+	transcribeCmd.PersistentFlags().StringVarP(&params.SummaryModel, "summary_model", "q", "informative", "The model used to generate the summary.")
+	transcribeCmd.PersistentFlags().StringVarP(&params.SummaryType, "summary_type", "y", "bullets", "Type of summary generated.")
+	transcribeCmd.PersistentFlags().StringVarP(&params.WebhookAuthHeaderName, "webhook_auth_header_name", "b", "", "Containing the header's name which will be inserted into the webhook request")
+	transcribeCmd.PersistentFlags().StringVarP(&params.WebhookAuthHeaderValue, "webhook_auth_header_value", "o", "", "The value of the header that will be inserted into the webhook request.")
+	transcribeCmd.PersistentFlags().StringVarP(&params.WebhookURL, "webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
+
+	transcribeCmd.PersistentFlags().String("custom_spelling", "", "Specify how words are spelled or formatted in the transcript text.")
 
 	rootCmd.AddCommand(transcribeCmd)
 }

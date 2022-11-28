@@ -177,21 +177,22 @@ type UploadResponse struct {
 }
 
 type TranscribeFlags struct {
-	Poll bool `json:"poll"`
-	Json bool `json:"json"`
+	Poll bool   `json:"poll"`
+	Json bool   `json:"json"`
+	Csv  string `json:"csv"`
 }
 
 type TranscribeParams struct {
 	AudioURL               string           `json:"audio_url"`
 	AutoChapters           bool             `json:"auto_chapters"`
 	AutoHighlights         bool             `json:"auto_highlights"`
-	BoostParam             *string          `json:"boost_param,omitempty"`
+	BoostParam             string           `json:"boost_param,omitempty"`
 	ContentModeration      bool             `json:"content_safety"`
 	CustomSpelling         []CustomSpelling `json:"custom_spelling,omitempty"`
 	DualChannel            bool             `json:"dual_channel"`
 	EntityDetection        bool             `json:"entity_detection"`
 	FormatText             bool             `json:"format_text"`
-	LanguageCode           *string          `json:"language_code,omitempty"`
+	LanguageCode           string           `json:"language_code,omitempty"`
 	LanguageDetection      bool             `json:"language_detection"`
 	Punctuate              bool             `json:"punctuate"`
 	RedactPii              bool             `json:"redact_pii"`
