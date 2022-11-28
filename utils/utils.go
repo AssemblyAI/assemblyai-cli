@@ -468,3 +468,47 @@ func Contains(s []string, e string) bool {
 	}
 	return false
 }
+
+func GenerateCsv(filename string, headers []string, data [][]string) {
+	file, err := os.OpenFile(filename, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		printErrorProps := S.PrintErrorProps{
+			Error:   err,
+			Message: "Error opening file",
+		}
+		PrintError(printErrorProps)
+	}
+	defer file.Close()
+
+	// if file is empty, write headers
+	fileInfo, err := file.Stat()
+	if err != nil {
+		printErrorProps := S.PrintErrorProps{
+			Error:   err,
+			Message: "Error getting file info",
+		}
+		PrintError(printErrorProps)
+	}
+	if fileInfo.Size() == 0 {
+		_, err := file.WriteString(strings.Join(headers, ",") + "\n")
+		if err != nil {
+			printErrorProps := S.PrintErrorProps{
+				Error:   err,
+				Message: "Error writing headers",
+			}
+			PrintError(printErrorProps)
+		}
+	}
+
+	for _, value := range data {
+		_, err := file.WriteString(strings.Join(value, ",") + "\n")
+		if err != nil {
+			printErrorProps := S.PrintErrorProps{
+				Error:   err,
+				Message: "Error writing to file",
+			}
+			PrintError(printErrorProps)
+		}
+
+	}
+}

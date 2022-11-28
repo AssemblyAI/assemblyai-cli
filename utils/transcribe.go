@@ -22,6 +22,7 @@ import (
 )
 
 var width int
+var Flags S.TranscribeFlags
 
 func Transcribe(params S.TranscribeParams, flags S.TranscribeFlags) {
 	Token = GetStoredToken()
@@ -223,8 +224,8 @@ func UploadFile(path string) string {
 }
 
 func PollTranscription(id string, flags S.TranscribeFlags) {
+	Flags = flags
 	fmt.Fprintln(os.Stdin, "Transcribing file with id "+id)
-
 	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 
 	for {
@@ -277,14 +278,24 @@ func PollTranscription(id string, flags S.TranscribeFlags) {
 				fmt.Println(string(print))
 				return
 			}
-			getFormattedOutput(transcript, flags)
+			if flags.Csv != "" {
+				if filepath.Ext(flags.Csv) == "" {
+					flags.Csv = flags.Csv + ".csv"
+				}
+
+				row := [][]string{}
+				row = append(row, []string{"\"" + *transcript.Text + "\""})
+				GenerateCsv(flags.Csv, []string{"text"}, row)
+			}
+
+			getFormattedOutput(transcript)
 			return
 		}
 		time.Sleep(3 * time.Second)
 	}
 }
 
-func getFormattedOutput(transcript S.TranscriptResponse, flags S.TranscribeFlags) {
+func getFormattedOutput(transcript S.TranscriptResponse) {
 	getWidth, _, err := term.GetSize(0)
 	if err != nil {
 		width = 512

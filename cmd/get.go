@@ -37,6 +37,15 @@ var getCmd = &cobra.Command{
 			return
 		}
 
+		if flags.Csv != "" && !flags.Poll {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("CSV output is only supported with polling"),
+				Message: "CSV output is only supported with polling.",
+			}
+			U.PrintError(printErrorProps)
+			return
+		}
+
 		U.PollTranscription(id, flags)
 	},
 }
