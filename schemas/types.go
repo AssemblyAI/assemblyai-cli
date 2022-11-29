@@ -358,3 +358,8 @@ type Release struct {
 	ZipballURL      *string      `json:"zipball_url,omitempty"`
 	Body            *string      `json:"body,omitempty"`
 }
+
+type ArrayCategories struct {
+	Score    float64 `json:"score"`
+	Category string  `json:"category"`
+}

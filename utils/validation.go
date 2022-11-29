@@ -176,7 +176,7 @@ func ValidateParams(params S.TranscribeParams, flagSet *pflag.FlagSet) {
 			}
 		}
 
-		err = ValidateCustomSpelling(parsedCustomSpelling)
+		err = validateCustomSpelling(parsedCustomSpelling)
 		if err != nil {
 			printErrorProps := S.PrintErrorProps{
 				Error:   err,
@@ -224,4 +224,16 @@ func isYoutubeShortLink(url string) bool {
 
 func isYoutubeLink(url string) bool {
 	return isFullLengthYoutubeLink(url) || isShortenedYoutubeLink(url) || isYoutubeShortLink(url)
+}
+
+func validateCustomSpelling(customSpelling []S.CustomSpelling) error {
+	for _, spelling := range customSpelling {
+		if len(spelling.From) == 0 {
+			return fmt.Errorf("from cannot be empty")
+		}
+		if spelling.To == "" {
+			return fmt.Errorf("to cannot be empty")
+		}
+	}
+	return nil
 }

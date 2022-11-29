@@ -122,9 +122,9 @@ func topicDetectionPrintFormatted(categories S.IabCategoriesResult) {
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 	table.AddRow("| rank", "topic")
-	var ArrayCategoriesSorted []ArrayCategories
+	var ArrayCategoriesSorted []S.ArrayCategories
 	for category, i := range categories.Summary {
-		add := ArrayCategories{
+		add := S.ArrayCategories{
 			Category: category,
 			Score:    i,
 		}

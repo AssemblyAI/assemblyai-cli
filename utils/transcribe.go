@@ -18,7 +18,6 @@ import (
 )
 
 var width int
-var Flags S.TranscribeFlags
 
 func Transcribe(params S.TranscribeParams, flags S.TranscribeFlags) {
 	Token = GetStoredToken()
@@ -194,7 +193,6 @@ func UploadFile(path string) string {
 }
 
 func PollTranscription(id string, flags S.TranscribeFlags) {
-	Flags = flags
 	fmt.Fprintln(os.Stdin, "Transcribing file with id "+id)
 	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
 
@@ -310,21 +308,4 @@ func getFormattedOutput(transcript S.TranscriptResponse) {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Summary")
 		summaryPrintFormatted(transcript.Summary)
 	}
-}
-
-type ArrayCategories struct {
-	Score    float64 `json:"score"`
-	Category string  `json:"category"`
-}
-
-func ValidateCustomSpelling(customSpelling []S.CustomSpelling) error {
-	for _, spelling := range customSpelling {
-		if len(spelling.From) == 0 {
-			return fmt.Errorf("from cannot be empty")
-		}
-		if spelling.To == "" {
-			return fmt.Errorf("to cannot be empty")
-		}
-	}
-	return nil
 }
