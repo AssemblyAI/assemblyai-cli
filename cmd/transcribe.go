@@ -259,5 +259,8 @@ func init() {
 	transcribeCmd.PersistentFlags().StringP("word_boost", "k", "", "The value of this flag MUST be used surrounded by quotes. Any term included will have its likelihood of being transcribed boosted.")
 	transcribeCmd.PersistentFlags().StringP("summary_model", "q", "informative", "The model used to generate the summary.")
 
+	transcribeCmd.Flags().Bool("test", false, "Flag for test executing purpose")
+	transcribeCmd.Flags().MarkHidden("test")
+
 	rootCmd.AddCommand(transcribeCmd)
 }

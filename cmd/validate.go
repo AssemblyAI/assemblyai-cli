@@ -28,5 +28,8 @@ var validateCmd = &cobra.Command{
 }
 
 func init() {
+	validateCmd.Flags().Bool("test", false, "Flag for test executing purpose")
+	validateCmd.Flags().MarkHidden("test")
+
 	rootCmd.AddCommand(validateCmd)
 }

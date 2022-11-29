@@ -51,4 +51,6 @@ func Execute() {
 
 func init() {
 	rootCmd.PersistentFlags().BoolP("version", "v", false, "Check current installed version.")
+	rootCmd.Flags().Bool("test", false, "Flag for test executing purpose")
+	rootCmd.Flags().MarkHidden("test")
 }

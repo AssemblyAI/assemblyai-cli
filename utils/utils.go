@@ -119,10 +119,12 @@ func PrintError(props S.PrintErrorProps) {
 	err := props.Error
 	message := props.Message
 	if err != nil {
-		isTelemetryEnabled := GetConfigFileValue("features.telemetry")
-		if isTelemetryEnabled == "true" {
-			InitSentry()
-			sentry.CaptureException(err)
+		if !Contains(os.Args, "--test") {
+			isTelemetryEnabled := GetConfigFileValue("features.telemetry")
+			if isTelemetryEnabled == "true" {
+				InitSentry()
+				sentry.CaptureException(err)
+			}
 		}
 		fmt.Println(message)
 		os.Exit(1)

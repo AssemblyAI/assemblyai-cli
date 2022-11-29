@@ -9,7 +9,7 @@ import (
 )
 
 func TestVersion(t *testing.T) {
-	out, err := exec.Command("go", "run", "main.go", "-v").Output()
+	out, err := exec.Command("go", "run", "main.go", "-v", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -20,7 +20,7 @@ func TestVersion(t *testing.T) {
 
 func TestValidate(t *testing.T) {
 	token := utils.GetStoredToken()
-	out, err := exec.Command("go", "run", "main.go", "validate").Output()
+	out, err := exec.Command("go", "run", "main.go", "validate", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -37,7 +37,7 @@ func TestValidate(t *testing.T) {
 
 func TestAuthCorrect(t *testing.T) {
 	token := utils.GetStoredToken()
-	out, err := exec.Command("go", "run", "main.go", "config", token).Output()
+	out, err := exec.Command("go", "run", "main.go", "config", token, "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -47,7 +47,7 @@ func TestAuthCorrect(t *testing.T) {
 }
 
 func TestAuthBad(t *testing.T) {
-	out, err := exec.Command("go", "run", "main.go", "config", "invalid").Output()
+	out, err := exec.Command("go", "run", "main.go", "config", "invalid", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -57,7 +57,7 @@ func TestAuthBad(t *testing.T) {
 }
 
 func TestTranscribeInvalidFlags(t *testing.T) {
-	out, err := exec.Command("go", "run", "main.go", "transcribe", "-i", "invalid", "-o", "invalid").Output()
+	out, err := exec.Command("go", "run", "main.go", "transcribe", "-i", "invalid", "-o", "invalid", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -67,7 +67,7 @@ func TestTranscribeInvalidFlags(t *testing.T) {
 }
 
 func TestTranscribeBadYoutube(t *testing.T) {
-	out, err := exec.Command("go", "run", "main.go", "transcribe", "https://www.youtube.com/watch?vs=m3cSH7jK3UU").Output()
+	out, err := exec.Command("go", "run", "main.go", "transcribe", "https://www.youtube.com/watch?vs=m3cSH7jK3UU", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -77,7 +77,7 @@ func TestTranscribeBadYoutube(t *testing.T) {
 }
 
 func TestTranscribeBadFile(t *testing.T) {
-	out, err := exec.Command("go", "run", "main.go", "transcribe", "invalid").Output()
+	out, err := exec.Command("go", "run", "main.go", "transcribe", "invalid", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}

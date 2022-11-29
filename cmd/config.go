@@ -51,5 +51,8 @@ var configCmd = &cobra.Command{
 }
 
 func init() {
+	configCmd.Flags().Bool("test", false, "Flag for test executing purpose")
+	configCmd.Flags().MarkHidden("test")
+
 	rootCmd.AddCommand(configCmd)
 }

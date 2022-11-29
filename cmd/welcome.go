@@ -63,4 +63,6 @@ func init() {
 	welcomeCmd.PersistentFlags().StringP("arch", "a", "", "")
 	welcomeCmd.PersistentFlags().StringP("method", "m", "", "")
 	welcomeCmd.PersistentFlags().StringP("version", "v", "", "")
+	welcomeCmd.Flags().Bool("test", false, "Flag for test executing purpose")
+	welcomeCmd.Flags().MarkHidden("test")
 }
