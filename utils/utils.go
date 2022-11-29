@@ -376,26 +376,82 @@ func CheckForUpdates(currentVersion string) {
 		firstLine := "New version available!"
 		secondLine := "AssemblyAI CLI " + *release.TagName
 		thirdLine := "https://github.com/AssemblyAI/assemblyai-cli#installation"
+
 		boxWidth := len(thirdLine) + 6
+
 		firstLinePadding := (boxWidth - len(firstLine)) / 2
 		firstLinePaddingExtra := (boxWidth - len(firstLine)) % 2
 		secondLinePadding := (boxWidth - len(secondLine)) / 2
 		secondLinePaddingExtra := (boxWidth - len(secondLine)) % 2
 		thirdLinePadding := 3
+
 		padding := 0
 		paddingExtra := 0
-
 		if terminalWidth > boxWidth {
 			padding = (terminalWidth - boxWidth) / 2
 			paddingExtra = (terminalWidth - boxWidth) % 2
 		}
 
-		fmt.Fprintf(os.Stdin, "%s%s %s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), strings.Repeat("_", boxWidth))
-		fmt.Fprintf(os.Stdin, "%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", boxWidth), "|")
-		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", firstLinePadding), firstLine, strings.Repeat(" ", firstLinePadding), strings.Repeat(" ", firstLinePaddingExtra), "|")
-		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", secondLinePadding), secondLine, strings.Repeat(" ", secondLinePadding), strings.Repeat(" ", secondLinePaddingExtra), "|")
-		fmt.Fprintf(os.Stdin, "%s%s%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat(" ", thirdLinePadding), thirdLine, strings.Repeat(" ", thirdLinePadding), "|")
-		fmt.Fprintf(os.Stdin, "%s%s%s%s%s\n", strings.Repeat(" ", padding), strings.Repeat(" ", paddingExtra), "|", strings.Repeat("_", boxWidth), "|")
+		fmt.Fprintf(
+			os.Stdin,
+			"%s%s %s\n",
+			strings.Repeat(" ", padding),
+			strings.Repeat(" ", paddingExtra),
+			strings.Repeat("_", boxWidth),
+		)
+		fmt.Fprintf(
+			os.Stdin,
+			"%s%s%s%s%s\n",
+			strings.Repeat(" ", padding),
+			strings.Repeat(" ", paddingExtra),
+			"|",
+			strings.Repeat(" ", boxWidth),
+			"|",
+		)
+		fmt.Fprintf(
+			os.Stdin,
+			"%s%s%s%s%s%s%s%s\n",
+			strings.Repeat(" ", padding),
+			strings.Repeat(" ", paddingExtra),
+			"|",
+			strings.Repeat(" ", firstLinePadding),
+			firstLine,
+			strings.Repeat(" ", firstLinePadding),
+			strings.Repeat(" ", firstLinePaddingExtra),
+			"|",
+		)
+		fmt.Fprintf(
+			os.Stdin,
+			"%s%s%s%s%s%s%s%s\n",
+			strings.Repeat(" ", padding),
+			strings.Repeat(" ", paddingExtra),
+			"|",
+			strings.Repeat(" ", secondLinePadding),
+			secondLine,
+			strings.Repeat(" ", secondLinePadding),
+			strings.Repeat(" ", secondLinePaddingExtra),
+			"|",
+		)
+		fmt.Fprintf(
+			os.Stdin,
+			"%s%s%s%s%s%s%s\n",
+			strings.Repeat(" ", padding),
+			strings.Repeat(" ", paddingExtra),
+			"|",
+			strings.Repeat(" ", thirdLinePadding),
+			thirdLine,
+			strings.Repeat(" ", thirdLinePadding),
+			"|",
+		)
+		fmt.Fprintf(
+			os.Stdin,
+			"%s%s%s%s%s\n",
+			strings.Repeat(" ", padding),
+			strings.Repeat(" ", paddingExtra),
+			"|",
+			strings.Repeat("_", boxWidth),
+			"|",
+		)
 
 		var properties *S.PostHogProperties = &S.PostHogProperties{
 			Version:       currentVersion,
@@ -403,4 +459,12 @@ func CheckForUpdates(currentVersion string) {
 		}
 		TelemetryCaptureEvent("CLI update available", properties)
 	}
+}
+func Contains(s []string, e string) bool {
+	for _, a := range s {
+		if a == e {
+			return true
+		}
+	}
+	return false
 }
