@@ -266,7 +266,6 @@ func DownloadVideo(url string) {
 			PrintError(printErrorProps)
 		}
 	}
-
 }
 
 func (pWc *writeCounter) Write(b []byte) (n int, err error) {

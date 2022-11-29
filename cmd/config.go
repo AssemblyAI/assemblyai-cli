@@ -16,17 +16,14 @@ var configCmd = &cobra.Command{
 	Short: "Authenticate the CLI",
 	Long:  `This command will validate your account and store your token safely, later to be used when transcribing files.`,
 	Run: func(cmd *cobra.Command, args []string) {
-
-		argsArray := cmd.Flags().Args()
-
-		if len(argsArray) == 0 {
+		if len(args) == 0 {
 			fmt.Println("Please provide a token. If you don't have one, create an account at https://app.assemblyai.com")
 			return
-		} else if len(argsArray) > 1 {
+		} else if len(args) > 1 {
 			fmt.Println("Too many arguments. Please provide a single token.")
 			return
 		}
-		U.Token = argsArray[0]
+		U.Token = args[0]
 
 		checkToken := U.CheckIfTokenValid()
 		if !checkToken {
