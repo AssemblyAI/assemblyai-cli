@@ -371,6 +371,9 @@ func CheckForUpdates(currentVersion string) {
 	if err != nil {
 		return
 	}
+	if *release.Message != "" && *release.DocumentationUrl != "" {
+		return
+	}
 	if *release.TagName != currentVersion {
 
 		firstLine := "New version available!"
