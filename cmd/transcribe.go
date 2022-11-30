@@ -53,6 +53,17 @@ var transcribeCmd = &cobra.Command{
 		params.TopicDetection, _ = cmd.Flags().GetBool("topic_detection")
 		params.Summarization, _ = cmd.Flags().GetBool("summarization")
 		wordBoost, _ := cmd.Flags().GetString("word_boost")
+		if params.DualChannel && params.SpeakerLabels {
+			if cmd.Flags().Lookup("speaker_labels").Changed {
+				printErrorProps := S.PrintErrorProps{
+					Error:   errors.New("Speaker labels are not supported for dual channel audio"),
+					Message: "Speaker labels are not supported for dual channel audio",
+				}
+				U.PrintError(printErrorProps)
+				return
+			}
+			params.SpeakerLabels = false
+		}
 		if wordBoost != "" {
 			params.WordBoost = strings.Split(wordBoost, ",")
 			boostParam, _ := cmd.Flags().GetString("boost_param")
@@ -69,6 +80,15 @@ var transcribeCmd = &cobra.Command{
 		if params.Summarization {
 			params.Punctuate = true
 			params.FormatText = true
+
+			if params.AutoChapters {
+				printErrorProps := S.PrintErrorProps{
+					Error:   errors.New("Auto chapters are not supported for summarization"),
+					Message: "Auto chapters are not supported for summarization",
+				}
+				U.PrintError(printErrorProps)
+				return
+			}
 
 			params.SummaryType, _ = cmd.Flags().GetString("summary_type")
 			if _, ok := S.SummarizationTypeMapReverse[params.SummaryType]; !ok {

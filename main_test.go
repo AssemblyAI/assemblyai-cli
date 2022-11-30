@@ -1,10 +1,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"testing"
 
+	S "github.com/AssemblyAI/assemblyai-cli/schemas"
 	"github.com/AssemblyAI/assemblyai-cli/utils"
 )
 
@@ -32,6 +34,16 @@ func TestValidate(t *testing.T) {
 	}
 }
 
+func TestAuthBad(t *testing.T) {
+	out, err := exec.Command("go", "run", "main.go", "config", "invalid", "--test").Output()
+	if err != nil {
+		fmt.Println(err)
+	}
+	if string(out) != "Something just went wrong. Please try again.\n" {
+		t.Errorf("Expected Something just went wrong. Please try again., got %s.", string(out))
+	}
+}
+
 func TestAuthCorrect(t *testing.T) {
 	token := utils.GetEnvWithKey("TOKEN")
 	out, err := exec.Command("go", "run", "main.go", "config", *token, "--test").Output()
@@ -43,18 +55,7 @@ func TestAuthCorrect(t *testing.T) {
 	}
 }
 
-func TestAuthBad(t *testing.T) {
-	out, err := exec.Command("go", "run", "main.go", "config", "invalid", "--test").Output()
-	if err != nil {
-		fmt.Println(err)
-	}
-	if string(out) != "Something just went wrong. Please try again.\n" {
-		t.Errorf("Expected Something just went wrong. Please try again., got %s.", string(out))
-	}
-}
-
 func TestTranscribeInvalidFlags(t *testing.T) {
-	TestAuthCorrect(t)
 	out, err := exec.Command("go", "run", "main.go", "transcribe", "-i", "invalid", "-o", "invalid", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
@@ -65,7 +66,6 @@ func TestTranscribeInvalidFlags(t *testing.T) {
 }
 
 func TestTranscribeBadYoutube(t *testing.T) {
-	TestAuthCorrect(t)
 	out, err := exec.Command("go", "run", "main.go", "transcribe", "https://www.youtube.com/watch?vs=m3cSH7jK3UU", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
@@ -86,5 +86,106 @@ func TestTranscribeBadFile(t *testing.T) {
 }
 
 func TestTranscribeYoutube(t *testing.T) {
+	out, err := exec.Command(
+		"go",
+		"run",
+		"main.go",
+		"transcribe",
+		"https://www.youtube.com/watch?v=m3cSH7jK3UU",
+		"--auto_highlights",
+		"--content_moderation",
+		"--entity_detection",
+		"--format_text",
+		"--punctuate",
+		"--redact_pii",
+		"--sentiment_analysis",
+		"--speaker_labels",
+		"--summarization",
+		"--topic_detection",
+		"-p=false",
+		"-j",
+		"--test",
+	).Output()
+	if err != nil {
+		fmt.Println(err)
+	}
 
+	var result S.TranscriptResponse
+	json.Unmarshal(out, &result)
+
+	if *result.Status != "queued" {
+		t.Errorf("Expected queued, got %s.", *result.Status)
+	}
+	if *result.AutoHighlights != true {
+		t.Errorf("Expected Auto Highlights true, got false.")
+	}
+	if *result.ContentSafety != true {
+		t.Errorf("Expected Content Safety true, got false.")
+	}
+	if *result.EntityDetection != true {
+		t.Errorf("Expected Entity Detection true, got false.")
+	}
+	if *result.FormatText != true {
+		t.Errorf("Expected Format Text true, got false.")
+	}
+	if *result.Punctuate != true {
+		t.Errorf("Expected Punctuate true, got false.")
+	}
+	if *result.RedactPii != true {
+		t.Errorf("Expected RedactPII true, got false.")
+	}
+	if *result.SentimentAnalysis != true {
+		t.Errorf("Expected Sentiment Analysis true, got false.")
+	}
+	if result.SpeakerLabels != true {
+		t.Errorf("Expected Speaker Labels true, got false.")
+	}
+	if *result.Summarization != true {
+		t.Errorf("Expected Summarization true, got false.")
+	}
+	if *result.IabCategories != true {
+		t.Errorf("Expected IAB Categories(Topic detection) true, got false.")
+	}
+}
+
+func TestTranscribeRestrictions(t *testing.T) {
+	// Speaker Labels && Dual Channel
+	out, err := exec.Command(
+		"go",
+		"run",
+		"main.go",
+		"transcribe",
+		"https://storage.googleapis.com/aai-web-samples/2%20min.ogg",
+		"--speaker_labels",
+		"--dual_channel",
+		"-p=false",
+		"-j",
+		"--test",
+	).Output()
+	if err != nil {
+		fmt.Println(err)
+	}
+	if string(out) != "Speaker labels are not supported for dual channel audio\n" {
+		t.Errorf("Expected Speaker labels are not supported for dual channel audio, got %s.", string(out))
+	}
+
+	// Auto Chapters && Summarization
+	out, err = exec.Command(
+		"go",
+		"run",
+		"main.go",
+		"transcribe",
+		"https://storage.googleapis.com/aai-web-samples/2%20min.ogg",
+		"--auto_chapters",
+		"--summarization",
+		"-p=false",
+		"-j",
+		"--test",
+	).Output()
+	if err != nil {
+		fmt.Println(err)
+	}
+	if string(out) != "Auto chapters are not supported for summarization\n" {
+		t.Errorf("Expected Auto chapters are not supported for summarization, got %s.", string(out))
+	}
 }
