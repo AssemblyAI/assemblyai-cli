@@ -13,31 +13,35 @@ func TestVersion(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "AssemblyAI CLI v1.13\n" {
+	version := utils.GetEnvWithKey("VERSION")
+	if version == nil {
+		t.Error("VERSION not set")
+	}
+	if string(out) != "AssemblyAI CLI "+*version+"\n" {
 		t.Errorf("Expected AssemblyAI CLI v1.13, got %s.", string(out))
 	}
 }
 
 func TestValidate(t *testing.T) {
-	token := utils.GetStoredToken()
 	out, err := exec.Command("go", "run", "main.go", "validate", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
-	if token != "" {
-		if string(out) != "Your Token is "+token+"\n" {
-			t.Errorf("Expected Your Token is "+token+", got %s.", string(out))
+	token := utils.GetEnvWithKey("TOKEN")
+	if token != nil {
+		if string(out) != "Your Token is "+*token+"\n" {
+			t.Errorf("Expected Your Token is , got %s.", string(out))
 		}
 	} else {
-		if string(out) != "Please start by running \033[1m\033[34massemblyai config [token]\033[0m" {
+		if string(out) != "Please start by running \033[1m\033[34massemblyai config [token]\033[0m\n" {
 			t.Errorf("Expected Please start by running \033[1m\033[34massemblyai config [token]\033[0m, got %s.", string(out))
 		}
 	}
 }
 
 func TestAuthCorrect(t *testing.T) {
-	token := utils.GetStoredToken()
-	out, err := exec.Command("go", "run", "main.go", "config", token, "--test").Output()
+	token := utils.GetEnvWithKey("TOKEN")
+	out, err := exec.Command("go", "run", "main.go", "config", *token, "--test").Output()
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -57,6 +61,7 @@ func TestAuthBad(t *testing.T) {
 }
 
 func TestTranscribeInvalidFlags(t *testing.T) {
+	TestAuthCorrect(t)
 	out, err := exec.Command("go", "run", "main.go", "transcribe", "-i", "invalid", "-o", "invalid", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
@@ -67,6 +72,7 @@ func TestTranscribeInvalidFlags(t *testing.T) {
 }
 
 func TestTranscribeBadYoutube(t *testing.T) {
+	TestAuthCorrect(t)
 	out, err := exec.Command("go", "run", "main.go", "transcribe", "https://www.youtube.com/watch?vs=m3cSH7jK3UU", "--test").Output()
 	if err != nil {
 		fmt.Println(err)
@@ -84,4 +90,8 @@ func TestTranscribeBadFile(t *testing.T) {
 	if string(out) != "Error opening file\n" {
 		t.Errorf("Expected Error opening file, got %s.", string(out))
 	}
+}
+
+func TestTranscribeYoutube(t *testing.T) {
+
 }

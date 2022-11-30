@@ -148,3 +148,8 @@ func CreateConfigFile() {
 		return
 	}
 }
+
+func GetEnvWithKey(key string) *string {
+	value := os.Getenv(key)
+	return &value
+}
