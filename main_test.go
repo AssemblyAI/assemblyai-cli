@@ -85,13 +85,13 @@ func TestTranscribeBadFile(t *testing.T) {
 	}
 }
 
-func TestTranscribeYoutube(t *testing.T) {
+func TestTranscribeWithFlags(t *testing.T) {
 	out, err := exec.Command(
 		"go",
 		"run",
 		"main.go",
 		"transcribe",
-		"https://www.youtube.com/watch?v=m3cSH7jK3UU",
+		"https://storage.googleapis.com/aai-web-samples/2%20min.ogg",
 		"--auto_highlights",
 		"--content_moderation",
 		"--entity_detection",
