@@ -29,6 +29,9 @@ jobs:
       
       - run: go mod vendor
 
+      - name: Test
+        run: go test -v
+
       - name: install GoReleaser
         uses: goreleaser/goreleaser-action@v3
         with:

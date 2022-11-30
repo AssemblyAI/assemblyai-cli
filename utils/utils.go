@@ -373,7 +373,7 @@ func CheckForUpdates(currentVersion string) {
 	if err != nil {
 		return
 	}
-	if *release.Message != "" && *release.DocumentationUrl != "" {
+	if release.Message != nil && release.DocumentationUrl != nil && *release.Message != "" && *release.DocumentationUrl != "" {
 		return
 	}
 	if *release.TagName != currentVersion {
@@ -465,6 +465,7 @@ func CheckForUpdates(currentVersion string) {
 		TelemetryCaptureEvent("CLI update available", properties)
 	}
 }
+
 func Contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {

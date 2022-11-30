@@ -30,6 +30,9 @@ jobs:
           
       - run: go mod vendor
 
+      - name: Test
+        run: go test -v
+
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v3
         with:
