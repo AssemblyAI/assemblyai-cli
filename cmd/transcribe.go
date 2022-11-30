@@ -160,6 +160,14 @@ var transcribeCmd = &cobra.Command{
 		}
 		languageDetection, _ := cmd.Flags().GetBool("language_detection")
 		languageCode, _ := cmd.Flags().GetString("language_code")
+		if languageDetection && languageCode != "" {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("Invalid language detection"),
+				Message: "Please provide either language detection or language code, not both.",
+			}
+			U.PrintError(printErrorProps)
+			return
+		}
 		if (languageCode != "" || languageDetection) && params.SpeakerLabels {
 			if cmd.Flags().Lookup("speaker_labels").Changed {
 				printErrorProps := S.PrintErrorProps{
