@@ -27,15 +27,8 @@ func TestValidate(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	token := utils.GetEnvWithKey("TOKEN")
-	if token != nil {
-		if string(out) != "Your Token is "+*token+"\n" {
-			t.Errorf("Expected Your Token is , got %s.", string(out))
-		}
-	} else {
-		if string(out) != "Please start by running \033[1m\033[34massemblyai config [token]\033[0m\n" {
-			t.Errorf("Expected Please start by running \033[1m\033[34massemblyai config [token]\033[0m, got %s.", string(out))
-		}
+	if string(out) != "Please start by running \033[1m\033[34massemblyai config [token]\033[0m\n" {
+		t.Errorf("Expected Please start by running \033[1m\033[34massemblyai config [token]\033[0m, got %s.", string(out))
 	}
 }
 
