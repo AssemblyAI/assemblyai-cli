@@ -29,6 +29,12 @@ jobs:
       
       - run: go mod vendor
 
+      - name: Test
+        run: go test -v
+        env:
+          VERSION: ${{ env.GITHUB_REF_NAME }}
+          TOKEN: ${{ secrets.AAI_TEST_TOKEN }}
+
       - name: install GoReleaser
         uses: goreleaser/goreleaser-action@v3
         with:

@@ -148,3 +148,9 @@ func CreateConfigFile() {
 		return
 	}
 }
+
+func GetEnvWithKey(key string) *string {
+	godotenv.Load()
+	value := os.Getenv(key)
+	return &value
+}

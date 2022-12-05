@@ -338,22 +338,24 @@ type PrintErrorProps struct {
 }
 
 type Release struct {
-	URL             *string      `json:"url,omitempty"`
-	AssetsURL       *string      `json:"assets_url,omitempty"`
-	UploadURL       *string      `json:"upload_url,omitempty"`
-	HTMLURL         *string      `json:"html_url,omitempty"`
-	ID              *int64       `json:"id,omitempty"`
-	Author          *interface{} `json:"author,omitempty"`
-	NodeID          *string      `json:"node_id,omitempty"`
-	TagName         *string      `json:"tag_name,omitempty"`
-	TargetCommitish *string      `json:"target_commitish,omitempty"`
-	Name            *string      `json:"name,omitempty"`
-	Draft           *bool        `json:"draft,omitempty"`
-	Prerelease      *bool        `json:"prerelease,omitempty"`
-	CreatedAt       *string      `json:"created_at,omitempty"`
-	PublishedAt     *string      `json:"published_at,omitempty"`
-	Assets          *interface{} `json:"assets,omitempty"`
-	TarballURL      *string      `json:"tarball_url,omitempty"`
-	ZipballURL      *string      `json:"zipball_url,omitempty"`
-	Body            *string      `json:"body,omitempty"`
+	URL              *string      `json:"url,omitempty"`
+	AssetsURL        *string      `json:"assets_url,omitempty"`
+	UploadURL        *string      `json:"upload_url,omitempty"`
+	HTMLURL          *string      `json:"html_url,omitempty"`
+	ID               *int64       `json:"id,omitempty"`
+	Author           *interface{} `json:"author,omitempty"`
+	NodeID           *string      `json:"node_id,omitempty"`
+	TagName          *string      `json:"tag_name,omitempty"`
+	TargetCommitish  *string      `json:"target_commitish,omitempty"`
+	Name             *string      `json:"name,omitempty"`
+	Draft            *bool        `json:"draft,omitempty"`
+	Prerelease       *bool        `json:"prerelease,omitempty"`
+	CreatedAt        *string      `json:"created_at,omitempty"`
+	PublishedAt      *string      `json:"published_at,omitempty"`
+	Assets           *interface{} `json:"assets,omitempty"`
+	TarballURL       *string      `json:"tarball_url,omitempty"`
+	ZipballURL       *string      `json:"zipball_url,omitempty"`
+	Body             *string      `json:"body,omitempty"`
+	Message          *string      `json:"message,omitempty"`
+	DocumentationUrl *string      `json:"documentation_url,omitempty"`
 }

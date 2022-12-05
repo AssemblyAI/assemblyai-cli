@@ -50,4 +50,6 @@ func init() {
 	rootCmd.AddCommand(getCmd)
 	getCmd.Flags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
 	getCmd.Flags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
+	getCmd.Flags().Bool("test", false, "Flag for test executing purpose")
+	getCmd.Flags().MarkHidden("test")
 }

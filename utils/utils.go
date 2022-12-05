@@ -119,10 +119,12 @@ func PrintError(props S.PrintErrorProps) {
 	err := props.Error
 	message := props.Message
 	if err != nil {
-		isTelemetryEnabled := GetConfigFileValue("features.telemetry")
-		if isTelemetryEnabled == "true" {
-			InitSentry()
-			sentry.CaptureException(err)
+		if !Contains(os.Args, "--test") {
+			isTelemetryEnabled := GetConfigFileValue("features.telemetry")
+			if isTelemetryEnabled == "true" {
+				InitSentry()
+				sentry.CaptureException(err)
+			}
 		}
 		fmt.Println(message)
 		os.Exit(1)
@@ -371,6 +373,9 @@ func CheckForUpdates(currentVersion string) {
 	if err != nil {
 		return
 	}
+	if release.Message != nil && release.DocumentationUrl != nil && *release.Message != "" && *release.DocumentationUrl != "" {
+		return
+	}
 	if *release.TagName != currentVersion {
 
 		firstLine := "New version available!"
@@ -460,6 +465,7 @@ func CheckForUpdates(currentVersion string) {
 		TelemetryCaptureEvent("CLI update available", properties)
 	}
 }
+
 func Contains(s []string, e string) bool {
 	for _, a := range s {
 		if a == e {
