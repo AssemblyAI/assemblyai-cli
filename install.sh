@@ -55,10 +55,10 @@ if [ ! -f "$HOME/.zshrc" ]; then
 fi
 
 if [ -f "$HOME/.zshrc" ]; then
-	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.zshrc"
+	echo "\nexport PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.zshrc"
 fi
 if [ -f "$HOME/.bashrc" ]; then
-	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.bashrc"
+	echo "\nexport PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.bashrc"
 fi
 
 "${BINARY_PATH}/${FILE_BASENAME}" welcome -i -o="$OS" -m="curl" -v="$VERSION" -a="$ARCH"
