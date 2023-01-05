@@ -185,13 +185,13 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 
 > **-q, --summary_model**
 > default: bullets  
-> example: `-q paragraph` or `--summary_model paragraph`  
+> example: `-q conversational` or `--summary_model conversational`  
 > Type of summary generated.
 > Click [here](https://www.assemblyai.com/docs/audio-intelligence#summarization) to view all the supported types
 
 > **-y, --summary_type**
 > default: bullets  
-> example: `-y conversational` or `--summary_type conversational`  
+> example: `-y paragraph` or `--summary_type paragraph`  
 > Model of summary generated.
 > Click [here](https://www.assemblyai.com/docs/audio-intelligence#summarization) to view all the supported types
 
