@@ -39,7 +39,7 @@ func TestAuthBad(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Something just went wrong. Please try again.\n" {
+	if string(out) != "Your token appears to be invalid. Try again, and if the problem persists, contact support at support@assemblyai.com\n" {
 		t.Errorf("Expected Something just went wrong. Please try again., got %s.", string(out))
 	}
 }
