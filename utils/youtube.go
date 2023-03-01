@@ -223,7 +223,7 @@ func DownloadVideo(url string) {
 			if end > fileLength {
 				end = fileLength
 			}
-			req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
+			req.URL.RawQuery = req.URL.Query().Encode() + "&range=" + strconv.Itoa(start) + "-" + strconv.Itoa(end)
 			resp, err := client.Do(req)
 			if err != nil {
 				printErrorProps := S.PrintErrorProps{
@@ -245,7 +245,7 @@ func DownloadVideo(url string) {
 		bar.Set(fileLength)
 		bar.Finish()
 	} else {
-		req.Header.Set("Range", fmt.Sprintf("Bytes=0-%d", fileLength))
+		req.URL.RawQuery = req.URL.Query().Encode() + "&range=" + strconv.Itoa(0) + "-" + strconv.Itoa(fileLength)
 		resp, err = client.Do(req)
 		if err != nil {
 			printErrorProps := S.PrintErrorProps{
