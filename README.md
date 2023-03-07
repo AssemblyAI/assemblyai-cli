@@ -115,6 +115,11 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > example: `-d` or `--dual_channel`  
 > Enable dual channel
 
+> **-D, --disfluencies**  
+> default: false  
+> example: `-D` or `--disfluencies`  
+> Include Filler Words in your transcript
+
 > **-e, --entity_detection**  
 > default: false  
 > example: `-e` or `--entity_detection`  

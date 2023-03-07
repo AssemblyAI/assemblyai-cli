@@ -189,6 +189,7 @@ type TranscribeParams struct {
 	ContentModeration      bool             `json:"content_safety"`
 	CustomSpelling         []CustomSpelling `json:"custom_spelling,omitempty"`
 	DualChannel            bool             `json:"dual_channel"`
+	Disfluencies           bool             `json:"disfluencies"`
 	EntityDetection        bool             `json:"entity_detection"`
 	FormatText             bool             `json:"format_text"`
 	LanguageCode           *string          `json:"language_code,omitempty"`
