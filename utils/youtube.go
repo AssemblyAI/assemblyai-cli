@@ -111,9 +111,7 @@ func YoutubeDownload(id string) string {
 	videoUrl := *video.StreamingData.Formats[idx].URL
 	// get video extension and add it to the filename
 	extension := GetExtension(*video.StreamingData.Formats[idx].MIMEType)
-	fmt.Println(extension)
 	Filename = Filename + extension
-	fmt.Println(Filename)
 
 	DownloadVideo(videoUrl)
 	uploadedURL := UploadFile(Filename)
