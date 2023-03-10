@@ -12,17 +12,15 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
-	"net/url"
 	"os"
 	"strconv"
-	"strings"
 
 	S "github.com/AssemblyAI/assemblyai-cli/schemas"
 	pb "gopkg.in/cheggaaa/pb.v1"
 )
 
 var key = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
-var Filename = os.TempDir() + "tmp-video.mp4"
+var Filename = os.TempDir() + "tmp-video."
 var fileLength = 0
 var percent = 0
 var chunkSize = 8000000
@@ -56,6 +54,39 @@ func YoutubeDownload(id string) string {
 	fmt.Fprintln(os.Stdin, "Transcribing YouTube video...")
 	video := QueryYoutube(requestBody)
 	if *video.PlayabilityStatus.Status != "OK" || video.StreamingData.Formats == nil {
+
+		if *video.PlayabilityStatus.Reason != "" {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("Video is not available"),
+				Message: *video.PlayabilityStatus.Reason,
+			}
+			PrintError(printErrorProps)
+			return ""
+		} else {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("Video is not available"),
+				Message: "The video is not available for download.",
+			}
+			PrintError(printErrorProps)
+			return ""
+		}
+	}
+
+	// Get the audio url with lowest bitrate
+	var idx int
+	var britate int64
+	for i, format := range video.StreamingData.Formats {
+		if britate == 0 && IsValidFileType(*format.MIMEType) {
+			britate = *format.Bitrate
+			idx = i
+		}
+		if *format.Bitrate > britate && IsValidFileType(*format.MIMEType) {
+			idx = i
+			britate = *format.Bitrate
+		}
+	}
+
+	if britate == 0 {
 		printErrorProps := S.PrintErrorProps{
 			Error:   errors.New("Video is not available"),
 			Message: "The video is not available for download.",
@@ -63,52 +94,10 @@ func YoutubeDownload(id string) string {
 		PrintError(printErrorProps)
 		return ""
 	}
-	var idx int
-	var lowestContentLength int
-	for i, format := range video.StreamingData.Formats {
-		if format.ContentLength != nil {
-			length, _ := strconv.Atoi(*format.ContentLength)
-			if i == 0 {
-				fileLength = length
-				lowestContentLength = length
-				idx = i
-			} else if length < lowestContentLength {
-				lowestContentLength = length
-				fileLength = length
-				idx = i
-			}
-		}
-	}
-	if fileLength == 0 {
-		for i, format := range video.StreamingData.Formats {
-			length := int(*format.Bitrate)
-			if i == 0 {
-				lowestContentLength = length
-				idx = i
-			} else if length < lowestContentLength {
-				lowestContentLength = length
-				idx = i
-			}
-		}
-	}
-	videoUrl := ""
-	if video.StreamingData.Formats[idx].URL != nil {
-		videoUrl = *video.StreamingData.Formats[idx].URL
-	} else {
-		split := strings.Split(*video.StreamingData.Formats[idx].SignatureCipher, "&")
-		youtubeUrl := ""
-		for _, value := range split {
-			if strings.HasPrefix(value, "url=") {
-				youtubeUrl = strings.TrimPrefix(value, "url=")
-				videoUrl, err = url.QueryUnescape(youtubeUrl)
-				break
-			}
-		}
-	}
 
 	info, err := os.Stat(os.TempDir())
 	if err != nil || !info.IsDir() || info.Mode().Perm()&(1<<uint(7)) == 0 {
-		Filename = "./tmp-video.mp4"
+		Filename = "./tmp-video"
 		local, err := os.Stat("./")
 		if err != nil || !local.IsDir() || local.Mode().Perm()&(1<<uint(7)) == 0 {
 			err = os.Chmod("./", 0700)
@@ -118,6 +107,13 @@ func YoutubeDownload(id string) string {
 			}
 		}
 	}
+
+	videoUrl := *video.StreamingData.Formats[idx].URL
+	// get video extension and add it to the filename
+	extension := GetExtension(*video.StreamingData.Formats[idx].MIMEType)
+	fmt.Println(extension)
+	Filename = Filename + extension
+	fmt.Println(Filename)
 
 	DownloadVideo(videoUrl)
 	uploadedURL := UploadFile(Filename)

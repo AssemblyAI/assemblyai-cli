@@ -467,3 +467,20 @@ func Contains(s []string, e string) bool {
 	}
 	return false
 }
+
+func IsValidFileType(fileType string) bool {
+	fileType = strings.Split(fileType, ";")[0]
+	fileType = strings.Split(fileType, "/")[1]
+	for _, validType := range S.ValidFileTypes {
+		if strings.Contains(fileType, validType) {
+			return true
+		}
+	}
+	return false
+}
+
+func GetExtension(fileType string) string {
+	fileType = strings.Split(fileType, ";")[0]
+	fileType = strings.Split(fileType, "/")[1]
+	return fileType
+}
