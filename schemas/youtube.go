@@ -49,8 +49,10 @@ type YoutubeMetaInfo struct {
 	TrackingParams    *string            `json:"trackingParams,omitempty"`
 	VideoDetails      *interface{}       `json:"videoDetails,omitempty"`
 }
+
 type PlayabilityStatus struct {
 	Status          *string      `json:"status,omitempty"`
+	Reason          *string      `json:"reason,omitempty"`
 	PlayableInEmbed *bool        `json:"playableInEmbed,omitempty"`
 	Miniplayer      *interface{} `json:"miniplayer,omitempty"`
 	ContextParams   *string      `json:"contextParams,omitempty"`

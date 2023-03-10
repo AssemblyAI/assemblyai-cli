@@ -258,17 +258,45 @@ func PollTranscription(id string, flags S.TranscribeFlags) {
 			var properties *S.PostHogProperties = new(S.PostHogProperties)
 			properties.Poll = flags.Poll
 			properties.Json = flags.Json
-			properties.AutoChapters = *transcript.AutoChapters
-			properties.AutoHighlights = *transcript.AutoHighlights
-			properties.ContentModeration = *transcript.ContentSafety
+
+			properties.AutoChapters = false
+			properties.AutoHighlights = false
+			properties.ContentModeration = false
+			properties.EntityDetection = false
+			properties.FormatText = false
+			properties.Punctuate = false
+			properties.RedactPii = false
+			properties.SentimentAnalysis = false
+			properties.TopicDetection = false
+			if transcript.AutoChapters != nil {
+				properties.AutoChapters = *transcript.AutoChapters
+			}
+			if transcript.AutoHighlights != nil {
+				properties.AutoHighlights = *transcript.AutoHighlights
+			}
+			if transcript.ContentSafety != nil {
+				properties.ContentModeration = *transcript.ContentSafety
+			}
+			if transcript.EntityDetection != nil {
+				properties.EntityDetection = *transcript.EntityDetection
+			}
+			if transcript.FormatText != nil {
+				properties.FormatText = *transcript.FormatText
+			}
+			if transcript.Punctuate != nil {
+				properties.Punctuate = *transcript.Punctuate
+			}
+			if transcript.RedactPii != nil {
+				properties.RedactPii = *transcript.RedactPii
+			}
+			if transcript.SentimentAnalysis != nil {
+				properties.SentimentAnalysis = *transcript.SentimentAnalysis
+			}
+			if transcript.IabCategories != nil {
+				properties.TopicDetection = *transcript.IabCategories
+			}
 			properties.DualChannel = transcript.DualChannel
-			properties.EntityDetection = *transcript.EntityDetection
-			properties.FormatText = *transcript.FormatText
-			properties.Punctuate = *transcript.Punctuate
-			properties.RedactPii = *transcript.RedactPii
-			properties.SentimentAnalysis = *transcript.SentimentAnalysis
 			properties.SpeakerLabels = transcript.SpeakerLabels
-			properties.TopicDetection = *transcript.IabCategories
 
 			TelemetryCaptureEvent("CLI transcription finished", properties)
 
@@ -301,27 +329,27 @@ func getFormattedOutput(transcript S.TranscriptResponse, flags S.TranscribeFlags
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "\nDual Channel")
 		dualChannelPrintFormatted(transcript.Utterances)
 	}
-	if *transcript.AutoHighlights == true {
+	if transcript.AutoHighlights != nil && *transcript.AutoHighlights == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Highlights")
-		highlightsPrintFormatted(*transcript.AutoHighlightsResult)
+		highlightsPrintFormatted(transcript.AutoHighlightsResult)
 	}
-	if *transcript.ContentSafety == true {
+	if transcript.ContentSafety != nil && *transcript.ContentSafety == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Content Moderation")
-		contentSafetyPrintFormatted(*transcript.ContentSafetyLabels)
+		contentSafetyPrintFormatted(transcript.ContentSafetyLabels)
 	}
-	if *transcript.IabCategories == true {
+	if transcript.IabCategories != nil && *transcript.IabCategories == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Topic Detection")
-		topicDetectionPrintFormatted(*transcript.IabCategoriesResult)
+		topicDetectionPrintFormatted(transcript.IabCategoriesResult)
 	}
-	if *transcript.SentimentAnalysis == true {
+	if transcript.SentimentAnalysis != nil && *transcript.SentimentAnalysis == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Sentiment Analysis")
 		sentimentAnalysisPrintFormatted(transcript.SentimentAnalysisResults)
 	}
-	if *transcript.AutoChapters == true {
+	if transcript.AutoChapters != nil && *transcript.AutoChapters == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Chapters")
 		chaptersPrintFormatted(transcript.Chapters)
 	}
-	if *transcript.EntityDetection == true {
+	if transcript.EntityDetection != nil && *transcript.EntityDetection == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Entity Detection")
 		entityDetectionPrintFormatted(transcript.Entities)
 	}
@@ -350,11 +378,16 @@ func textPrintFormatted(text string, words []S.SentimentAnalysisResult) {
 	fmt.Println()
 }
 
-func dualChannelPrintFormatted(utterances []S.SentimentAnalysisResult) {
+func dualChannelPrintFormatted(utterances *[]S.SentimentAnalysisResult) {
+	if utterances == nil {
+		fmt.Println("Could not retrieve Dual Channel")
+		return
+	}
+
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 21)
-	for _, utterance := range utterances {
+	for _, utterance := range *utterances {
 		start := TransformMsToTimestamp(*utterance.Start)
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
@@ -369,12 +402,17 @@ func dualChannelPrintFormatted(utterances []S.SentimentAnalysisResult) {
 	fmt.Println()
 }
 
-func speakerLabelsPrintFormatted(utterances []S.SentimentAnalysisResult) {
+func speakerLabelsPrintFormatted(utterances *[]S.SentimentAnalysisResult) {
+	if utterances == nil {
+		fmt.Println("Could not retrieve Speaker Labels")
+		return
+	}
+
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 27)
 
-	for _, utterance := range utterances {
+	for _, utterance := range *utterances {
 		sentences := SplitSentences(utterance.Text, false)
 		timestamps := GetSentenceTimestampsAndSpeaker(sentences, utterance.Words)
 		for index, sentence := range sentences {
@@ -391,8 +429,8 @@ func speakerLabelsPrintFormatted(utterances []S.SentimentAnalysisResult) {
 	fmt.Println()
 }
 
-func highlightsPrintFormatted(highlights S.AutoHighlightsResult) {
-	if *highlights.Status != "success" {
+func highlightsPrintFormatted(highlights *S.AutoHighlightsResult) {
+	if highlights == nil || *highlights.Status != "success" {
 		fmt.Println("Could not retrieve highlights")
 		return
 	}
@@ -411,8 +449,8 @@ func highlightsPrintFormatted(highlights S.AutoHighlightsResult) {
 	fmt.Println()
 }
 
-func contentSafetyPrintFormatted(labels S.ContentSafetyLabels) {
-	if *labels.Status != "success" {
+func contentSafetyPrintFormatted(labels *S.ContentSafetyLabels) {
+	if labels == nil || *labels.Status != "success" {
 		fmt.Println("Could not retrieve content safety labels")
 		return
 	}
@@ -432,8 +470,8 @@ func contentSafetyPrintFormatted(labels S.ContentSafetyLabels) {
 	fmt.Println()
 }
 
-func topicDetectionPrintFormatted(categories S.IabCategoriesResult) {
-	if *categories.Status != "success" {
+func topicDetectionPrintFormatted(categories *S.IabCategoriesResult) {
+	if categories == nil || *categories.Status != "success" {
 		fmt.Println("Could not retrieve topic detection")
 		return
 	}
@@ -462,8 +500,8 @@ func topicDetectionPrintFormatted(categories S.IabCategoriesResult) {
 	fmt.Println()
 }
 
-func sentimentAnalysisPrintFormatted(sentiments []S.SentimentAnalysisResult) {
-	if len(sentiments) == 0 {
+func sentimentAnalysisPrintFormatted(sentiments *[]S.SentimentAnalysisResult) {
+	if sentiments == nil || len(*sentiments) == 0 {
 		fmt.Println("Could not retrieve sentiment analysis")
 		return
 	}
@@ -473,7 +511,7 @@ func sentimentAnalysisPrintFormatted(sentiments []S.SentimentAnalysisResult) {
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 	table.AddRow("| sentiment", "text")
-	for _, sentiment := range sentiments {
+	for _, sentiment := range *sentiments {
 		sentimentStatus := sentiment.Sentiment
 		table.AddRow("| "+sentimentStatus, sentiment.Text)
 	}
@@ -481,8 +519,8 @@ func sentimentAnalysisPrintFormatted(sentiments []S.SentimentAnalysisResult) {
 	fmt.Println()
 }
 
-func chaptersPrintFormatted(chapters []S.Chapter) {
-	if len(chapters) == 0 {
+func chaptersPrintFormatted(chapters *[]S.Chapter) {
+	if chapters == nil || len(*chapters) == 0 {
 		fmt.Println("Could not retrieve chapters")
 		return
 	}
@@ -491,7 +529,7 @@ func chaptersPrintFormatted(chapters []S.Chapter) {
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 19)
 	table.Separator = " |\t"
-	for _, chapter := range chapters {
+	for _, chapter := range *chapters {
 		start := TransformMsToTimestamp(*chapter.Start)
 		end := TransformMsToTimestamp(*chapter.End)
 		table.AddRow("| timestamp", fmt.Sprintf("%s-%s", start, end))
@@ -504,8 +542,8 @@ func chaptersPrintFormatted(chapters []S.Chapter) {
 	fmt.Println()
 }
 
-func entityDetectionPrintFormatted(entities []S.Entity) {
-	if len(entities) == 0 {
+func entityDetectionPrintFormatted(entities *[]S.Entity) {
+	if entities == nil || len(*entities) == 0 {
 		fmt.Println("Could not retrieve entity detection")
 		return
 	}
@@ -516,7 +554,7 @@ func entityDetectionPrintFormatted(entities []S.Entity) {
 	table.Separator = " |\t"
 	table.AddRow("| type", "text")
 	entityMap := make(map[string][]string)
-	for _, entity := range entities {
+	for _, entity := range *entities {
 		isAlreadyInMap := false
 		for _, text := range entityMap[entity.EntityType] {
 			if text == entity.Text {
@@ -540,7 +578,6 @@ func summaryPrintFormatted(summary *string) {
 		fmt.Println("Could not retrieve summary")
 		return
 	}
-
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)

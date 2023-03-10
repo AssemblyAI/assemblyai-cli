@@ -154,16 +154,9 @@ func QueryApi(path string, method string, body io.Reader, s *spinner.Spinner) []
 		PrintError(printErrorProps)
 	}
 	defer response.Body.Close()
-	if response.StatusCode != 200 {
-		if s != nil {
-			s.Stop()
-		}
-		fmt.Println("Something just went wrong. Please try again.")
-		os.Exit(1)
-	}
 
 	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
+	if err != nil || response.StatusCode != 200 {
 		printErrorProps := S.PrintErrorProps{
 			Error:   err,
 			Message: "Something went wrong. Please try again.",
@@ -473,4 +466,21 @@ func Contains(s []string, e string) bool {
 		}
 	}
 	return false
+}
+
+func IsValidFileType(fileType string) bool {
+	fileType = strings.Split(fileType, ";")[0]
+	fileType = strings.Split(fileType, "/")[1]
+	for _, validType := range S.ValidFileTypes {
+		if strings.Contains(fileType, validType) {
+			return true
+		}
+	}
+	return false
+}
+
+func GetExtension(fileType string) string {
+	fileType = strings.Split(fileType, ";")[0]
+	fileType = strings.Split(fileType, "/")[1]
+	return fileType
 }
