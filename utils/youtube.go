@@ -23,7 +23,7 @@ var key = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
 var Filename = os.TempDir() + "tmp-video."
 var fileLength = 0
 var percent = 0
-var chunkSize = 8000000
+var chunkSize = 200000000
 
 func YoutubeDownload(id string) string {
 	var body S.YoutubeBodyMetaInfo
@@ -217,7 +217,7 @@ func DownloadVideo(url string) {
 			if end > fileLength {
 				end = fileLength
 			}
-			req.URL.RawQuery = req.URL.Query().Encode() + "&range=" + strconv.Itoa(start) + "-" + strconv.Itoa(end)
+			req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
 			resp, err := client.Do(req)
 			if err != nil {
 				printErrorProps := S.PrintErrorProps{
@@ -239,7 +239,7 @@ func DownloadVideo(url string) {
 		bar.Set(fileLength)
 		bar.Finish()
 	} else {
-		req.URL.RawQuery = req.URL.Query().Encode() + "&range=" + strconv.Itoa(0) + "-" + strconv.Itoa(fileLength)
+		req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", 0, fileLength))
 		resp, err = client.Do(req)
 		if err != nil {
 			printErrorProps := S.PrintErrorProps{
