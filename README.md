@@ -236,6 +236,22 @@ assemblyai get [id]
 
 </details>
 
+### Exporting Output to a File
+
+You can export the output of AssemblyAI CLI commands to a file by using [shell redirection](https://www.gnu.org/software/bash/manual/html_node/Redirections.html). To export the output to a text file, use the `>` operator followed by the name of the file you want to create.
+
+```bash
+assemblyai get [id] > transcript.txt
+```
+
+To save the raw JSON response from the API, you can do this instead:
+
+```bash
+assemblyai get [id] -j > transcript.json
+```
+
+Note that if the file you are exporting to already exists, its contents will be overwritten. If you want to append the output to an existing file, use the `>>` operator instead of `>`.
+
 ## Contributing
 
 We're more than happy to welcome new contributors. If there's something you'd like to fix or improve, start by [creating an issue](https://github.com/AssemblyAI/assemblyai-cli/issues). Please make sure to follow our [code of conduct](https://github.com/AssemblyAI/assemblyai-cli/blob/main/CODE_OF_CONDUCT.md).
