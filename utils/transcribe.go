@@ -357,6 +357,9 @@ func getFormattedOutput(transcript S.TranscriptResponse, flags S.TranscribeFlags
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Summary")
 		summaryPrintFormatted(transcript.Summary)
 	}
+	if flags.Srt {
+		srtDownloadTranscript(*transcript.ID, transcript.Words)
+	}
 }
 
 func textPrintFormatted(text string, words []S.SentimentAnalysisResult) {
@@ -587,6 +590,28 @@ func summaryPrintFormatted(summary *string) {
 
 	fmt.Println(table)
 	fmt.Println()
+}
+
+func srtDownloadTranscript(id string, words []S.SentimentAnalysisResult) {
+	// Create a new file.
+	f, err := os.Create(fmt.Sprintf("%s.srt", id))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	defer f.Close()
+
+	output := GetSrtText(words)
+
+	// Write bytes to file.
+	_, err = f.WriteString(output)
+	if err != nil {
+		fmt.Println(err)
+		f.Close()
+		return
+	}
+
+	fmt.Printf("Successfully created file %s.srt\n", id)
 }
 
 type ArrayCategories struct {
