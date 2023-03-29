@@ -211,6 +211,11 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > example: `--custom_spelling "[{\"from\": [\"ariana\"], \"to\": \"Arianna\"}]"` or  `--custom_spelling ./custom_spelling.json`
 > Specify how words are spelled or formatted in the transcript text.
 
+> **--srt**  
+> default: true  
+> example: `--srt`  
+> Create an SRT file named `[id].srt` in the current directory.
+
 </details>
 
 ### Get
