@@ -212,7 +212,7 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > Specify how words are spelled or formatted in the transcript text.
 
 > **--srt**  
-> default: true  
+> default: false  
 > example: `--srt`  
 > Create an SRT file named `[id].srt` in the current directory.
 
@@ -240,7 +240,7 @@ assemblyai get [id]
 > The CLI will poll the transcription every 3 seconds until it's complete.
 
 > **--srt**  
-> default: true  
+> default: false  
 > example: `--srt`  
 > Create an SRT file named `[id].srt` in the current directory.
 
