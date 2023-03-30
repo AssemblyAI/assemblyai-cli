@@ -31,6 +31,7 @@ var getCmd = &cobra.Command{
 		id := args[0]
 		flags.Poll, _ = cmd.Flags().GetBool("poll")
 		flags.Json, _ = cmd.Flags().GetBool("json")
+		flags.Srt, _ = cmd.Flags().GetBool("srt")
 
 		U.Token = U.GetStoredToken()
 		if U.Token == "" {
@@ -51,5 +52,6 @@ func init() {
 	getCmd.Flags().BoolP("json", "j", false, "If true, the CLI will output the JSON.")
 	getCmd.Flags().BoolP("poll", "p", true, "The CLI will poll the transcription until it's complete.")
 	getCmd.Flags().Bool("test", false, "Flag for test executing purpose")
+	getCmd.PersistentFlags().BoolP("srt", "", false, "Generate an SRT file for the audio file transcribed.")
 	getCmd.Flags().MarkHidden("test")
 }

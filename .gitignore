@@ -4,3 +4,4 @@ testfile.*
 brew/*
 tmp-*
 vendor
+*.srt

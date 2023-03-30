@@ -288,6 +288,26 @@ func GetSentenceTimestamps(sentences []string, words []S.SentimentAnalysisResult
 	return timestamps
 }
 
+func GetSrtText(words []S.SentimentAnalysisResult) string {
+	srtText := ""
+	index := 1
+	sentence := ""
+	var start string
+	for _, word := range words {
+		if sentence == "" {
+			start = TransformMsToTimestamp(*word.Start)
+		}
+		sentence += word.Text + " "
+		if strings.Contains(word.Text, ".") {
+			srtText += fmt.Sprintf("%d\n%s --> %s\n%s\n\n", index, start, TransformMsToTimestamp(*word.End), sentence)
+			sentence = ""
+			index++
+		}
+	}
+
+	return srtText
+}
+
 func GetSentenceTimestampsAndSpeaker(sentences []string, words []S.SentimentAnalysisResult) [][]string {
 	var lastIndex int
 	timestamps := [][]string{}

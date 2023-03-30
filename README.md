@@ -211,6 +211,11 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > example: `--custom_spelling "[{\"from\": [\"ariana\"], \"to\": \"Arianna\"}]"` or  `--custom_spelling ./custom_spelling.json`
 > Specify how words are spelled or formatted in the transcript text.
 
+> **--srt**  
+> default: false  
+> example: `--srt`  
+> Create an SRT file named `[id].srt` in the current directory.
+
 </details>
 
 ### Get
@@ -234,6 +239,11 @@ assemblyai get [id]
 > example: `--poll=false`  
 > The CLI will poll the transcription every 3 seconds until it's complete.
 
+> **--srt**  
+> default: false  
+> example: `--srt`  
+> Create an SRT file named `[id].srt` in the current directory.
+
 </details>
 
 ## Contributing
@@ -242,7 +252,7 @@ We're more than happy to welcome new contributors. If there's something you'd li
 
 ## Telemetry
 
-The AssemblyAI CLI includes a telemetry feature that collects usage data, and is enabled by default.
+The AssemblyAI CLI includes a telemetry feature that collects usage data and is enabled by default.
 
 To opt out of telemetry, set the telemetry variable in the `config.toml` file to false.
 

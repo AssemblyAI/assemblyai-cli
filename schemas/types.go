@@ -179,6 +179,7 @@ type UploadResponse struct {
 type TranscribeFlags struct {
 	Poll bool `json:"poll"`
 	Json bool `json:"json"`
+	Srt  bool `json:"srt"`
 }
 
 type TranscribeParams struct {
