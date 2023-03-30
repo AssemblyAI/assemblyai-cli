@@ -596,7 +596,7 @@ func srtDownloadTranscript(id string, words []S.SentimentAnalysisResult) {
 	// Create a new file.
 	f, err := os.Create(fmt.Sprintf("%s.srt", id))
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Could not create .srt file, please check your permissions")
 		return
 	}
 	defer f.Close()
@@ -606,7 +606,7 @@ func srtDownloadTranscript(id string, words []S.SentimentAnalysisResult) {
 	// Write bytes to file.
 	_, err = f.WriteString(output)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Could not write to .srt file, please check your permissions")
 		f.Close()
 		return
 	}
