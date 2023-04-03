@@ -65,7 +65,7 @@ type TranscriptResponse struct {
 	SpeedBoost               *bool                      `json:"speed_boost,omitempty"`
 	Status                   *string                    `json:"status,omitempty"`
 	Summarization            *bool                      `json:"summarization,omitempty"`
-	Summary                  *string                    `json:"summary,omitempty"`
+	Summary                  *interface{}               `json:"summary,omitempty"`
 	SummaryType              *string                    `json:"summary_type,omitempty"`
 	Text                     *string                    `json:"text,omitempty"`
 	Throttled                interface{}                `json:"throttled"`
@@ -402,4 +402,12 @@ var ValidFileTypes = []string{
 	"m4p",
 	"m4v",
 	"mxf",
+}
+
+type SummaryObject struct {
+	Summary  string `json:"summary"`
+	Headline string `json:"headline"`
+	Gist     string `json:"gist"`
+	Start    int    `json:"start"`
+	End      int    `json:"end"`
 }

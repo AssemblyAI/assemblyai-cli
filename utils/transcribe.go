@@ -250,6 +250,7 @@ func PollTranscription(id string, flags S.TranscribeFlags) {
 		}
 		var transcript S.TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
+			fmt.Println(err)
 			printErrorProps := S.PrintErrorProps{
 				Error:   err,
 				Message: "Something went wrong. Please try again.",
@@ -258,6 +259,7 @@ func PollTranscription(id string, flags S.TranscribeFlags) {
 			s.Stop()
 			return
 		}
+
 		if transcript.Error != nil {
 			s.Stop()
 			fmt.Println(*transcript.Error)
@@ -365,7 +367,7 @@ func getFormattedOutput(transcript S.TranscriptResponse, flags S.TranscribeFlags
 	}
 	if transcript.Summarization != nil && *transcript.Summarization == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Summary")
-		summaryPrintFormatted(transcript.Summary)
+		summaryPrintFormatted(*transcript.Summary)
 	}
 	if flags.Srt {
 		srtDownloadTranscript(*transcript.ID, transcript.Words)
@@ -586,20 +588,34 @@ func entityDetectionPrintFormatted(entities *[]S.Entity) {
 	fmt.Println()
 }
 
-func summaryPrintFormatted(summary *string) {
+func summaryPrintFormatted(summary interface{}) {
 	if summary == nil {
 		fmt.Println("Could not retrieve summary")
 		return
 	}
+	// check if summary is a string
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 
-	table.AddRow(*summary)
+	if _, ok := (summary).(string); ok {
+		table.AddRow(summary)
+	} else {
+		summaryArray := (summary).([]interface{})
+		for _, row := range summaryArray {
+			row := row.(map[string]interface{})
+			table.AddRow("| Headline", row["headline"].(string))
+			table.AddRow("| Gist", row["gist"].(string))
+			table.AddRow("| Summary", row["summary"].(string))
+			table.AddRow("", "")
+		}
+
+	}
 
 	fmt.Println(table)
 	fmt.Println()
+
 }
 
 func srtDownloadTranscript(id string, words []S.SentimentAnalysisResult) {
