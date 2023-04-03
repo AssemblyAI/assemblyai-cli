@@ -29,7 +29,7 @@ func TestValidate(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "\nPlease start by running \033[1m\033[34massemblyai config [token]\033[0m\n" {
+	if string(out) != "Please start by running \033[1m\033[34massemblyai config [token]\033[0m\n" {
 		t.Errorf("Expected Please start by running \033[1m\033[34massemblyai config [token]\033[0m, got %s.", string(out))
 	}
 }
