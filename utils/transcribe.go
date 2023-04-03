@@ -38,7 +38,7 @@ func Transcribe(params S.TranscribeParams, flags S.TranscribeFlags) {
 	if !checkToken {
 		printErrorProps := S.PrintErrorProps{
 			Error:   errors.New("Invalid token"),
-			Message: "Your token appears to be invalid. Try again, and if the problem persists, contact support at support@assemblyai.com",
+			Message: INVALID_TOKEN,
 		}
 		PrintError(printErrorProps)
 		return
