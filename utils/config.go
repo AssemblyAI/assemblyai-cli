@@ -32,6 +32,7 @@ func CheckIfTokenValid() bool {
 			Message: "Something went wrong. Please try again.",
 		}
 		PrintError(printErrorProps)
+		return false
 	}
 	if result.Error != nil {
 		return false

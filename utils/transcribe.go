@@ -34,6 +34,16 @@ func Transcribe(params S.TranscribeParams, flags S.TranscribeFlags) {
 		return
 	}
 
+	checkToken := CheckIfTokenValid()
+	if !checkToken {
+		printErrorProps := S.PrintErrorProps{
+			Error:   errors.New("Invalid token"),
+			Message: "Your token appears to be invalid. Try again, and if the problem persists, contact support at support@assemblyai.com",
+		}
+		PrintError(printErrorProps)
+		return
+	}
+
 	if isUrl(params.AudioURL) {
 		if isYoutubeLink(params.AudioURL) {
 			if isYoutubeShortLink(params.AudioURL) {
@@ -391,7 +401,7 @@ func dualChannelPrintFormatted(utterances *[]S.SentimentAnalysisResult) {
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 21)
 	for _, utterance := range *utterances {
-		start := TransformMsToTimestamp(*utterance.Start)
+		start := TransformMsToTimestamp(*utterance.Start, false)
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
 		sentences := SplitSentences(utterance.Text, false)
@@ -533,8 +543,8 @@ func chaptersPrintFormatted(chapters *[]S.Chapter) {
 	table.MaxColWidth = uint(width - 19)
 	table.Separator = " |\t"
 	for _, chapter := range *chapters {
-		start := TransformMsToTimestamp(*chapter.Start)
-		end := TransformMsToTimestamp(*chapter.End)
+		start := TransformMsToTimestamp(*chapter.Start, false)
+		end := TransformMsToTimestamp(*chapter.End, false)
 		table.AddRow("| timestamp", fmt.Sprintf("%s-%s", start, end))
 		table.AddRow("| Gist", chapter.Gist)
 		table.AddRow("| Headline", chapter.Headline)
