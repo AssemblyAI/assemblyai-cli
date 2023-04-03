@@ -250,7 +250,6 @@ func PollTranscription(id string, flags S.TranscribeFlags) {
 		}
 		var transcript S.TranscriptResponse
 		if err := json.Unmarshal(response, &transcript); err != nil {
-			fmt.Println(err)
 			printErrorProps := S.PrintErrorProps{
 				Error:   err,
 				Message: "Something went wrong. Please try again.",
@@ -593,12 +592,13 @@ func summaryPrintFormatted(summary interface{}) {
 		fmt.Println("Could not retrieve summary")
 		return
 	}
-	// check if summary is a string
 	table := uitable.New()
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 
+	// summary could be either a string or Array<Record<string, string | number>>
+	// check if summary is a string
 	if _, ok := (summary).(string); ok {
 		table.AddRow(summary)
 	} else {
@@ -610,7 +610,6 @@ func summaryPrintFormatted(summary interface{}) {
 			table.AddRow("| Summary", row["summary"].(string))
 			table.AddRow("", "")
 		}
-
 	}
 
 	fmt.Println(table)
