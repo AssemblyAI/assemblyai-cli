@@ -8,6 +8,7 @@ import (
 
 	S "github.com/AssemblyAI/assemblyai-cli/schemas"
 	"github.com/AssemblyAI/assemblyai-cli/utils"
+	U "github.com/AssemblyAI/assemblyai-cli/utils"
 )
 
 func TestVersion(t *testing.T) {
@@ -39,7 +40,7 @@ func TestAuthBad(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Your token appears to be invalid. Try again, and if the problem persists, contact support at support@assemblyai.com\n" {
+	if string(out) != U.INVALID_TOKEN+"\n" {
 		t.Errorf("Expected Something just went wrong. Please try again., got %s.", string(out))
 	}
 }
@@ -60,7 +61,7 @@ func TestTranscribeInvalidFlags(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "requires at least 1 arg(s), only received 0\n" {
+	if string(out) != "\nrequires at least 1 arg(s), only received 0\n" {
 		t.Errorf("Expected requires at least 1 arg(s), only received 0, got %s.", string(out))
 	}
 }
@@ -70,7 +71,7 @@ func TestTranscribeBadYoutube(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Could not find YouTube ID in URL\n" {
+	if string(out) != "\nCould not find YouTube ID in URL\n" {
 		t.Errorf("Expected Could not find YouTube ID in URL, got %s.", string(out))
 	}
 }
@@ -80,7 +81,7 @@ func TestTranscribeBadFile(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Error opening file\n" {
+	if string(out) != "\nError opening file\n" {
 		t.Errorf("Expected Error opening file, got %s.", string(out))
 	}
 }
@@ -165,7 +166,7 @@ func TestTranscribeRestrictions(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Speaker labels are not supported for dual channel audio\n" {
+	if string(out) != "\nSpeaker labels are not supported for dual channel audio\n" {
 		t.Errorf("Expected Speaker labels are not supported for dual channel audio, got %s.", string(out))
 	}
 
@@ -185,7 +186,7 @@ func TestTranscribeRestrictions(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Auto chapters are not supported for summarization\n" {
+	if string(out) != "\nAuto chapters are not supported for summarization\n" {
 		t.Errorf("Expected Auto chapters are not supported for summarization, got %s.", string(out))
 	}
 
@@ -205,7 +206,7 @@ func TestTranscribeRestrictions(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Please provide either language detection or language code, not both.\n" {
+	if string(out) != "\nPlease provide either language detection or language code, not both.\n" {
 		t.Errorf("Expected Please provide either language detection or language code, not both., got %s.", string(out))
 	}
 
@@ -225,7 +226,7 @@ func TestTranscribeRestrictions(t *testing.T) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	if string(out) != "Speaker labels are not supported for languages other than English.\n" {
+	if string(out) != "\nSpeaker labels are not supported for languages other than English.\n" {
 		t.Errorf("Expected Speaker labels are not supported for languages other than English., got %s.", string(out))
 	}
 }

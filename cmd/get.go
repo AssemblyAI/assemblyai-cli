@@ -43,6 +43,16 @@ var getCmd = &cobra.Command{
 			return
 		}
 
+		checkToken := U.CheckIfTokenValid()
+		if !checkToken {
+			printErrorProps := S.PrintErrorProps{
+				Error:   errors.New("Invalid token"),
+				Message: U.INVALID_TOKEN,
+			}
+			U.PrintError(printErrorProps)
+			return
+		}
+
 		U.PollTranscription(id, flags)
 	},
 }

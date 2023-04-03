@@ -34,6 +34,16 @@ func Transcribe(params S.TranscribeParams, flags S.TranscribeFlags) {
 		return
 	}
 
+	checkToken := CheckIfTokenValid()
+	if !checkToken {
+		printErrorProps := S.PrintErrorProps{
+			Error:   errors.New("Invalid token"),
+			Message: INVALID_TOKEN,
+		}
+		PrintError(printErrorProps)
+		return
+	}
+
 	if isUrl(params.AudioURL) {
 		if isYoutubeLink(params.AudioURL) {
 			if isYoutubeShortLink(params.AudioURL) {
@@ -248,6 +258,7 @@ func PollTranscription(id string, flags S.TranscribeFlags) {
 			s.Stop()
 			return
 		}
+
 		if transcript.Error != nil {
 			s.Stop()
 			fmt.Println(*transcript.Error)
@@ -355,7 +366,7 @@ func getFormattedOutput(transcript S.TranscriptResponse, flags S.TranscribeFlags
 	}
 	if transcript.Summarization != nil && *transcript.Summarization == true {
 		fmt.Fprintf(os.Stdin, "\033[1m%s\033[0m\n", "Summary")
-		summaryPrintFormatted(transcript.Summary)
+		summaryPrintFormatted(*transcript.Summary)
 	}
 	if flags.Srt {
 		srtDownloadTranscript(*transcript.ID, transcript.Words)
@@ -391,7 +402,7 @@ func dualChannelPrintFormatted(utterances *[]S.SentimentAnalysisResult) {
 	table.Wrap = true
 	table.MaxColWidth = uint(width - 21)
 	for _, utterance := range *utterances {
-		start := TransformMsToTimestamp(*utterance.Start)
+		start := TransformMsToTimestamp(*utterance.Start, false)
 		speaker := fmt.Sprintf("(Channel %s)", utterance.Channel)
 
 		sentences := SplitSentences(utterance.Text, false)
@@ -533,8 +544,8 @@ func chaptersPrintFormatted(chapters *[]S.Chapter) {
 	table.MaxColWidth = uint(width - 19)
 	table.Separator = " |\t"
 	for _, chapter := range *chapters {
-		start := TransformMsToTimestamp(*chapter.Start)
-		end := TransformMsToTimestamp(*chapter.End)
+		start := TransformMsToTimestamp(*chapter.Start, false)
+		end := TransformMsToTimestamp(*chapter.End, false)
 		table.AddRow("| timestamp", fmt.Sprintf("%s-%s", start, end))
 		table.AddRow("| Gist", chapter.Gist)
 		table.AddRow("| Headline", chapter.Headline)
@@ -576,7 +587,7 @@ func entityDetectionPrintFormatted(entities *[]S.Entity) {
 	fmt.Println()
 }
 
-func summaryPrintFormatted(summary *string) {
+func summaryPrintFormatted(summary interface{}) {
 	if summary == nil {
 		fmt.Println("Could not retrieve summary")
 		return
@@ -586,10 +597,24 @@ func summaryPrintFormatted(summary *string) {
 	table.MaxColWidth = uint(width - 20)
 	table.Separator = " |\t"
 
-	table.AddRow(*summary)
+	// summary could be either a string or Array<Record<string, string | number>>
+	// check if summary is a string
+	if _, ok := (summary).(string); ok {
+		table.AddRow(summary)
+	} else {
+		summaryArray := (summary).([]interface{})
+		for _, row := range summaryArray {
+			row := row.(map[string]interface{})
+			table.AddRow("| Headline", row["headline"].(string))
+			table.AddRow("| Gist", row["gist"].(string))
+			table.AddRow("| Summary", row["summary"].(string))
+			table.AddRow("", "")
+		}
+	}
 
 	fmt.Println(table)
 	fmt.Println()
+
 }
 
 func srtDownloadTranscript(id string, words []S.SentimentAnalysisResult) {
