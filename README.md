@@ -31,7 +31,7 @@ If you don't have Homebrew installed, or are running Linux:
 
 ### Windows
 
-The CLI is available on Windows either via Scool or by script. 
+The CLI is available on Windows either via Scoop or by script. 
 
 Via Scoop:
 
