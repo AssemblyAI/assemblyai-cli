@@ -258,10 +258,14 @@ func PollTranscription(id string, flags S.TranscribeFlags) {
 			s.Stop()
 			return
 		}
-
 		if transcript.Error != nil {
 			s.Stop()
 			fmt.Println(*transcript.Error)
+			return
+		}
+		if transcript.Status == nil {
+			s.Stop()
+			fmt.Println("Something went wrong. Please try again.")
 			return
 		}
 		if *transcript.Status == "completed" {
