@@ -267,30 +267,28 @@ func GetSentenceTimestamps(sentences []string, words []S.SentimentAnalysisResult
 			timestamps = append(timestamps, TransformMsToTimestamp(*words[0].Start, false))
 			lastIndex = 0
 		} else {
+			sentenceWords := strings.Split(sentence, " ")
 			for i := lastIndex; i < len(words); i++ {
 				if strings.Contains(sentence, words[i].Text) {
-					if i == len(words)-1 {
-						timestamps = append(timestamps, TransformMsToTimestamp(*words[i].End, false))
-						lastIndex = i
-						break
+					if i < len(words)-2 {
+						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] && words[i+2].Text == sentenceWords[2] {
+							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start, false))
+							lastIndex = i
+							break
+						}
+					} else if i < len(words)-1 {
+						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
+							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start, false))
+							lastIndex = i
+							break
+						}
 					} else {
-						if strings.Contains(sentence, words[i+1].Text) {
-							continue
-						} else {
-							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].End, false))
+						if words[i].Text == sentenceWords[0] {
+							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start, false))
 							lastIndex = i
 							break
 						}
 					}
-				} else {
-					if i == len(words)-1 {
-						timestamps = append(timestamps, TransformMsToTimestamp(*words[i].End, false))
-						lastIndex = i
-						break
-					} else {
-						continue
-					}
-
 				}
 			}
 
