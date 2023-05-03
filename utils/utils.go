@@ -270,13 +270,13 @@ func GetSentenceTimestamps(sentences []string, words []S.SentimentAnalysisResult
 			sentenceWords := strings.Split(sentence, " ")
 			for i := lastIndex; i < len(words); i++ {
 				if strings.Contains(sentence, words[i].Text) {
-					if len(words) >= i+2 {
+					if i < len(words)-2 {
 						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] && words[i+2].Text == sentenceWords[2] {
 							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start, false))
 							lastIndex = i
 							break
 						}
-					} else if len(words) >= i+1 {
+					} else if i < len(words)-1 {
 						if words[i].Text == sentenceWords[0] && words[i+1].Text == sentenceWords[1] {
 							timestamps = append(timestamps, TransformMsToTimestamp(*words[i].Start, false))
 							lastIndex = i
