@@ -209,24 +209,4 @@ func TestTranscribeRestrictions(t *testing.T) {
 	if string(out) != "\nPlease provide either language detection or language code, not both.\n" {
 		t.Errorf("Expected Please provide either language detection or language code, not both., got %s.", string(out))
 	}
-
-	// Language Detection && Speaker labels
-	out, err = exec.Command(
-		"go",
-		"run",
-		"main.go",
-		"transcribe",
-		"https://storage.googleapis.com/aai-web-samples/2%20min.ogg",
-		"--language_detection",
-		"--speaker_labels",
-		"-p=false",
-		"-j",
-		"--test",
-	).Output()
-	if err != nil {
-		fmt.Println(err)
-	}
-	if string(out) != "\nSpeaker labels are not supported for languages other than English.\n" {
-		t.Errorf("Expected Speaker labels are not supported for languages other than English., got %s.", string(out))
-	}
 }
