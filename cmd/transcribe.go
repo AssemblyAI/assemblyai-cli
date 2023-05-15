@@ -139,7 +139,7 @@ var transcribeCmd = &cobra.Command{
 				if _, ok := S.PIIRedactionPolicyMap[policy]; !ok {
 					printErrorProps := S.PrintErrorProps{
 						Error:   errors.New("Invalid redaction policy"),
-						Message: fmt.Sprintf("%s is not a valid policy. See https://www.assemblyai.com/docs/audio-intelligence#pii-redaction for the complete list of supported policies.", policy),
+						Message: fmt.Sprintf("%s is not a valid policy. See https://www.assemblyai.com/docs/Models/pii_redaction for the complete list of supported policies.", policy),
 					}
 					U.PrintError(printErrorProps)
 					return
@@ -189,7 +189,7 @@ var transcribeCmd = &cobra.Command{
 			if _, ok := S.LanguageMap[languageCode]; !ok {
 				printErrorProps := S.PrintErrorProps{
 					Error:   errors.New("Invalid language code"),
-					Message: "Invalid language code. See https://www.assemblyai.com/docs#supported-languages for supported languages.",
+					Message: "Invalid language code. See https://www.assemblyai.com/docs/Concepts/faq#supported-languages for supported languages.",
 				}
 				U.PrintError(printErrorProps)
 				return
