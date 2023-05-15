@@ -143,7 +143,7 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > **-i, --redact_pii_policies**  
 > default: drug,number_sequence,person_name  
 > example: `-i medical_process,nationality` or `--redact_pii_policies medical_process,nationality`  
-> The list of PII policies to redact ([source](https://www.assemblyai.com/docs/audio-intelligence#pii-redaction)), comma-separated. Required if the redact_pii flag is true.
+> The list of PII policies to redact ([source](https://www.assemblyai.com/docs/Models/pii_redaction)), comma-separated. Required if the redact_pii flag is true.
 
 > **-x, --sentiment_analysis**  
 > default: false  
@@ -176,12 +176,12 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > default: false  
 > example: `-n` or `--language_detection`  
 > Automatic identify the dominant language that’s spoken in an audio file.
-> [Here](https://www.assemblyai.com/docs/core-transcription#automatic-language-detection) you can view the ALD list for supported languages
+> [Here](https://www.assemblyai.com/docs/Models/speech_recognition#automatic-language-detection) you can view the ALD list for supported languages
 
 > **-g, --language_code**  
 > example: `-g es` or `--language_code es`  
 > Manually specify the language of the speech in your audio file.
-> Click [here](https://www.assemblyai.com/docs#supported-languages) to view all the supported languages
+> Click [here](https://www.assemblyai.com/docs/Concepts/faq#supported-languages) to view all the supported languages
 
 > **-m, --summarization**  
 > default: false  
@@ -192,13 +192,13 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > default: bullets  
 > example: `-q conversational` or `--summary_model conversational`  
 > Type of summary generated.
-> Click [here](https://www.assemblyai.com/docs/audio-intelligence#summarization) to view all the supported types
+> Click [here](https://www.assemblyai.com/docs/Models/summarization) to view all the supported types
 
 > **-y, --summary_type**
 > default: bullets  
 > example: `-y paragraph` or `--summary_type paragraph`  
 > Model of summary generated.
-> Click [here](https://www.assemblyai.com/docs/audio-intelligence#summarization) to view all the supported types
+> Click [here](https://www.assemblyai.com/docs/Models/summarization) to view all the supported types
 
 > **-k, --word_boost**
 > example: `-k "sally mcmanus,the IQEZ iPhone app"` or `--word_boost "sally mcmanus,the IQEZ iPhone app"`  
