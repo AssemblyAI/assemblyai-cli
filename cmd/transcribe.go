@@ -170,18 +170,6 @@ var transcribeCmd = &cobra.Command{
 			U.PrintError(printErrorProps)
 			return
 		}
-		if (languageCode != "" || languageDetection) && params.SpeakerLabels {
-			if cmd.Flags().Lookup("speaker_labels").Changed {
-				printErrorProps := S.PrintErrorProps{
-					Error:   errors.New("Speaker labels are not supported for languages other than English"),
-					Message: "Speaker labels are not supported for languages other than English.",
-				}
-				U.PrintError(printErrorProps)
-				return
-			} else {
-				params.SpeakerLabels = false
-			}
-		}
 		if languageDetection && languageCode == "" {
 			params.LanguageDetection = true
 		}
