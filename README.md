@@ -26,7 +26,25 @@ brew install assemblyai
 If you don't have Homebrew installed, or are running Linux:
 
 ```bash
-/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.sh)"
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/AssemblyAI/assemblyai-cli/main/install.sh)" &&
+
+case "$SHELL" in
+    *bash*)
+        if [ -f "$HOME/.bashrc" ]; then
+            # if the shell contains "bash" and .bashrc is present
+            source $HOME/.bashrc
+        fi
+        ;;
+    *zsh*)
+        if [ -f "$HOME/.zshrc" ]; then
+            # if the shell contains "zsh" and .zshrc is present
+            source $HOME/.zshrc
+        fi
+        ;;
+    *)
+        echo "Unknown shell or required configuration file not found."
+        ;;
+esac
 ```
 
 ### Windows
