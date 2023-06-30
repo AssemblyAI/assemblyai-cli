@@ -50,11 +50,11 @@ if [ ! -f "$HOME/.bashrc" ]; then
 	touch "$HOME/.bashrc"
 fi
 
-if [ ! -f "$HOME/.zshrc" ]; then
+if [ -x "$(command -v zsh)" ] && [ ! -f "$HOME/.zshrc" ]; then
 	touch "$HOME/.zshrc"
 fi
 
-if [ -f "$HOME/.zshrc" ]; then
+if [ -x "$(command -v zsh)" ]; then
 	echo "" >> "$HOME/.zshrc"
 	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.zshrc"
 fi
@@ -68,7 +68,7 @@ fi
 if [ -f "$HOME/.bashrc" ]; then
 	source "$HOME/.bashrc"
 fi
-if [ -f "$HOME/.zshrc" ]; then
+if [ -x "$(command -v zsh)" ]; then
 	zsh
 	source "$HOME/.zshrc"
 fi
