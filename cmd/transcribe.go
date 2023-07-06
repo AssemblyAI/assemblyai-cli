@@ -264,7 +264,7 @@ func init() {
 	transcribeCmd.PersistentFlags().BoolP("punctuate", "u", true, "Enable automatic punctuation.")
 	transcribeCmd.PersistentFlags().BoolP("redact_pii", "r", false, "Remove personally identifiable information from the transcription.")
 	transcribeCmd.PersistentFlags().BoolP("sentiment_analysis", "x", false, "Detect the sentiment of each sentence of speech spoken in the file.")
-	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", true, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
+	transcribeCmd.PersistentFlags().BoolP("speaker_labels", "l", false, "Automatically detect the number of speakers in your audio file, and each word in the transcription text can be associated with its speaker.")
 	transcribeCmd.PersistentFlags().BoolP("srt", "", false, "Generate an SRT file for the audio file transcribed.")
 	transcribeCmd.PersistentFlags().BoolP("summarization", "m", false, "Generate a single abstractive summary of the entire audio.")
 	transcribeCmd.PersistentFlags().BoolP("topic_detection", "t", false, "Label the topics that are spoken in the file.")
