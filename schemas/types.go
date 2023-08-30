@@ -270,9 +270,9 @@ type PostHogProperties struct {
 
 var LanguageMap = map[string]string{
 	"en":    "Global English",
-	"en-au": "Australian English",
+	"en_au": "Australian English",
 	"en_uk": "British English",
-	"en-US": "US English",
+	"en_us": "US English",
 	"es":    "Spanish",
 	"fr":    "French",
 	"de":    "German",
@@ -281,6 +281,14 @@ var LanguageMap = map[string]string{
 	"nl":    "Dutch",
 	"hi":    "Hindi",
 	"ja":    "Japanese",
+	"zh":    "Chinese",
+	"fi":    "Finnish",
+	"ko":    "Korean",
+	"pl":    "Polish",
+	"ru":    "Russian",
+	"tr":    "Turkish",
+	"uk":    "Ukrainian",
+	"vi":    "Vietnamese",
 }
 
 var SummarizationTypeMap = map[string]string{
