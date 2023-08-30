@@ -1,7 +1,7 @@
 # AssemblyAI CLI
 
 ![Release](https://img.shields.io/github/v/release/assemblyai/assemblyai-cli)
-![Build](https://img.shields.io/github/workflow/status/assemblyai/assemblyai-cli/Release%20workflow)
+![Build](https://img.shields.io/github/actions/workflow/status/assemblyai/assemblyai-cli/release.yml)
 ![License](https://img.shields.io/github/license/assemblyai/assemblyai-cli)
 
 The AssemblyAI CLI helps you quickly test our latest AI models right from your terminal, with minimal installation required.
