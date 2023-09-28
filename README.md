@@ -31,14 +31,14 @@ If you don't have Homebrew installed, or are running Linux:
 
 ### Windows
 
-The CLI is available on Windows either via Scoop or by script. 
+The CLI is available on Windows either via Scoop or by script.
 
 Via Scoop:
 
 ```powershell
 scoop bucket add assemblyai https://github.com/assemblyai/scoop-assemblyai.git
 scoop install assemblyai
-````
+```
 
 Or via PowerShell as an administrator:
 
@@ -58,10 +58,10 @@ assemblyai config [token]
 
 This command will validate your account, and store your token safely in `~/.config/assemblyai/config.toml` later to be used when transcribing files.
 
-You can now transcribe local files, remote URLs, or YouTube videos.
+You can now transcribe local files and remote URLs.
 
 ```bash
-assemblyai transcribe https://youtu.be/0wvBu014E5o --auto_highlights --entity_detection
+assemblyai transcribe ./file.mp3 --auto_highlights --entity_detection
 ```
 
 ## Usage
@@ -76,10 +76,10 @@ assemblyai [command] [--flags]
 
 ### Transcribe
 
-With the CLI, you can transcribe local files, remote URLs, and YouTube links.
+With the CLI, you can transcribe local files and remote URLs.
 
 ```bash
-assemblyai transcribe [local file | remote url | youtube links] [--flags]
+assemblyai transcribe [local file | remote url] [--flags]
 ```
 
 <details>
@@ -208,7 +208,7 @@ assemblyai transcribe [local file | remote url | youtube links] [--flags]
 > example: `-z high` or `--word_boost high`  
 > Control how much weight should be applied to your boosted keywords/phrases. This value can be either low, default, or high.
 > **--custom_spelling**
-> example: `--custom_spelling "[{\"from\": [\"ariana\"], \"to\": \"Arianna\"}]"` or  `--custom_spelling ./custom_spelling.json`
+> example: `--custom_spelling "[{\"from\": [\"ariana\"], \"to\": \"Arianna\"}]"` or `--custom_spelling ./custom_spelling.json`
 > Specify how words are spelled or formatted in the transcript text.
 
 > **--srt**  

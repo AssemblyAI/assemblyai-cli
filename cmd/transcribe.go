@@ -17,7 +17,7 @@ import (
 )
 
 var transcribeCmd = &cobra.Command{
-	Use:   "transcribe <url | path | youtube URL>",
+	Use:   "transcribe <url | path>",
 	Short: "Transcribe and understand audio with a single AI-powered API",
 	Long: `Automatically convert audio and video files and live audio streams to text with AssemblyAI's Speech-to-Text APIs. 
 	Do more with Audio Intelligence - summarization, content moderation, topic detection, and more. 
@@ -30,8 +30,8 @@ var transcribeCmd = &cobra.Command{
 		args = cmd.Flags().Args()
 		if len(args) == 0 {
 			printErrorProps := S.PrintErrorProps{
-				Error:   errors.New("Please provide a URL, path, or YouTube URL"),
-				Message: "Please provide a local file, a file URL or a YouTube URL to be transcribed.",
+				Error:   errors.New("Please provide a URL or a file path"),
+				Message: "Please provide a local file or a URL to be transcribed.",
 			}
 			U.PrintError(printErrorProps)
 			return
