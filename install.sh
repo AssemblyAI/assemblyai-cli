@@ -6,9 +6,7 @@ RELEASES_URL="https://github.com/AssemblyAI/assemblyai-cli/releases"
 FILE_BASENAME="assemblyai"
 
 test -z "$VERSION" && VERSION="$(curl -sfL -o /dev/null -w %{url_effective} "$RELEASES_URL/latest" |
-		rev |
-		cut -f1 -d'/'|
-		rev)"
+		rev | cut -f1 -d'/' | rev | cut -c2- )"
 
 test -z "$VERSION" && {
 	echo "Unable to get assemblyai version." >&2
@@ -34,9 +32,9 @@ export TAR_FILE="$TMPDIR/${FILE_BASENAME}_${OS}_${ARCH}.tar.gz"
 
 (
 	cd "$TMPDIR"
-	echo "Downloading AssemblyAI CLI $VERSION..."
+	echo "Downloading AssemblyAI CLI v$VERSION..."
 	curl -sfLo "$TAR_FILE" \
-		"$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION:1}_${OS}_${ARCH}.tar.gz"
+		"$RELEASES_URL/download/v$VERSION/${FILE_BASENAME}_${VERSION}_${OS}_${ARCH}.tar.gz"
 )
 
 BINARY_PATH="$HOME/.assemblyai-cli"
@@ -63,7 +61,7 @@ if [ -f "$HOME/.bashrc" ]; then
 	echo "export PATH=\"$BINARY_PATH:\$PATH\"" >> "$HOME/.bashrc"
 fi
 
-"${BINARY_PATH}/${FILE_BASENAME}" welcome -i -o="$OS" -m="curl" -v="$VERSION" -a="$ARCH"
+"${BINARY_PATH}/${FILE_BASENAME}" welcome -i -o="$OS" -m="curl" -v="v$VERSION" -a="$ARCH"
 
 if [ -f "$HOME/.bashrc" ]; then
 	source "$HOME/.bashrc"
