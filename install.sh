@@ -7,8 +7,8 @@ FILE_BASENAME="assemblyai"
 
 test -z "$VERSION" && VERSION="$(curl -sfL -o /dev/null -w %{url_effective} "$RELEASES_URL/latest" |
 		rev |
-		cut -f1 -d'/'|
-		rev)"
+  		cut -f1 -d'/'| 
+    		rev)"
 
 test -z "$VERSION" && {
 	echo "Unable to get assemblyai version." >&2
@@ -36,7 +36,7 @@ export TAR_FILE="$TMPDIR/${FILE_BASENAME}_${OS}_${ARCH}.tar.gz"
 	cd "$TMPDIR"
 	echo "Downloading AssemblyAI CLI $VERSION..."
 	curl -sfLo "$TAR_FILE" \
-		"$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION:1}_${OS}_${ARCH}.tar.gz"
+		"$RELEASES_URL/download/$VERSION/${FILE_BASENAME}_${VERSION#?}_${OS}_${ARCH}.tar.gz"
 )
 
 BINARY_PATH="$HOME/.assemblyai-cli"
