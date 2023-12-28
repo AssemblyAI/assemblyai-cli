@@ -235,7 +235,7 @@ func UploadFile(path string) string {
 func PollTranscription(id string, flags S.TranscribeFlags) {
 	fmt.Fprintln(os.Stdin, "Transcribing file with id "+id)
 
-	s := CallSpinner(" Processing time is usually 20% of the file's duration.")
+	s := CallSpinner(" Processing time is usually under 60 seconds.")
 
 	for {
 		response := QueryApi("/transcript/"+id, "GET", nil, s)
