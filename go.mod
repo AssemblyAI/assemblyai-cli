@@ -1,6 +1,6 @@
 module github.com/AssemblyAI/assemblyai-cli
 
-go 1.22.1
+go 1.22
 
 require (
 	github.com/briandowns/spinner v1.19.0
