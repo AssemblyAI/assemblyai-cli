@@ -1,6 +1,8 @@
 module github.com/AssemblyAI/assemblyai-cli
 
-go 1.22
+go 1.21
+
+toolchain go1.22.1
 
 require (
 	github.com/briandowns/spinner v1.19.0
@@ -12,7 +14,7 @@ require (
 	github.com/posthog/posthog-go v0.0.0-20220817142604-0b0bbf0f9c0f
 	github.com/spf13/cobra v1.8.0
 	github.com/spf13/viper v1.18.2
-	golang.org/x/term v0.18.0
+	golang.org/x/term v0.0.0-20220919170432-7a66f970e087
 	gopkg.in/cheggaaa/pb.v1 v1.0.28
 )
 
