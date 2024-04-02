@@ -4,189 +4,38 @@ Copyright © 2022 AssemblyAI support@assemblyai.com
 package utils
 
 import (
-	"bytes"
-	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
-	"io/ioutil"
-	"math"
-	"net/http"
 	"os"
-	"strconv"
 
 	S "github.com/AssemblyAI/assemblyai-cli/schemas"
-	pb "gopkg.in/cheggaaa/pb.v1"
+	"github.com/kkdai/youtube/v2"
 )
 
-var key = "AIzaSyA8eiZmM1FaDVjRy-df2KTyQ_vz_yYM39w"
 var Filename = os.TempDir() + "tmp-video."
-var fileLength = 0
-var percent = 0
-var chunkSize = 200000000
 
 func YoutubeDownload(id string) string {
-	var body S.YoutubeBodyMetaInfo
-	body.Context.Client.Hl = "en"
-	body.Context.Client.ClientName = "ANDROID"
-	body.Context.Client.ClientVersion = "17.31.35"
-	body.Context.Client.AndroidSDKVersion = 30
-	body.Context.Client.UserAgent = "com.google.android.youtube/17.31.35 (Linux; U; Android 11) gzip"
-	body.Context.Client.TimeZone = "UTC"
-	body.Context.Client.UtcOffsetMinutes = 0
-	body.VideoID = id
-	body.Params = "8AEB"
-	body.PlaybackContext.ContentPlaybackContext.Html5Preference = "HTML5_PREF_WANTS"
-	body.RacyCheckOk = true
-	body.ContentCheckOk = true
+	client := youtube.Client{}
 
-	paramsJSON, err := json.Marshal(body)
+	video, err := client.GetVideo(id)
 	if err != nil {
 		printErrorProps := S.PrintErrorProps{
 			Error:   err,
-			Message: "Something went wrong. Please try again.",
-		}
-		PrintError(printErrorProps)
-		return ""
-	}
-
-	requestBody := bytes.NewReader(paramsJSON)
-	fmt.Fprintln(os.Stdin, "Transcribing YouTube video...")
-	video := QueryYoutube(requestBody)
-	if *video.PlayabilityStatus.Status != "OK" || video.StreamingData.Formats == nil {
-
-		if *video.PlayabilityStatus.Reason != "" {
-			printErrorProps := S.PrintErrorProps{
-				Error:   errors.New("Video is not available"),
-				Message: *video.PlayabilityStatus.Reason,
-			}
-			PrintError(printErrorProps)
-			return ""
-		} else {
-			printErrorProps := S.PrintErrorProps{
-				Error:   errors.New("Video is not available"),
-				Message: "The video is not available for download.",
-			}
-			PrintError(printErrorProps)
-			return ""
-		}
-	}
-
-	// Get the audio url with lowest bitrate
-	var idx int
-	var britate int64
-	for i, format := range video.StreamingData.Formats {
-		if britate == 0 && IsValidFileType(*format.MIMEType) {
-			britate = *format.Bitrate
-			idx = i
-		}
-		if *format.Bitrate > britate && IsValidFileType(*format.MIMEType) {
-			idx = i
-			britate = *format.Bitrate
-		}
-	}
-
-	if britate == 0 {
-		printErrorProps := S.PrintErrorProps{
-			Error:   errors.New("Video is not available"),
-			Message: "The video is not available for download.",
-		}
-		PrintError(printErrorProps)
-		return ""
-	}
-
-	info, err := os.Stat(os.TempDir())
-	if err != nil || !info.IsDir() || info.Mode().Perm()&(1<<uint(7)) == 0 {
-		Filename = "./tmp-video"
-		local, err := os.Stat("./")
-		if err != nil || !local.IsDir() || local.Mode().Perm()&(1<<uint(7)) == 0 {
-			err = os.Chmod("./", 0700)
-			if err != nil {
-				fmt.Println("Unable to create temporary file")
-				return ""
-			}
-		}
-	}
-
-	videoUrl := *video.StreamingData.Formats[idx].URL
-	// get video extension and add it to the filename
-	extension := GetExtension(*video.StreamingData.Formats[idx].MIMEType)
-	Filename = Filename + extension
-
-	DownloadVideo(videoUrl)
-	uploadedURL := UploadFile(Filename)
-	if uploadedURL == "" {
-		printErrorProps := S.PrintErrorProps{
-			Error:   errors.New("The file does not exist. Please try again with a different one."),
-			Message: "The file does not exist. Please try again with a different one.",
+			Message: "Failed to fetch YouTube video metadata.",
 		}
 		PrintError(printErrorProps)
 	}
-	err = os.Remove(Filename)
-	return uploadedURL
-}
 
-func QueryYoutube(body io.Reader) S.YoutubeMetaInfo {
-	resp, err := http.NewRequest("POST", "https://www.youtube.com/youtubei/v1/player?key="+key, body)
+	formats := video.Formats.WithAudioChannels() // only get videos with audio
+	stream, _, err := client.GetStream(video, &formats[0])
 	if err != nil {
 		printErrorProps := S.PrintErrorProps{
 			Error:   err,
-			Message: "Something went wrong. Please try again.",
+			Message: "Failed to get YouTube video audio channels.",
 		}
 		PrintError(printErrorProps)
 	}
-
-	resp.Header.Add("Accept", "application/json")
-
-	response, err := http.DefaultClient.Do(resp)
-	if err != nil {
-		printErrorProps := S.PrintErrorProps{
-			Error:   err,
-			Message: "Something went wrong. Please try again.",
-		}
-		PrintError(printErrorProps)
-	}
-	defer response.Body.Close()
-
-	responseData, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		printErrorProps := S.PrintErrorProps{
-			Error:   err,
-			Message: "Something went wrong. Please try again.",
-		}
-		PrintError(printErrorProps)
-		fmt.Println("Our Youtube transcribe service is currently unavailable. Please try again later.")
-	}
-
-	var videoResponse S.YoutubeMetaInfo
-	if err := json.Unmarshal(responseData, &videoResponse); err != nil {
-		printErrorProps := S.PrintErrorProps{
-			Error:   err,
-			Message: "Something went wrong. Please try again.",
-		}
-		PrintError(printErrorProps)
-	}
-
-	return videoResponse
-}
-
-func DownloadVideo(url string) {
-	resp, err := http.Head(url)
-	if err != nil {
-		printErrorProps := S.PrintErrorProps{
-			Error:   err,
-			Message: "Something went wrong. Please try again.",
-		}
-		PrintError(printErrorProps)
-	}
-	fileLength, err = strconv.Atoi(resp.Header.Get("Content-Length"))
-	if err != nil {
-		printErrorProps := S.PrintErrorProps{
-			Error:   err,
-			Message: "Something went wrong. Please try again.",
-		}
-		PrintError(printErrorProps)
-	}
+	defer stream.Close()
 
 	file, err := os.Create(Filename)
 	if err != nil {
@@ -198,94 +47,29 @@ func DownloadVideo(url string) {
 	}
 	defer file.Close()
 
-	client := &http.Client{}
-	req, _ := http.NewRequest("GET", url, nil)
-
-	if fileLength > chunkSize {
-		bar := pb.New(fileLength)
-		bar.Prefix("Downloading video: ")
-		bar.Output = os.Stdin
-		bar.SetUnits(pb.U_BYTES_DEC)
-		bar.ShowBar = false
-		bar.ShowTimeLeft = false
-		bar.Start()
-		chunks := int(math.Ceil(float64(fileLength) / float64(chunkSize)))
-		for i := 0; i < chunks; i++ {
-			bar.Set(i * chunkSize)
-			start := i * chunkSize
-			end := start + chunkSize - 1
-			if end > fileLength {
-				end = fileLength
-			}
-			req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", start, end))
-			resp, err := client.Do(req)
-			if err != nil {
-				printErrorProps := S.PrintErrorProps{
-					Error:   err,
-					Message: "Something went wrong. Please try again.",
-				}
-				PrintError(printErrorProps)
-			}
-			defer resp.Body.Close()
-			_, err = io.Copy(file, resp.Body)
-			if err != nil {
-				printErrorProps := S.PrintErrorProps{
-					Error:   err,
-					Message: "Something went wrong. Please try again.",
-				}
-				PrintError(printErrorProps)
-			}
+	_, err = io.Copy(file, stream)
+	if err != nil {
+		printErrorProps := S.PrintErrorProps{
+			Error:   err,
+			Message: "Something went wrong. Please try again.",
 		}
-		bar.Set(fileLength)
-		bar.Finish()
-	} else {
-		req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", 0, fileLength))
-		resp, err = client.Do(req)
-		if err != nil {
-			printErrorProps := S.PrintErrorProps{
-				Error:   err,
-				Message: "Something went wrong. Please try again.",
-			}
-			PrintError(printErrorProps)
-		}
-		defer resp.Body.Close()
-		go displayDownloadProgress()
-		body := io.TeeReader(resp.Body, &writeCounter{0, int64(fileLength)})
-		_, err = io.Copy(file, body)
-		if err != nil {
-			printErrorProps := S.PrintErrorProps{
-				Error:   err,
-				Message: "Something went wrong. Please try again.",
-			}
-			PrintError(printErrorProps)
-		}
+		PrintError(printErrorProps)
 	}
-
-}
-
-func (pWc *writeCounter) Write(b []byte) (n int, err error) {
-	n = len(b)
-	pWc.BytesDownloaded += int64(n)
-	percent = int(math.Round(float64(pWc.BytesDownloaded) * 100.0 / float64(pWc.TotalBytes)))
-	return
-}
-
-func displayDownloadProgress() {
-	bar := pb.New(fileLength)
-	bar.Prefix("Downloading video: ")
-	bar.Output = os.Stdin
-	bar.SetUnits(pb.U_BYTES_DEC)
-	bar.ShowBar = false
-	bar.ShowTimeLeft = false
-	bar.Start()
-	for percent < 100 {
-		bar.Set(percent * fileLength / 100)
+	uploadedURL := UploadFile(Filename)
+	if uploadedURL == "" {
+		printErrorProps := S.PrintErrorProps{
+			Error:   errors.New("The file does not exist. Please try again with a different one."),
+			Message: "The file does not exist. Please try again with a different one.",
+		}
+		PrintError(printErrorProps)
 	}
-	bar.Set(fileLength)
-	bar.Finish()
-}
-
-type writeCounter struct {
-	BytesDownloaded int64
-	TotalBytes      int64
+	err = os.Remove(Filename)
+	if err != nil {
+		printErrorProps := S.PrintErrorProps{
+			Error:   err,
+			Message: "Something went wrong. Please try again.",
+		}
+		PrintError(printErrorProps)
+	}
+	return uploadedURL
 }
