@@ -50,7 +50,7 @@ New-Alias -Name assemblyai -Value $Env:Programfiles/AssemblyAI/assemblyai.exe
 
 ## Getting started
 
-Get started by configuring the CLI with your AssemblyAI token. If you don't yet have an account, create one [here](https://app.assemblyai.com/).
+Get started by configuring the CLI with your AssemblyAI token. If you don't yet have an account, create one [here](https://www.assemblyai.com/app).
 
 ```bash
 assemblyai config [token]
