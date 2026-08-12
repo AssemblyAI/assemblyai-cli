@@ -1,8 +1,11 @@
 # AssemblyAI CLI
 
-![Release](https://img.shields.io/github/v/release/assemblyai/assemblyai-cli)
-![Build](https://img.shields.io/github/actions/workflow/status/assemblyai/assemblyai-cli/release.yml)
-![License](https://img.shields.io/github/license/assemblyai/assemblyai-cli)
+> [!IMPORTANT]
+> As of August 2026, this repo for the AssemblyAI CLI **has been discontinued** and will no longer be maintained.
+>
+> While this repo specifically will no longer be updated, we are working on a new version of the CLI that is located [here](https://github.com/AssemblyAI/cli).
+>
+> We know this is a disruptive change. If you need help with this transition, [reach out to our Support team](https://www.assemblyai.com/contact/support) and we'll help you in any way we can.
 
 The AssemblyAI CLI helps you quickly test our latest AI models right from your terminal, with minimal installation required.
 
