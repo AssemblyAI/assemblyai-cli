@@ -275,14 +275,6 @@ The AssemblyAI CLI includes a telemetry feature that collects usage data and is 
 
 To opt out of telemetry, set the telemetry variable in the `config.toml` file to false.
 
-## Upgrade
-
-Our team regularly releases updates to ensure world-class service, so make sure to update your CLI when a new release is available. You can do so by running the same commands as shown on the [Installation](#installation) section, or, if you've installed using brew, run:
-
-```bash
-brew upgrade assemblyai
-```
-
 ## Feedback
 
 Please don't hesitate to [let us know what you think](https://forms.gle/oQgktMWyL7xStH2J8)!
