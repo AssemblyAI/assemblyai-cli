@@ -1,8 +1,11 @@
 # AssemblyAI CLI
 
-![Release](https://img.shields.io/github/v/release/assemblyai/assemblyai-cli)
-![Build](https://img.shields.io/github/actions/workflow/status/assemblyai/assemblyai-cli/release.yml)
-![License](https://img.shields.io/github/license/assemblyai/assemblyai-cli)
+> [!IMPORTANT]
+> As of August 2026, this repo for the AssemblyAI CLI **has been discontinued** and will no longer be maintained.
+>
+> While this repo specifically will no longer be updated, we are working on a new version of the CLI that is located [here](https://github.com/AssemblyAI/cli).
+>
+> We know this is a disruptive change. If you need help with this transition, [reach out to our Support team](https://www.assemblyai.com/contact/support) and we'll help you in any way we can.
 
 The AssemblyAI CLI helps you quickly test our latest AI models right from your terminal, with minimal installation required.
 
@@ -271,14 +274,6 @@ We're more than happy to welcome new contributors. If there's something you'd li
 The AssemblyAI CLI includes a telemetry feature that collects usage data and is enabled by default.
 
 To opt out of telemetry, set the telemetry variable in the `config.toml` file to false.
-
-## Upgrade
-
-Our team regularly releases updates to ensure world-class service, so make sure to update your CLI when a new release is available. You can do so by running the same commands as shown on the [Installation](#installation) section, or, if you've installed using brew, run:
-
-```bash
-brew upgrade assemblyai
-```
 
 ## Feedback
 
