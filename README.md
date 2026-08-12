@@ -1,4 +1,4 @@
-# AssemblyAI CLI
+# AssemblyAI CLI (Retired)
 
 > [!IMPORTANT]
 > As of August 2026, this repo for the AssemblyAI CLI **has been discontinued** and will no longer be maintained.
