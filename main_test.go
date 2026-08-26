@@ -103,6 +103,7 @@ func TestTranscribeWithFlags(t *testing.T) {
 		"--speaker_labels",
 		"--summarization",
 		"--topic_detection",
+		"--speech_model=nano",
 		"-p=false",
 		"-j",
 		"--test",
@@ -146,6 +147,9 @@ func TestTranscribeWithFlags(t *testing.T) {
 	}
 	if *result.IabCategories != true {
 		t.Errorf("Expected IAB Categories(Topic detection) true, got false.")
+	}
+	if result.SpeechModel == nil || *result.SpeechModel != "nano" {
+		t.Errorf("Expected speech_model to be 'nano', got '%v'.", result.SpeechModel)
 	}
 }
 

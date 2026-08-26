@@ -129,6 +129,9 @@ var transcribeCmd = &cobra.Command{
 				}
 				params.SummaryModel = summaryModel
 			}
+
+			speechModel, _ := cmd.Flags().GetString("speech_model")
+			params.SpeechModel = &speechModel
 		}
 
 		if params.RedactPii {
@@ -278,6 +281,7 @@ func init() {
 	transcribeCmd.PersistentFlags().StringP("webhook_url", "w", "", "Receive a webhook once your transcript is complete.")
 	transcribeCmd.PersistentFlags().StringP("word_boost", "k", "", "The value of this flag MUST be used surrounded by quotes. Any term included will have its likelihood of being transcribed boosted.")
 	transcribeCmd.PersistentFlags().StringP("summary_model", "q", "informative", "The model used to generate the summary.")
+	transcribeCmd.PersistentFlags().StringP("speech_model", "", "", "The speech model to use for the transcription. Allowed values: see https://www.assemblyai.com/docs/api-reference/transcripts/submit#request.body.speech_model")
 
 	transcribeCmd.Flags().Bool("test", false, "Flag for test executing purpose")
 	transcribeCmd.Flags().MarkHidden("test")

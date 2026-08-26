@@ -62,6 +62,7 @@ type TranscriptResponse struct {
 	SentimentAnalysis        *bool                      `json:"sentiment_analysis,omitempty"`
 	SentimentAnalysisResults *[]SentimentAnalysisResult `json:"sentiment_analysis_results,omitempty"`
 	SpeakerLabels            bool                       `json:"speaker_labels,omitempty"`
+	SpeechModel              *string                    `json:"speech_model,omitempty"`
 	SpeedBoost               *bool                      `json:"speed_boost,omitempty"`
 	Status                   *string                    `json:"status,omitempty"`
 	Summarization            *bool                      `json:"summarization,omitempty"`
@@ -208,6 +209,7 @@ type TranscribeParams struct {
 	WebhookAuthHeaderValue string           `json:"webhook_auth_header_value,omitempty"`
 	WebhookURL             string           `json:"webhook_url,omitempty"`
 	WordBoost              []string         `json:"word_boost,omitempty"`
+	SpeechModel            *string          `json:"speech_model,omitempty"`
 }
 
 type CustomSpelling struct {
